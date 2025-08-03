@@ -31,7 +31,7 @@ export type ModelDesc<
 export type AnyDesc = ModelDesc<any, any, any, any>;
 export type StrictAnyDesc = StrictDesc<any, any, any, any>;
 
-type FieldEntry = "string" | { id: string } | BelongsTo<any, any>;
+type FieldEntry = "string" | { id: string } | BelongsTo<any, any, any>;
 type FieldDesc = Record<string, FieldEntry>;
 
 export type HasManyEntry<TGetModel extends () => AnyDesc> = {
@@ -39,11 +39,19 @@ export type HasManyEntry<TGetModel extends () => AnyDesc> = {
   isSingleton: false;
 };
 
-export type HasOneEntry<TGetModel extends () => AnyDesc> = {
+type HasOneOpts = {
+  force: boolean;
+};
+
+export type HasOneEntry<
+  TGetModel extends () => AnyDesc,
+  Opts extends HasOneOpts,
+> = {
   getModel: TGetModel;
   isSingleton: true;
+  options: Opts;
 };
-type HasManyDesc = Record<string, HasManyEntry<any> | HasOneEntry<any>>;
+type HasManyDesc = Record<string, HasManyEntry<any> | HasOneEntry<any, any>>;
 
 type SetKey<
   TName extends string,
@@ -82,10 +90,15 @@ export const makeRoot = <N extends string, TMany extends HasManyDesc>(
   return null as any;
 };
 
-export const hasOne = <T extends () => StrictAnyDesc>(
+export const hasOne = <T extends () => StrictAnyDesc, Opts extends HasOneOpts>(
   getModel: T,
-): HasOneEntry<T> => {
-  return { getModel, isSingleton: true };
+  options?: Partial<Opts>,
+): HasOneEntry<T, { force: Opts["force"] }> => {
+  return {
+    getModel,
+    isSingleton: true,
+    options: { force: options?.force ?? false },
+  };
 };
 
 export const hasMany = <T extends () => StrictAnyDesc>(
@@ -94,41 +107,46 @@ export const hasMany = <T extends () => StrictAnyDesc>(
   return { getModel, isSingleton: false };
 };
 
-type BelongsTo<TRel extends string, TModelGetter extends () => AnyDesc> = {
+type BelongsToOpts = {
+  optional: boolean;
+};
+
+export type BelongsTo<
+  TRel extends string,
+  TModelGetter extends () => AnyDesc,
+  Opts extends BelongsToOpts,
+> = {
   relName: TRel;
   getModel: TModelGetter;
+  options: Opts;
 };
 
 export const belongsTo = <
   TRel extends string,
   TModelGetter extends () => AnyDesc,
+  Opts extends BelongsToOpts,
 >(
   relName: TRel,
   getModel: TModelGetter,
-): BelongsTo<TRel, TModelGetter> => {
-  return { relName, getModel };
+  options?: Partial<Opts>,
+): BelongsTo<TRel, TModelGetter, { optional: Opts["optional"] }> => {
+  return {
+    relName,
+    getModel,
+    options: { optional: options?.optional ?? false },
+  };
 };
 
 export type InferFieldType<T extends FieldEntry> = T extends "string"
   ? string
   : T extends { id: infer X }
     ? X
-    : T extends BelongsTo<any, () => StrictDesc<any, infer F, any, infer K>>
+    : T extends BelongsTo<
+          any,
+          () => StrictDesc<any, infer F, any, infer K>,
+          any
+        >
       ? K extends keyof F
         ? InferFieldType<F[K]>
         : never
       : never;
-
-type InferFieldsAndBelongsTo<T extends Record<string, any>> = {
-  [K in keyof T]: InferFieldType<T[K]>;
-} & {
-  [K in keyof T as T[K] extends BelongsTo<infer TRel, any>
-    ? TRel
-    : never]: T[K] extends BelongsTo<any, infer TGetModel>
-    ? InferModel<ReturnType<TGetModel>>
-    : never;
-};
-
-export type InferModel<T extends StrictAnyDesc> = InferFieldsAndBelongsTo<
-  T["fields"]
->;

@@ -5,7 +5,6 @@ import {
   idField,
   makeModel,
   makeRoot,
-  type InferModel,
 } from "./_desc";
 import type { Nominal } from "./_type-helpers";
 
@@ -16,7 +15,7 @@ export const accountDesc = makeModel("Account")
     name: "string",
     subdomain: "string",
     parentId: belongsTo("parent", () => accountDesc),
-    creatorId: belongsTo("creator", () => userDesc),
+    creatorId: belongsTo("creator", () => userDesc, { optional: true }),
   })
   .hasMany({
     subAccounts: hasMany(() => accountDesc),
@@ -40,7 +39,7 @@ export const userDesc = makeModel("User")
   .key("id");
 
 export const rootDesc = makeRoot("_root", {
-  account: hasOne(() => accountDesc),
+  account: hasOne(() => accountDesc, { force: true }),
   loggedInUser: hasOne(() => userDesc),
   allAcounts: hasMany(() => accountDesc),
 });
