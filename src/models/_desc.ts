@@ -33,11 +33,11 @@ export type ModelDesc<
 export type AnyDesc = ModelDesc<any, any, any, any[]>;
 export type StrictAnyDesc = StrictDesc<any, any, any, any[]>;
 
-type FieldEntry =
-  | { type: "string" }
+export type FieldEntry =
+  | { type: "string" | "date" }
   | { type: "id"; model: string }
   | BelongsTo<any, any, any>;
-type FieldDesc = Record<string, FieldEntry>;
+export type FieldDesc = Record<string, FieldEntry>;
 
 export type HasManyEntry<TGetModel extends () => AnyDesc> = {
   getModel: TGetModel;
@@ -192,17 +192,19 @@ export const belongsTo = <
 
 export type InferFieldType<T extends FieldEntry> = T extends { type: "string" }
   ? string
-  : T extends { type: "id"; model: infer X }
-    ? X
-    : T extends {
-          type: "belongsTo";
-          value: BelongsTo<
-            any,
-            () => StrictDesc<any, infer F, any, infer K>,
-            any
-          >;
-        }
-      ? K extends keyof F
-        ? InferFieldType<F[K]>
-        : never
-      : never;
+  : T extends { type: "date" }
+    ? Date
+    : T extends { type: "id"; model: infer X }
+      ? X
+      : T extends {
+            type: "belongsTo";
+            value: BelongsTo<
+              any,
+              () => StrictDesc<any, infer F, any, infer K>,
+              any
+            >;
+          }
+        ? K extends keyof F
+          ? InferFieldType<F[K]>
+          : never
+        : never;

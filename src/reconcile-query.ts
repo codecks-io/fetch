@@ -27,7 +27,8 @@ export const reconcileRootQuery = <T extends RelDict<typeof rootDesc>>(
         modelFields as any,
         response,
         relDesc.getModel(),
-        id,
+        // TODO: we somehow should ensure that all ids are string!?
+        `${id}`,
         pool,
       );
     }
@@ -45,48 +46,38 @@ export const reconcileInstanceQuery = <
   key: string,
   pool: ModelPool,
 ): InferModelDict<M, T> => {
-  const instance = pool.get(instanceModel.name, `${key}`);
+  const instance = pool.get(instanceModel.name, key);
   if (!instance) {
     console.warn(`no instance found in pool: [${instanceModel.name}, ${key}]`);
     return null as any;
   }
-  const result: Record<string, any> = { "~model": instanceModel };
+  const result: Record<string, any> = { "~model": instanceModel, "~key": key };
   instanceModel.keys.map((k) => (result[k] = instance[k]));
   for (const field of query.fields || []) {
     result[field as string] = instance[field];
   }
-  for (const [relName, modelFields] of Object.entries(query.relations || {})) {
-    const belongsToKey = instanceModel.belongsToMap[relName];
-    const getRelDesc = () => {
-      if (belongsToKey) {
-        return instanceModel.fields[belongsToKey].getModel();
-      } else {
-        return instanceModel.hasMany[relName];
-      }
-    };
-    const relDesc = getRelDesc();
-    if (!relDesc) {
-      throw new Error(
-        `Can't find relation ${relName} in ${instanceModel.name}`,
-      );
-    }
-    const idObj = instance[belongsToKey ?? relName];
-    if (belongsToKey) {
-      result[belongsToKey] = idObj;
-      if (!idObj) {
-        result[relName] = null;
-      } else {
-        result[relName] = reconcileInstanceQuery(
-          modelFields as any,
-          response,
-          relDesc,
-          idObj,
-          pool,
+  for (const [relName, _modelFields] of Object.entries(query.relations || {})) {
+    const modelFieldsList = Array.isArray(_modelFields)
+      ? _modelFields
+      : [_modelFields];
+    for (const modelFields of modelFieldsList) {
+      const belongsToKey = instanceModel.belongsToMap[relName];
+      const getRelDesc = () => {
+        if (belongsToKey) {
+          return instanceModel.fields[belongsToKey].getModel();
+        } else {
+          return instanceModel.hasMany[relName];
+        }
+      };
+      const relDesc = getRelDesc();
+      if (!relDesc) {
+        throw new Error(
+          `Can't find relation ${relName} in ${instanceModel.name}`,
         );
       }
-    } else {
-      result[`~${relName}`] = idObj;
-      if (relDesc.isSingleton) {
+      const idObj = instance[belongsToKey ?? relName];
+      if (belongsToKey) {
+        result[belongsToKey] = idObj;
         if (!idObj) {
           result[relName] = null;
         } else {
@@ -94,20 +85,36 @@ export const reconcileInstanceQuery = <
             modelFields as any,
             response,
             relDesc,
-            idObj,
+            `${idObj}`,
             pool,
           );
         }
       } else {
-        result[relName] = (idObj as any[]).map((id) =>
-          reconcileInstanceQuery(
-            modelFields as any,
-            response,
-            relDesc.getModel(),
-            id,
-            pool,
-          ),
-        );
+        const asName = (modelFields as any).as ?? relName;
+        result[`~${asName}`] = idObj;
+        if (relDesc.isSingleton) {
+          if (!idObj) {
+            result[asName] = null;
+          } else {
+            result[asName] = reconcileInstanceQuery(
+              modelFields as any,
+              response,
+              relDesc,
+              `${idObj}`,
+              pool,
+            );
+          }
+        } else {
+          result[asName] = (idObj as any[]).map((id) =>
+            reconcileInstanceQuery(
+              modelFields as any,
+              response,
+              relDesc.getModel(),
+              `${id}`,
+              pool,
+            ),
+          );
+        }
       }
     }
   }

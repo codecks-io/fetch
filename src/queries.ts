@@ -16,7 +16,7 @@ type Fetchers = {
     q: T,
   ) => Promise<InferRelDict<typeof rootDesc, T>>;
   fetchFromInstance: <M extends StrictAnyDesc, const T extends ModelDict<M>>(
-    instance: Instance<M> & Record<string, any>,
+    instance: Instance<M>,
     q: T,
   ) => Promise<InferModelDict<M, T>>;
   // fetchFromInstances: <M extends StrictAnyDesc, const T extends ModelDict<M>>(
@@ -89,7 +89,7 @@ export const buildFetchers = (opts: FetcherOptions = {}): Fetchers => {
         q,
         response,
         instance["~model"],
-        instance.id,
+        instance["~key"],
         pool,
       );
     },

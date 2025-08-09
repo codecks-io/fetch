@@ -151,6 +151,7 @@ export type InferRelDict<
 
 export type Instance<M extends StrictAnyDesc> = {
   "~model": M;
+  "~key": string;
 };
 
 // export const modelQuery = <

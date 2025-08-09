@@ -33,6 +33,14 @@ test("has many", () => {
   ).toEqual({ _root: { account: [{ roles: ["role"] }] } });
 });
 
+test("has many named", () => {
+  expect(
+    serializeRootQuery({
+      account: { relations: { roles: [{ fields: ["role"], as: "myRoles" }] } },
+    }),
+  ).toEqual({ _root: { account: [{ roles: ["role"] }] } });
+});
+
 test("complex", () => {
   expect(
     serializeRootQuery({

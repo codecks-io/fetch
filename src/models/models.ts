@@ -15,6 +15,7 @@ export const accountDesc = makeModel("account")
     id: idField<AccountId>(),
     name: { type: "string" },
     subdomain: { type: "string" },
+    createdAt: { type: "date" },
     disabledBy: belongsTo("disabledByUser", () => userDesc, { optional: true }),
   })
   .hasMany({
@@ -28,6 +29,7 @@ export const userDesc = makeModel("user")
     id: idField<UserId>(),
     name: { type: "string" },
     fullName: { type: "string" },
+    createdAt: { type: "date" },
   })
   .hasMany({
     accountRoles: hasMany(() => accountRoleDesc),
@@ -42,8 +44,8 @@ export const rootDesc = makeRoot("_root", {
 export const accountRoleDesc = makeModel("accountRole")
   .fields({
     role: { type: "string" },
-    createdAt: { type: "string" },
-    lastChangedAt: { type: "string" },
+    createdAt: { type: "date" },
+    lastChangedAt: { type: "date" },
     userId: belongsTo("user", () => userDesc),
     accountId: belongsTo("account", () => userDesc),
   })

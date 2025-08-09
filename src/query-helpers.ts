@@ -7,12 +7,15 @@ const serializeModel = (q: ModelDict<any>, modelDesc: any) => {
   if (!q.relations) return list;
   const relObj: Record<string, unknown> = {};
   list.push(relObj);
-  Object.entries(q.relations).forEach(([k, v]) => {
-    const getKey = () => {
-      const belongsToKey = modelDesc.belongsToMap[k];
-      return belongsToKey || k;
-    };
-    relObj[getKey()] = serializeModel(v as ModelDict<any>, modelDesc);
+  Object.entries(q.relations).forEach(([k, _v]) => {
+    const rels = Array.isArray(_v) ? _v : [_v];
+    rels.forEach((r) => {
+      const getKey = () => {
+        const belongsToKey = modelDesc.belongsToMap[k];
+        return belongsToKey || k;
+      };
+      relObj[getKey()] = serializeModel(r as ModelDict<any>, modelDesc);
+    });
   });
   return list;
 };
@@ -39,12 +42,8 @@ export const serializeInstanceQuery = (
   return Object.fromEntries(
     instances.map((instance) => {
       const desc = instance["~model"];
-      const getId = () => {
-        if (desc.keys.length === 1) return (instance as any)[desc.keys[0]];
-        return JSON.stringify(desc.keys.map((f) => (instance as any)[f]));
-      };
       return [
-        `${desc.name}(${getId()})`,
+        `${desc.name}(${instance["~key"]})`,
         serializeModel(q, instance["~model"]),
       ];
     }),

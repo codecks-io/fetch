@@ -8,7 +8,7 @@ const getFetchers = () =>
   });
 
 const simplifyModel = (obj: Record<string, any>) => {
-  if (typeof obj !== "object" || !obj) return obj;
+  if (typeof obj !== "object" || !obj || obj instanceof Date) return obj;
   return Object.fromEntries(
     Object.entries(obj).map(([key, value]) => {
       const getValue = (): any => {
@@ -31,20 +31,21 @@ test("base root test", async () => {
     },
   });
   await expect(simplifyModel(response)).toEqual({
-    account: { "~model": "account", name: "myOrg", id: 1 },
+    account: { "~model": "account", "~key": "1", name: "myOrg", id: 1 },
   });
 });
 
 test("base model test", async () => {
   const { fetchFromInstance } = getFetchers();
   const response = await fetchFromInstance(
-    { "~model": accountDesc, id: 1 },
+    { "~model": accountDesc, "~key": "1" },
     { fields: ["name", "subdomain"] },
   );
   await expect(simplifyModel(response)).toEqual({
+    "~model": "account",
+    "~key": "1",
     id: 1,
     name: "myOrg",
-    "~model": "account",
     subdomain: "myorg",
   });
 });
@@ -52,16 +53,18 @@ test("base model test", async () => {
 test("belongsTo", async () => {
   const { fetchFromInstance } = getFetchers();
   const response = await fetchFromInstance(
-    { "~model": accountDesc, id: 1 },
+    { "~model": accountDesc, "~key": "1" },
     { fields: ["name"], relations: { disabledByUser: { fields: ["name"] } } },
   );
   await expect(simplifyModel(response)).toEqual({
     "~model": "account",
+    "~key": "1",
     id: 1,
     name: "myOrg",
     disabledBy: 2,
     disabledByUser: {
       "~model": "user",
+      "~key": "2",
       id: 2,
       name: "daniel",
     },
@@ -71,11 +74,12 @@ test("belongsTo", async () => {
 test("belongsToIsNull", async () => {
   const { fetchFromInstance } = getFetchers();
   const response = await fetchFromInstance(
-    { "~model": accountDesc, id: 2 },
+    { "~model": accountDesc, "~key": "2" },
     { fields: ["name"], relations: { disabledByUser: { fields: ["name"] } } },
   );
   await expect(simplifyModel(response)).toEqual({
     "~model": "account",
+    "~key": "2",
     id: 2,
     name: "myOrg2",
     disabledBy: null,
@@ -86,27 +90,112 @@ test("belongsToIsNull", async () => {
 test("hasMany", async () => {
   const { fetchFromInstance } = getFetchers();
   const response = await fetchFromInstance(
-    { "~model": accountDesc, id: 1 },
+    { "~model": accountDesc, "~key": "1" },
     { fields: ["name"], relations: { roles: { fields: ["role"] } } },
   );
   await expect(simplifyModel(response)).toEqual({
     "~model": "account",
+    "~key": "1",
     id: 1,
     name: "myOrg",
     "~roles": ["[1,1]", "[1,2]"],
     roles: [
       {
         "~model": "accountRole",
+        "~key": "[1,1]",
         accountId: 1,
         userId: 1,
         role: "admin",
       },
       {
         "~model": "accountRole",
+        "~key": "[1,2]",
         accountId: 1,
         userId: 2,
         role: "member",
       },
     ],
+  });
+});
+
+test("hasManyNamed", async () => {
+  const { fetchFromInstance } = getFetchers();
+  const response = await fetchFromInstance(
+    { "~model": accountDesc, "~key": "1" },
+    {
+      fields: ["name"],
+      relations: { roles: { as: "myRoles", fields: ["role"] } },
+    },
+  );
+  await expect(simplifyModel(response)).toEqual({
+    "~model": "account",
+    "~key": "1",
+    id: 1,
+    name: "myOrg",
+    "~myRoles": ["[1,1]", "[1,2]"],
+    myRoles: [
+      {
+        "~model": "accountRole",
+        "~key": "[1,1]",
+        accountId: 1,
+        userId: 1,
+        role: "admin",
+      },
+      {
+        "~model": "accountRole",
+        "~key": "[1,2]",
+        accountId: 1,
+        userId: 2,
+        role: "member",
+      },
+    ],
+  });
+});
+
+test("hasManyNamedInArray", async () => {
+  const { fetchFromInstance } = getFetchers();
+  const response = await fetchFromInstance(
+    { "~model": accountDesc, "~key": "1" },
+    {
+      fields: ["name"],
+      relations: { roles: [{ as: "myRoles", fields: ["role"] }] },
+    },
+  );
+  await expect(simplifyModel(response)).toEqual({
+    "~model": "account",
+    "~key": "1",
+    id: 1,
+    name: "myOrg",
+    "~myRoles": ["[1,1]", "[1,2]"],
+    myRoles: [
+      {
+        "~model": "accountRole",
+        "~key": "[1,1]",
+        accountId: 1,
+        userId: 1,
+        role: "admin",
+      },
+      {
+        "~model": "accountRole",
+        "~key": "[1,2]",
+        accountId: 1,
+        userId: 2,
+        role: "member",
+      },
+    ],
+  });
+});
+
+test("transform fields", async () => {
+  const { fetchFromInstance } = getFetchers();
+  const response = await fetchFromInstance(
+    { "~model": accountDesc, "~key": "1" },
+    { fields: ["createdAt"] },
+  );
+  await expect(simplifyModel(response)).toEqual({
+    "~model": "account",
+    "~key": "1",
+    id: 1,
+    createdAt: new Date("2015-01-01T00:00:00.000Z"),
   });
 });
