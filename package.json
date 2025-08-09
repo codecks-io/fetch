@@ -36,6 +36,7 @@
   "devDependencies": {
     "@types/node": "^22.15.17",
     "bumpp": "^10.1.0",
+    "msw": "^2.10.4",
     "prettier": "^3.6.2",
     "tsdown": "^0.11.9",
     "typescript": "^5.9.2",

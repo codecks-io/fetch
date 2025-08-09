@@ -1,6 +1,5 @@
 import type { BelongsTo, InferFieldType, StrictAnyDesc } from "./models/_desc";
 import type { FilterNeverKeys } from "./models/_type-helpers";
-import { accountDesc, rootDesc } from "./models/Account";
 
 type EnsureStrictAnyDesc<T> = T extends StrictAnyDesc ? T : never;
 
@@ -62,7 +61,7 @@ type ExtractBelongsToWithOpts<M extends StrictAnyDesc> = {
     : never;
 };
 
-type ModelDict<T extends StrictAnyDesc> = {
+export type ModelDict<T extends StrictAnyDesc> = {
   fields?: (keyof T["fields"])[];
   relations?: RelDict<T>;
 };
@@ -75,7 +74,7 @@ type ModelDictWithQuery<T extends StrictAnyDesc> = ModelDict<T> & {
 type NamedModelDictWithQuery<T extends StrictAnyDesc> =
   ModelDictWithQuery<T> & { as: string };
 
-type RelDict<T extends StrictAnyDesc> = {
+export type RelDict<T extends StrictAnyDesc> = {
   [K in keyof ExtractHasMany<T>]?:
     | ModelDictWithQuery<ExtractHasMany<T>[K]>
     | NamedModelDictWithQuery<ExtractHasMany<T>[K]>[];
@@ -85,13 +84,17 @@ type RelDict<T extends StrictAnyDesc> = {
   [K in keyof ExtractBelongsTo<T>]?: ModelDict<ExtractBelongsTo<T>[K]>;
 };
 
-type InferModelDict<
+export type InferModelDict<
   M extends StrictAnyDesc,
   T extends ModelDict<M>,
 > = (T["fields"] extends (keyof M["fields"])[]
   ? { [K in T["fields"][number]]: InferFieldType<M["fields"][K]> }
   : {}) &
-  (T["relations"] extends RelDict<M> ? InferRelDict<M, T["relations"]> : {});
+  (T["relations"] extends RelDict<M> ? InferRelDict<M, T["relations"]> : {}) & {
+    [K in M["keys"] & string]: InferFieldType<M["fields"][K]>;
+  } & {
+    "~model": M;
+  };
 
 type ExtractNamedRelations<M extends StrictAnyDesc, T extends RelDict<M>> = {
   [K in keyof T]: K extends keyof ExtractHasMany<M>
@@ -108,7 +111,7 @@ type ExtractNamedRelations<M extends StrictAnyDesc, T extends RelDict<M>> = {
 
 type EmptyObjIfNever<T> = [T] extends [never] ? {} : T;
 
-type InferRelDict<
+export type InferRelDict<
   M extends StrictAnyDesc,
   T extends RelDict<M>,
 > = EmptyObjIfNever<ExtractNamedRelations<M, T>> & {
@@ -146,45 +149,30 @@ type InferRelDict<
         : never;
 };
 
-export const rootQuery = <const T extends RelDict<typeof rootDesc>>(
-  q: T,
-): InferRelDict<typeof rootDesc, T> => {
-  return null as any;
+export type Instance<M extends StrictAnyDesc> = {
+  "~model": M;
 };
 
-const r = rootQuery({
-  account: {
-    fields: ["name", "id"],
-    relations: {
-      members: { fields: ["email"] },
-    },
-  },
-  allAcounts: { as: "yes", fields: ["name"] },
-});
+// export const modelQuery = <
+//   M extends StrictAnyDesc,
+//   const T extends ModelDict<M>,
+// >(
+//   model: M,
+//   q: T,
+// ): InferModelDict<M, T> => {
+//   return null as any;
+// };
 
-r.yes[0].name;
-r.account.name;
-
-export const modelQuery = <
-  M extends StrictAnyDesc,
-  const T extends ModelDict<M>,
->(
-  model: M,
-  q: T,
-): InferModelDict<M, T> => {
-  return null as any;
-};
-
-export const a = modelQuery(accountDesc, {
-  fields: ["name", "subdomain"],
-  relations: {
-    creator: {
-      fields: ["email"],
-      relations: {
-        bestFriend: {
-          fields: ["email"],
-        },
-      },
-    },
-  },
-});
+// export const a = modelQuery(accountDesc, {
+//   fields: ["name", "subdomain"],
+//   // relations: {
+//   //   creator: {
+//   //     fields: ["email"],
+//   //     relations: {
+//   //       bestFriend: {
+//   //         fields: ["email"],
+//   //       },
+//   //     },
+//   //   },
+//   // },
+// });

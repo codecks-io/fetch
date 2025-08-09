@@ -1,37 +1,42 @@
-export const idField = <T>(): { id: T } => {
-  return null as any;
+export const idField = <T extends string>(): FieldEntry => {
+  return { type: "id", model: "_" };
 };
 
 type StrictDesc<
   TName extends string,
   TFields extends FieldDesc,
   THasMany extends HasManyDesc,
-  TKey,
+  TKey extends string[],
 > = {
   name: TName;
-  key: TKey;
+  keys: TKey;
   fields: TFields;
   hasMany: THasMany;
+  belongsToMap: Record<string, string>;
 };
 
 export type ModelDesc<
   TName extends string,
   TFields extends FieldDesc,
   THasMany extends HasManyDesc,
-  TKey,
+  TKey extends string[],
 > = {
   name: TName;
-  key: TKey;
+  keys: TKey;
   fields: TFields;
   hasMany: THasMany;
+  belongsToMap: Record<string, string>;
 } & (TName & {});
 
 // don't ask me why the TName works... but it does, otherwise circular references do not work...
 
-export type AnyDesc = ModelDesc<any, any, any, any>;
-export type StrictAnyDesc = StrictDesc<any, any, any, any>;
+export type AnyDesc = ModelDesc<any, any, any, any[]>;
+export type StrictAnyDesc = StrictDesc<any, any, any, any[]>;
 
-type FieldEntry = "string" | { id: string } | BelongsTo<any, any, any>;
+type FieldEntry =
+  | { type: "string" }
+  | { type: "id"; model: string }
+  | BelongsTo<any, any, any>;
 type FieldDesc = Record<string, FieldEntry>;
 
 export type HasManyEntry<TGetModel extends () => AnyDesc> = {
@@ -58,10 +63,13 @@ type SetKey<
   TFields extends FieldDesc,
   THasMany extends HasManyDesc,
 > = {
-  key: <TKey extends keyof TFields>(
+  key: <TKey extends keyof TFields & string>(
     key: TKey,
-  ) => ModelDesc<TName, TFields, THasMany, TKey>;
-  compoundKey: <K1 extends keyof TFields, K2 extends keyof TFields>(
+  ) => ModelDesc<TName, TFields, THasMany, [TKey]>;
+  compoundKey: <
+    K1 extends keyof TFields & string,
+    K2 extends keyof TFields & string,
+  >(
     k1: K1,
     k2: K2,
   ) => ModelDesc<TName, TFields, THasMany, [K1, K2]>;
@@ -80,14 +88,57 @@ type SetFields<TName extends string> = {
 };
 
 export const makeModel = <N extends string>(name: N): SetFields<N> => {
-  return null as any;
+  const m: StrictAnyDesc = {
+    name,
+    fields: {},
+    hasMany: {},
+    keys: [] as any[],
+    belongsToMap: {},
+  };
+
+  const setKey: SetKey<any, any, any> = {
+    key: (key) => {
+      m.keys = [key];
+      return m as any;
+    },
+    compoundKey: (k1, k2) => {
+      m.keys = [k1, k2];
+      return m as any;
+    },
+  };
+
+  const setHasMany: SetHasMany<any, any> = {
+    hasMany: (hasMany: any) => {
+      m.hasMany = hasMany;
+      return setKey;
+    },
+  };
+
+  return {
+    fields: (fields) => {
+      m.fields = fields;
+      Object.entries(fields).forEach(([k, v]) => {
+        if (v.type === "belongsTo") {
+          m.belongsToMap[v.relName] = k;
+        }
+      });
+      return setHasMany;
+    },
+  };
 };
 
 export const makeRoot = <N extends string, TMany extends HasManyDesc>(
   name: N,
   hasMany: TMany,
-): ModelDesc<N, {}, TMany, never> => {
-  return null as any;
+): ModelDesc<N, {}, TMany, []> => {
+  const m: StrictAnyDesc = {
+    name,
+    fields: {},
+    hasMany: hasMany,
+    keys: [],
+    belongsToMap: {},
+  };
+  return m as any;
 };
 
 export const hasOne = <T extends () => StrictAnyDesc, Opts extends HasOneOpts>(
@@ -116,6 +167,7 @@ export type BelongsTo<
   TModelGetter extends () => AnyDesc,
   Opts extends BelongsToOpts,
 > = {
+  type: "belongsTo";
   relName: TRel;
   getModel: TModelGetter;
   options: Opts;
@@ -131,21 +183,25 @@ export const belongsTo = <
   options?: Partial<Opts>,
 ): BelongsTo<TRel, TModelGetter, { optional: Opts["optional"] }> => {
   return {
+    type: "belongsTo",
     relName,
     getModel,
     options: { optional: options?.optional ?? false },
   };
 };
 
-export type InferFieldType<T extends FieldEntry> = T extends "string"
+export type InferFieldType<T extends FieldEntry> = T extends { type: "string" }
   ? string
-  : T extends { id: infer X }
+  : T extends { type: "id"; model: infer X }
     ? X
-    : T extends BelongsTo<
-          any,
-          () => StrictDesc<any, infer F, any, infer K>,
-          any
-        >
+    : T extends {
+          type: "belongsTo";
+          value: BelongsTo<
+            any,
+            () => StrictDesc<any, infer F, any, infer K>,
+            any
+          >;
+        }
       ? K extends keyof F
         ? InferFieldType<F[K]>
         : never
