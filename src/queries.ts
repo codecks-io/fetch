@@ -11,6 +11,8 @@ import type {
 } from "./query-type";
 import { reconcileInstanceQuery, reconcileRootQuery } from "./reconcile-query";
 
+type ModelMap = typeof modelMap;
+
 type Fetchers = {
   fetchFromRoot: <const T extends RelDict<typeof rootDesc>>(
     q: T,
@@ -19,23 +21,32 @@ type Fetchers = {
     instance: Instance<M>,
     q: T,
   ) => Promise<InferModelDict<M, T>>;
-  // fetchFromInstances: <M extends StrictAnyDesc, const T extends ModelDict<M>>(
-  //   instances: Instance<M>[],
-  //   q: T,
-  // ) => Promise<Record<string, InferModelDict<M, T>>>;
+  fetchInstance: <
+    K extends keyof ModelMap,
+    const T extends ModelDict<ModelMap[K]>,
+  >(
+    model: K,
+    id: string,
+    q: T,
+  ) => Promise<InferModelDict<ModelMap[K], T>>;
+  fetchInstances: <
+    K extends keyof ModelMap,
+    Id extends string,
+    const T extends ModelDict<ModelMap[K]>,
+  >(
+    model: K,
+    id: Id[],
+    q: T,
+  ) => Promise<Record<Id, InferModelDict<ModelMap[K], T>>>;
 };
 
 type FetchFunction = (url: string, init?: RequestInit) => Promise<Response>;
 
 type FetcherOptions = {
-  // Option 1: Use custom fetch implementation
   fetch?: FetchFunction;
-
-  // Option 2: Use default fetch but with configuration
   accessToken?: string;
+  subdomain?: string;
   baseUrl?: string;
-
-  // Additional common options
   headers?: Record<string, string>;
   timeout?: number;
 };
@@ -47,6 +58,9 @@ export const buildFetchers = (opts: FetcherOptions = {}): Fetchers => {
     const headers = new Headers(init.headers);
     if (opts.accessToken) {
       headers.set("X-Auth-Token", opts.accessToken);
+    }
+    if (opts.subdomain) {
+      headers.set("X-Account", opts.subdomain);
     }
     if (opts.headers) {
       Object.entries(opts.headers).forEach(([key, value]) => {
@@ -71,6 +85,26 @@ export const buildFetchers = (opts: FetcherOptions = {}): Fetchers => {
     });
     return response;
   };
+  const _fetchSingleInstance = async <
+    M extends StrictAnyDesc,
+    const T extends ModelDict<M>,
+  >(
+    instance: Instance<M>,
+    q: T,
+  ): Promise<InferModelDict<M, T>> => {
+    const response = await fetchWithQuery(
+      serializeInstanceQuery(q, [instance]),
+    );
+    const pool = new ModelPool(modelMap);
+    pool.add(response);
+    return reconcileInstanceQuery(
+      q,
+      response,
+      instance["~model"],
+      instance["~key"],
+      pool,
+    );
+  };
 
   return {
     fetchFromRoot: async (q) => {
@@ -79,32 +113,32 @@ export const buildFetchers = (opts: FetcherOptions = {}): Fetchers => {
       pool.add(response);
       return reconcileRootQuery(q, response, pool);
     },
-    fetchFromInstance: async (instance, q) => {
+    fetchFromInstance: _fetchSingleInstance,
+    fetchInstance: async (key, id, q) => {
+      const modelDesc = modelMap[key];
+      const instance: Instance<typeof modelDesc> = {
+        "~model": modelDesc,
+        "~key": id,
+      };
+      return _fetchSingleInstance(instance, q);
+    },
+    fetchInstances: async (key, ids, q) => {
+      const modelDesc = modelMap[key];
+      const instances: Instance<typeof modelDesc>[] = ids.map((id) => ({
+        "~model": modelDesc,
+        "~key": id,
+      }));
       const response = await fetchWithQuery(
-        serializeInstanceQuery(q, [instance]),
+        serializeInstanceQuery(q, instances),
       );
       const pool = new ModelPool(modelMap);
       pool.add(response);
-      return reconcileInstanceQuery(
-        q,
-        response,
-        instance["~model"],
-        instance["~key"],
-        pool,
-      );
+      return Object.fromEntries(
+        ids.map((id) => [
+          id,
+          reconcileInstanceQuery(q, response, modelDesc, id, pool),
+        ]),
+      ) as any;
     },
-    // fetchFromInstances: async (instances, q) => {
-    //   const getInstanceKey = (instance: Instance<StrictAnyDesc>) => {
-    //     const keys = instance["~model"].keys;
-    //     if (keys.length === 1) {
-    //       return (instance as any)[keys[0]];
-    //     }
-    //     return JSON.stringify(keys.map((f) => (instance as any)[f]));
-    //   }
-    //   const response = await fetchWithQuery(serializeInstanceQuery(q, instances));
-    //   const pool = new ModelPool(modelMap);
-    //   pool.add(response);
-    //   return Object.fromEntries(instances.map(instance => [getInstanceKey(instance)]))
-    // }
   };
 };

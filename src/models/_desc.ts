@@ -1,6 +1,4 @@
-export const idField = <T extends string>(): FieldEntry => {
-  return { type: "id", model: "_" };
-};
+import type { InferSimpleFieldEntry, SimpleFieldEntry } from "./_fields";
 
 type StrictDesc<
   TName extends string,
@@ -33,10 +31,7 @@ export type ModelDesc<
 export type AnyDesc = ModelDesc<any, any, any, any[]>;
 export type StrictAnyDesc = StrictDesc<any, any, any, any[]>;
 
-export type FieldEntry =
-  | { type: "string" | "date" }
-  | { type: "id"; model: string }
-  | BelongsTo<any, any, any>;
+export type FieldEntry = SimpleFieldEntry | BelongsTo<any, any, any>;
 export type FieldDesc = Record<string, FieldEntry>;
 
 export type HasManyEntry<TGetModel extends () => AnyDesc> = {
@@ -190,21 +185,13 @@ export const belongsTo = <
   };
 };
 
-export type InferFieldType<T extends FieldEntry> = T extends { type: "string" }
-  ? string
-  : T extends { type: "date" }
-    ? Date
-    : T extends { type: "id"; model: infer X }
-      ? X
-      : T extends {
-            type: "belongsTo";
-            value: BelongsTo<
-              any,
-              () => StrictDesc<any, infer F, any, infer K>,
-              any
-            >;
-          }
-        ? K extends keyof F
-          ? InferFieldType<F[K]>
-          : never
-        : never;
+export type InferFieldType<T extends FieldEntry> = T extends {
+  type: "belongsTo";
+  value: BelongsTo<any, () => StrictDesc<any, infer F, any, infer K>, any>;
+}
+  ? K extends keyof F
+    ? InferFieldType<F[K]>
+    : never
+  : T extends SimpleFieldEntry
+    ? InferSimpleFieldEntry<T>
+    : never;

@@ -1,6 +1,6 @@
 import { test, expect } from "vitest";
 import { buildFetchers } from "../src/queries";
-import { accountDesc } from "../src/models/models";
+import { accountDesc } from "../src/models/Account";
 
 const getFetchers = () =>
   buildFetchers({

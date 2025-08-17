@@ -8,21 +8,31 @@ const ROOT_ID = "";
 export type ApiResponse = Record<RootDesc["name"], Record<string, any>> &
   Record<string, Record<string, any>>;
 
-const transformData = (desc: StrictAnyDesc, data: Record<string, any>) => {
-  const result: Record<string, any> = {};
-  for (const [k, v] of Object.entries(data)) {
-    const field: FieldEntry = desc.fields[k];
-    if (!field) {
-      result[k] = v;
-      continue;
-    }
-    if (field.type === "date") {
-      result[k] = new Date(v);
-    } else {
-      result[k] = v;
-    }
+const dateStrToDay = (dateAsStr: string) => {
+  const parts = dateAsStr.split("-");
+  return {
+    year: parseInt(parts[0], 10),
+    month: parseInt(parts[1], 10),
+    day: parseInt(parts[2], 10),
+  };
+};
+
+const parseField = (v: any, field: FieldEntry | null) => {
+  if (!field) return v;
+  switch (field.type) {
+    case "date":
+      return new Date(v);
+    case "day":
+      return dateStrToDay(v);
+    default:
+      return v;
   }
-  return result;
+};
+
+const transformData = (desc: StrictAnyDesc, data: Record<string, any>) => {
+  return Object.fromEntries(
+    Object.entries(data).map(([k, v]) => [k, parseField(v, desc.fields[k])]),
+  );
 };
 
 export class ModelPool {
