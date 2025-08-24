@@ -5,16 +5,14 @@ import { userDesc } from "./User";
 import { accountDesc } from "./Account";
 
 
-export const accountRoleDesc = makeModel("accountRole")
+export const lastSeenCardUpvoteDesc = makeModel("lastSeenCardUpvote")
   .fields({
-    role: f.string(),
+    lastSeenAt: f.date(),
     createdAt: f.date(),
-    lastChangedAt: f.date(),
-    roleAsPrio: f.int(),
     userId: belongsTo("user", () => userDesc),
     accountId: belongsTo("account", () => accountDesc),
   })
   .hasMany({
     
   })
-  .compoundKey("accountId", "userId");
+  .compoundKey("userId", "accountId");

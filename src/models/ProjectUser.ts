@@ -2,19 +2,18 @@
 import { makeModel, belongsTo } from "./_desc";
 import * as f from "./_fields";
 import { userDesc } from "./User";
+import { projectDesc } from "./Project";
 import { accountDesc } from "./Account";
 
 
-export const accountRoleDesc = makeModel("accountRole")
+export const projectUserDesc = makeModel("projectUser")
   .fields({
-    role: f.string(),
-    createdAt: f.date(),
-    lastChangedAt: f.date(),
-    roleAsPrio: f.int(),
+    projectRole: f.string(),
     userId: belongsTo("user", () => userDesc),
+    projectId: belongsTo("project", () => projectDesc),
     accountId: belongsTo("account", () => accountDesc),
   })
   .hasMany({
     
   })
-  .compoundKey("accountId", "userId");
+  .compoundKey("projectId", "userId");

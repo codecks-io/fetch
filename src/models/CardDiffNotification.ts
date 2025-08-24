@@ -2,19 +2,22 @@
 import { makeModel, belongsTo } from "./_desc";
 import * as f from "./_fields";
 import { userDesc } from "./User";
+import { cardDesc } from "./Card";
 import { accountDesc } from "./Account";
 
 
-export const accountRoleDesc = makeModel("accountRole")
+export const cardDiffNotificationDesc = makeModel("cardDiffNotification")
   .fields({
-    role: f.string(),
+    changes: f.object<any>(),
+    asOwner: f.bool(),
+    changers: f.array<any>(),
+    lastUpdatedAt: f.date(),
     createdAt: f.date(),
-    lastChangedAt: f.date(),
-    roleAsPrio: f.int(),
     userId: belongsTo("user", () => userDesc),
+    cardId: belongsTo("card", () => cardDesc),
     accountId: belongsTo("account", () => accountDesc),
   })
   .hasMany({
     
   })
-  .compoundKey("accountId", "userId");
+  .compoundKey("userId", "cardId");

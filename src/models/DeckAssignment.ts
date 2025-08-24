@@ -1,20 +1,19 @@
 
 import { makeModel, belongsTo } from "./_desc";
 import * as f from "./_fields";
+import { deckDesc } from "./Deck";
 import { userDesc } from "./User";
 import { accountDesc } from "./Account";
 
 
-export const accountRoleDesc = makeModel("accountRole")
+export const deckAssignmentDesc = makeModel("deckAssignment")
   .fields({
-    role: f.string(),
-    createdAt: f.date(),
-    lastChangedAt: f.date(),
-    roleAsPrio: f.int(),
+    lastAssignedAt: f.date(),
+    deckId: belongsTo("deck", () => deckDesc),
     userId: belongsTo("user", () => userDesc),
     accountId: belongsTo("account", () => accountDesc),
   })
   .hasMany({
     
   })
-  .compoundKey("accountId", "userId");
+  .compoundKey("userId", "deckId");

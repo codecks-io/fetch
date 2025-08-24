@@ -62,18 +62,20 @@ function generateTs(schema: any): string {
 
   // belongsTo
   for (const b of schema.belongsTo || []) {
-    descImports.add("belongsTo");
     if (typeof b === "string") {
-      belongsToFields.set(`${b}Id`, capitalizeFirst(b));
-      belongsToLines.push(`${b}Id: belongsTo("${b}", () => ${b}Desc),`);
-      modelImports.set(b, [`${b}Desc`]);
+      const fk = `${b}Id`;
+      belongsToFields.set(fk, b);
+      belongsToLines.push(`${fk}: g.belongsTo<${fk}>("${b}"),`);
+      modelImports.set(b, [`${b}Id`]);
     } else if (typeof b === "object") {
       for (const [alias, def] of Object.entries<any>(b)) {
-        belongsToFields.set(def.fk, def.model);
+        const model = def.model ?? alias;
+        const fk = `${alias}Id`;
+        belongsToFields.set(fk, model);
         belongsToLines.push(
-          `${def.fk}: belongsTo("${alias}", () => ${def.model}Desc${def.optional ? ", { optional: true }" : ""}),`,
+          `${fk}: f.belongsTo<${fk}>("${alias}", ${def.optional ? ", { optional: true }" : ""}),`,
         );
-        modelImports.set(def.model, [`${def.model}Desc`]);
+        modelImports.set(model, [`${fk}`]);
       }
     }
   }
@@ -83,7 +85,7 @@ function generateTs(schema: any): string {
     if (typeof h === "string") {
       descImports.add("hasMany");
       hasManyLines.push(`${h}: hasMany(() => ${removeTrailingS(h)}Desc),`);
-      modelImports.set(h, [`${removeTrailingS(h)}Desc`]);
+      modelImports.set(removeTrailingS(h), [`${removeTrailingS(h)}Desc`]);
     } else if (typeof h === "object") {
       for (const [alias, def] of Object.entries<any>(h)) {
         const model = def.model ?? removeTrailingS(alias);
@@ -104,9 +106,7 @@ function generateTs(schema: any): string {
         const model = belongsToFields.get(idField)!;
         const modelList = modelImports.get(model);
         if (!modelList)
-          throw new Error(
-            `No ${idField} is not defined as belongsTo for ${name}?`,
-          );
+          throw new Error(`No ${idField} is defined as belongsTo for ${name}?`);
         modelList.push(`${model}Id`);
         fieldLines.unshift(`${idField}: f.id<${model}Id>(),`);
       } else {
@@ -129,6 +129,7 @@ function generateTs(schema: any): string {
   };
   const keyLine = getKeyLine();
   for (const [key, list] of modelImports) {
+    if (key === name) continue;
     imports.push(
       `import { ${list.join(", ")} } from "./${capitalizeFirst(key)}";`,
     );
@@ -153,18 +154,21 @@ export const ${name}Desc = makeModel("${name}")
 }
 
 // --- Main CLI ---
-const inputPath = process.argv[2];
-if (!inputPath) {
-  console.error("Usage: ts-node generate.ts <schema.json>");
+const inputPaths = process.argv.slice(2);
+if (inputPaths.length === 0) {
+  console.error("Usage: ts-node generate.ts <schema1.json> [schema2.json] ...");
   process.exit(1);
 }
 
-const schema = JSON.parse(fs.readFileSync(inputPath, "utf-8"));
-const tsOutput = generateTs(schema);
+for (const inputPath of inputPaths) {
+  const schema = JSON.parse(fs.readFileSync(inputPath, "utf-8"));
+  const tsOutput = generateTs(schema);
 
-const outPath = path.join(
-  path.dirname(inputPath),
-  capitalizeFirst(schema.name) + ".ts",
-);
-fs.writeFileSync(outPath, tsOutput);
-console.log(`Generated ${outPath}`);
+  const outPath = path.join(
+    process.cwd(),
+    "src/models",
+    capitalizeFirst(schema.name) + ".ts",
+  );
+  fs.writeFileSync(outPath, tsOutput);
+  console.log(`Generated ${outPath}`);
+}

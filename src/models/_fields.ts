@@ -1,55 +1,70 @@
-type TypedField<K extends string, X> = { type: K; _: X };
+import type { Nominal } from "./_type-helpers";
+
+type TypedField<K extends string, X, Opts extends BaseOpts = {}> = {
+  type: K;
+  _: [X, Opts];
+};
 
 export const id = <T extends string>() => {
   return { type: "id" } as TypedField<"id", T>;
 };
 
-export const string = (opts: BaseOpts = {}): SimpleFieldEntry => {
-  return { type: "string", ...opts };
+export const string = <Opts extends BaseOpts = {}>(opts?: Opts) => {
+  return { type: "string" } as TypedField<"string", string, Opts>;
 };
 
-export const date = (opts: BaseOpts = {}): SimpleFieldEntry => {
-  return { type: "date", ...opts };
+export const int = <Opts extends BaseOpts = {}>(opts?: Opts) => {
+  return { type: "int" } as TypedField<"int", number, Opts>;
 };
 
-export const day = (opts: BaseOpts = {}): SimpleFieldEntry => {
-  return { type: "day", ...opts };
+export const bool = <Opts extends BaseOpts = {}>(opts?: Opts) => {
+  return { type: "bool" } as TypedField<"bool", boolean, Opts>;
 };
 
-export const obj = <T>() => {
-  return { type: "obj" } as TypedField<"obj", T>;
+export const date = <Opts extends BaseOpts = {}>(opts?: Opts) => {
+  return { type: "date" } as TypedField<"date", Date, Opts>;
+};
+
+export const day = <Opts extends BaseOpts = {}>(opts?: Opts) => {
+  return { type: "day" } as TypedField<
+    "day",
+    { day: number; month: number; year: number },
+    Opts
+  >;
+};
+
+export const object = <T, Opts extends BaseOpts = {}>(opts?: Opts) => {
+  return { type: "obj" } as TypedField<"obj", T, Opts>;
+};
+
+export const array = <T, Opts extends BaseOpts = {}>(opts?: Opts) => {
+  return { type: "array" } as TypedField<"array", T[], Opts>;
+};
+
+type BelongsTo<
+  RelName extends string,
+  Id extends Nominal<any, any>,
+  Opts extends BaseOpts = {},
+> = TypedField<"belongsTo", Id, Opts> & { relName: RelName };
+
+export const belongsTo = <
+  T extends Nominal<any, any>,
+  RelName extends string,
+  Opts extends BaseOpts = {},
+>(
+  relName: RelName,
+  opts?: Opts,
+) => {
+  return { type: "belongsTo", relName } as BelongsTo<RelName, T, Opts>;
 };
 
 type BaseOpts = { optional?: boolean };
 
-export type SimpleFieldEntry = BaseOpts &
-  (
-    | { type: "string" | "date" | "day" }
-    | TypedField<"id", any>
-    | TypedField<"obj", any>
-  );
+export type SimpleFieldEntry = TypedField<string, any, any>;
 
-type InferType<T extends SimpleFieldEntry> = T extends {
-  type: "string";
-}
-  ? string
-  : T extends { type: "date" }
-    ? Date
-    : T extends { type: "day" }
-      ? { day: number; month: number; year: number }
-      : T extends { type: "id"; _: infer X }
-        ? X
-        : T extends { type: "obj"; _: infer X }
-          ? X
-          : never;
-
-type ApplyBaseOpts<T, F extends SimpleFieldEntry> = F extends {
-  optional: true;
-}
-  ? T | null
-  : T;
-
-export type InferSimpleFieldEntry<T extends SimpleFieldEntry> = ApplyBaseOpts<
-  InferType<T>,
-  T
->;
+export type InferSimpleFieldEntry<T extends SimpleFieldEntry> =
+  T extends TypedField<any, infer X, infer Opts>
+    ? Opts extends { optional: true }
+      ? X | null
+      : X
+    : never;

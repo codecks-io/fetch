@@ -3,18 +3,17 @@ import { makeModel, belongsTo } from "./_desc";
 import * as f from "./_fields";
 import { userDesc } from "./User";
 import { accountDesc } from "./Account";
+import { cardDesc } from "./Card";
 
 
-export const accountRoleDesc = makeModel("accountRole")
+export const dueCardDesc = makeModel("dueCard")
   .fields({
-    role: f.string(),
     createdAt: f.date(),
-    lastChangedAt: f.date(),
-    roleAsPrio: f.int(),
     userId: belongsTo("user", () => userDesc),
     accountId: belongsTo("account", () => accountDesc),
+    cardId: belongsTo("card", () => cardDesc),
   })
   .hasMany({
     
   })
-  .compoundKey("accountId", "userId");
+  .compoundKey("userId", "cardId");
