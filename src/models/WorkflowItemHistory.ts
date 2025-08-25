@@ -1,19 +1,22 @@
 
-import { makeModel, belongsTo } from "./_desc";
+import { makeModel, relation } from "./_desc";
 import * as f from "./_fields";
-import { accountDesc } from "./Account";
-import { userDesc } from "./User";
+import { type AccountId } from "./Account";
+import { type UserId } from "./User";
 
 
-export const workflowItemHistoryDesc = makeModel("workflowItemHistory")
-  .fields({
-    diff: f.object<any>(),
-    versionCreatedAt: f.date(),
-    version: f.int(),
-    accountId: belongsTo("account", () => accountDesc),
-    changerId: belongsTo("changer", () => userDesc),
-  })
-  .hasMany({
-    
-  })
-  .compoundKey("itemId", "version");
+export const workflowItemHistoryDesc = makeModel({
+  name: "workflowItemHistory",
+  fields: {
+    diff: f.object({}),
+    versionCreatedAt: f.date({}),
+    version: f.int({}),
+    accountId: f.belongsTo().type<AccountId>(),
+    changerId: f.belongsTo({}).type<UserId>(),
+  },
+  relations: {
+    account: relation("account", { type: "belongsTo", fk: "accountId" }),
+    changer: relation("user", { type: "belongsTo", fk: "changerId" }),
+  },
+  keys: ["itemId", "version"]
+})

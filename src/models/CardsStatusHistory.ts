@@ -3,14 +3,16 @@ import { makeModel } from "./_desc";
 import * as f from "./_fields";
 
 
-export const cardsStatusHistoryDesc = makeModel("cardsStatusHistory")
-  .fields({
-    status: f.string(),
-    count: f.int(),
-    date: f.day(),
+export const cardsStatusHistoryDesc = makeModel({
+  name: "cardsStatusHistory",
+  fields: {
+    status: f.string({}),
+    count: f.int({}),
+    date: f.day({}),
     
-  })
-  .hasMany({
+  },
+  relations: {
     
-  })
-  .compoundKey("date", "status", "count");
+  },
+  keys: ["date", "status", "count"]
+})

@@ -1,20 +1,23 @@
 
-import { makeModel, belongsTo } from "./_desc";
+import { makeModel, relation } from "./_desc";
 import * as f from "./_fields";
 import type { Nominal } from "./_type-helpers";
-import { userDesc } from "./User";
-import { accountDesc } from "./Account";
+import { type UserId } from "./User";
+import { type AccountId } from "./Account";
 
 export type UserTagId = Nominal<string, "userTag">;
-export const userTagDesc = makeModel("userTag")
-  .fields({
+export const userTagDesc = makeModel({
+  name: "userTag",
+  fields: {
     id: f.id<UserTagId>(),
-    tag: f.string(),
-    createdAt: f.date(),
-    userId: belongsTo("user", () => userDesc),
-    accountId: belongsTo("account", () => accountDesc),
-  })
-  .hasMany({
-    
-  })
-  .key("id");
+    tag: f.string({}),
+    createdAt: f.date({}),
+    userId: f.belongsTo().type<UserId>(),
+    accountId: f.belongsTo().type<AccountId>(),
+  },
+  relations: {
+    user: relation("user", { type: "belongsTo", fk: "userId" }),
+    account: relation("account", { type: "belongsTo", fk: "accountId" }),
+  },
+  keys: ["id"]
+})

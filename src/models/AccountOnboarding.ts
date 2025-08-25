@@ -1,17 +1,20 @@
 
-import { makeModel, belongsTo } from "./_desc";
+import { makeModel, relation } from "./_desc";
 import * as f from "./_fields";
-import { accountDesc, accountId } from "./Account";
+import type { Nominal } from "./_type-helpers";
+import { type AccountId } from "./Account";
 
-
-export const accountOnboardingDesc = makeModel("accountOnboarding")
-  .fields({
-    accountId: f.id<accountId>(),
-    variants: f.array<any>(),
-    steps: f.object<any>(),
-    accountId: belongsTo("account", () => accountDesc),
-  })
-  .hasMany({
-    
-  })
-  .key("accountId");
+export type AccountOnboardingId = Nominal<string, "accountOnboarding">;
+export const accountOnboardingDesc = makeModel({
+  name: "accountOnboarding",
+  fields: {
+    accountId: f.id<AccountOnboardingId>(),
+    variants: f.array({}),
+    steps: f.object({}),
+    accountId: f.belongsTo().type<AccountId>(),
+  },
+  relations: {
+    account: relation("account", { type: "belongsTo", fk: "accountId" }),
+  },
+  keys: ["accountId"]
+})

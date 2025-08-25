@@ -1,32 +1,35 @@
 
-import { makeModel, belongsTo, hasMany } from "./_desc";
+import { makeModel, relation } from "./_desc";
 import * as f from "./_fields";
 import type { Nominal } from "./_type-helpers";
-import { cardDesc } from "./Card";
-import { accountDesc } from "./Account";
-import { userDesc } from "./User";
-import { resolvableParticipantDesc } from "./ResolvableParticipant";
-import { resolvableParticipantHistoryDesc } from "./ResolvableParticipantHistory";
-import { resolvableEntryDesc } from "./ResolvableEntry";
+import { type CardId } from "./Card";
+import { type AccountId } from "./Account";
+import { type UserId } from "./User";
 
 export type ResolvableId = Nominal<string, "resolvable">;
-export const resolvableDesc = makeModel("resolvable")
-  .fields({
+export const resolvableDesc = makeModel({
+  name: "resolvable",
+  fields: {
     id: f.id<ResolvableId>(),
-    context: f.string(),
-    contextAsPrio: f.int(),
-    isClosed: f.bool(),
+    context: f.string({}),
+    contextAsPrio: f.int({}),
+    isClosed: f.bool({}),
     closedAt: f.date({ optional: true }),
-    createdAt: f.date(),
-    isPublic: f.bool(),
-    cardId: belongsTo("card", () => cardDesc),
-    accountId: belongsTo("account", () => accountDesc),
-    creatorId: belongsTo("creator", () => userDesc),
-    closedById: belongsTo("closedBy", () => userDesc, { optional: true }),
-  })
-  .hasMany({
-    participants: hasMany(() => resolvableParticipantDesc),
-    participantHistories: hasMany(() => resolvableParticipantHistoryDesc),
-    entries: hasMany(() => resolvableEntryDesc),
-  })
-  .key("id");
+    createdAt: f.date({}),
+    isPublic: f.bool({}),
+    cardId: f.belongsTo().type<CardId>(),
+    accountId: f.belongsTo().type<AccountId>(),
+    creatorId: f.belongsTo({}).type<UserId>(),
+    closedById: f.belongsTo({ optional: true }).type<UserId>(),
+  },
+  relations: {
+    card: relation("card", { type: "belongsTo", fk: "cardId" }),
+    account: relation("account", { type: "belongsTo", fk: "accountId" }),
+    creator: relation("user", { type: "belongsTo", fk: "creatorId" }),
+    closedBy: relation("user", { type: "belongsTo", fk: "closedById" }),
+    participants: relation("resolvableParticipant", { type: "hasMany" }),
+    participantHistories: relation("resolvableParticipantHistory", { type: "hasMany" }),
+    entries: relation("resolvableEntry", { type: "hasMany" }),
+  },
+  keys: ["id"]
+})

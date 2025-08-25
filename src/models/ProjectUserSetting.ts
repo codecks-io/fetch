@@ -1,17 +1,20 @@
 
-import { makeModel, belongsTo } from "./_desc";
+import { makeModel, relation } from "./_desc";
 import * as f from "./_fields";
-import { projectDesc } from "./Project";
-import { userDesc } from "./User";
+import { type ProjectId } from "./Project";
+import { type UserId } from "./User";
 
 
-export const projectUserSettingDesc = makeModel("projectUserSetting")
-  .fields({
+export const projectUserSettingDesc = makeModel({
+  name: "projectUserSetting",
+  fields: {
     
-    projectId: belongsTo("project", () => projectDesc),
-    userId: belongsTo("user", () => userDesc),
-  })
-  .hasMany({
-    
-  })
-  .compoundKey("projectId", "userId");
+    projectId: f.belongsTo().type<ProjectId>(),
+    userId: f.belongsTo().type<UserId>(),
+  },
+  relations: {
+    project: relation("project", { type: "belongsTo", fk: "projectId" }),
+    user: relation("user", { type: "belongsTo", fk: "userId" }),
+  },
+  keys: ["projectId", "userId"]
+})

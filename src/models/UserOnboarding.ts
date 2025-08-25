@@ -1,16 +1,19 @@
 
-import { makeModel, belongsTo } from "./_desc";
+import { makeModel, relation } from "./_desc";
 import * as f from "./_fields";
-import { userDesc, userId } from "./User";
+import type { Nominal } from "./_type-helpers";
+import { type UserId } from "./User";
 
-
-export const userOnboardingDesc = makeModel("userOnboarding")
-  .fields({
-    userId: f.id<userId>(),
-    steps: f.object<any>(),
-    userId: belongsTo("user", () => userDesc),
-  })
-  .hasMany({
-    
-  })
-  .key("userId");
+export type UserOnboardingId = Nominal<string, "userOnboarding">;
+export const userOnboardingDesc = makeModel({
+  name: "userOnboarding",
+  fields: {
+    userId: f.id<UserOnboardingId>(),
+    steps: f.object({}),
+    userId: f.belongsTo().type<UserId>(),
+  },
+  relations: {
+    user: relation("user", { type: "belongsTo", fk: "userId" }),
+  },
+  keys: ["userId"]
+})

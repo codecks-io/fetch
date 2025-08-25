@@ -1,15 +1,17 @@
 
-import { makeModel, belongsTo } from "./_desc";
+import { makeModel, relation } from "./_desc";
 import * as f from "./_fields";
-import { sprintConfigDesc } from "./SprintConfig";
+import { type SprintConfigId } from "./SprintConfig";
 
 
-export const sprintConfigProgressDesc = makeModel("sprintConfigProgress")
-  .fields({
-    progress: f.object<any>(),
-    sprintConfigId: belongsTo("sprintConfig", () => sprintConfigDesc),
-  })
-  .hasMany({
-    
-  })
-  .compoundKey("sprintConfigId", "date");
+export const sprintConfigProgressDesc = makeModel({
+  name: "sprintConfigProgress",
+  fields: {
+    progress: f.object({}),
+    sprintConfigId: f.belongsTo().type<SprintConfigId>(),
+  },
+  relations: {
+    sprintConfig: relation("sprintConfig", { type: "belongsTo", fk: "sprintConfigId" }),
+  },
+  keys: ["sprintConfigId", "date"]
+})

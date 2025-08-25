@@ -1,17 +1,19 @@
 
-import { makeModel, belongsTo } from "./_desc";
+import { makeModel, relation } from "./_desc";
 import * as f from "./_fields";
-import { userDesc } from "./User";
+import { type UserId } from "./User";
 
 
-export const cardsFinishedHistoryDesc = makeModel("cardsFinishedHistory")
-  .fields({
-    effortSum: f.bigint(),
-    cardCount: f.bigint(),
-    date: f.day(),
-    assigneeId: belongsTo("assignee", () => userDesc),
-  })
-  .hasMany({
-    
-  })
-  .compoundKey("date", "effortSum", "cardCount", "assigneeId");
+export const cardsFinishedHistoryDesc = makeModel({
+  name: "cardsFinishedHistory",
+  fields: {
+    effortSum: f.bigint({}),
+    cardCount: f.bigint({}),
+    date: f.day({}),
+    assigneeId: f.belongsTo({}).type<UserId>(),
+  },
+  relations: {
+    assignee: relation("user", { type: "belongsTo", fk: "assigneeId" }),
+  },
+  keys: ["date", "effortSum", "cardCount", "assigneeId"]
+})

@@ -1,19 +1,22 @@
 
-import { makeModel, belongsTo } from "./_desc";
+import { makeModel, relation } from "./_desc";
 import * as f from "./_fields";
-import { cardDesc } from "./Card";
-import { userDesc } from "./User";
+import { type CardId } from "./Card";
+import { type UserId } from "./User";
 
 
-export const timeTrackingSumDesc = makeModel("timeTrackingSum")
-  .fields({
-    sumMs: f.int(),
-    runningStartedAt: f.date(),
-    runningModifyDurationMsBy: f.int(),
-    cardId: belongsTo("card", () => cardDesc),
-    userId: belongsTo("user", () => userDesc),
-  })
-  .hasMany({
-    
-  })
-  .compoundKey("cardId", "userId");
+export const timeTrackingSumDesc = makeModel({
+  name: "timeTrackingSum",
+  fields: {
+    sumMs: f.int({}),
+    runningStartedAt: f.date({}),
+    runningModifyDurationMsBy: f.int({}),
+    cardId: f.belongsTo().type<CardId>(),
+    userId: f.belongsTo().type<UserId>(),
+  },
+  relations: {
+    card: relation("card", { type: "belongsTo", fk: "cardId" }),
+    user: relation("user", { type: "belongsTo", fk: "userId" }),
+  },
+  keys: ["cardId", "userId"]
+})

@@ -1,19 +1,23 @@
 
-import { makeModel, belongsTo } from "./_desc";
+import { makeModel, relation } from "./_desc";
 import * as f from "./_fields";
-import { milestoneDesc } from "./Milestone";
-import { projectDesc } from "./Project";
-import { accountDesc } from "./Account";
+import { type MilestoneId } from "./Milestone";
+import { type ProjectId } from "./Project";
+import { type AccountId } from "./Account";
 
 
-export const milestoneProjectDesc = makeModel("milestoneProject")
-  .fields({
+export const milestoneProjectDesc = makeModel({
+  name: "milestoneProject",
+  fields: {
     
-    milestoneId: belongsTo("milestone", () => milestoneDesc),
-    projectId: belongsTo("project", () => projectDesc),
-    accountId: belongsTo("account", () => accountDesc),
-  })
-  .hasMany({
-    
-  })
-  .compoundKey("milestoneId", "projectId");
+    milestoneId: f.belongsTo().type<MilestoneId>(),
+    projectId: f.belongsTo().type<ProjectId>(),
+    accountId: f.belongsTo().type<AccountId>(),
+  },
+  relations: {
+    milestone: relation("milestone", { type: "belongsTo", fk: "milestoneId" }),
+    project: relation("project", { type: "belongsTo", fk: "projectId" }),
+    account: relation("account", { type: "belongsTo", fk: "accountId" }),
+  },
+  keys: ["milestoneId", "projectId"]
+})

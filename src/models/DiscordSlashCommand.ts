@@ -1,30 +1,33 @@
 
-import { makeModel, belongsTo } from "./_desc";
+import { makeModel, relation } from "./_desc";
 import * as f from "./_fields";
 import type { Nominal } from "./_type-helpers";
-import { deckDesc } from "./Deck";
-import { discordGuildDesc } from "./DiscordGuild";
+import { type DeckId } from "./Deck";
+import { type DiscordGuildId } from "./DiscordGuild";
 
 export type DiscordSlashCommandId = Nominal<string, "discordSlashCommand">;
-export const discordSlashCommandDesc = makeModel("discordSlashCommand")
-  .fields({
+export const discordSlashCommandDesc = makeModel({
+  name: "discordSlashCommand",
+  fields: {
     id: f.id<DiscordSlashCommandId>(),
-    channelId: f.string(),
-    statusTargetChannelId: f.string(),
-    reaction: f.string(),
-    name: f.string(),
-    description: f.string(),
-    autoAddRoleToThread: f.string(),
-    leaderboard: f.object<any>(),
-    reactionThreshold: f.int(),
-    karmaForCompletion: f.int(),
-    maxFileSizeInBytes: f.int(),
-    statusMessages: f.object<any>(),
-    permissions: f.object<any>(),
-    deckId: belongsTo("deck", () => deckDesc),
-    discordGuildId: belongsTo("discordGuild", () => discordGuildDesc),
-  })
-  .hasMany({
-    
-  })
-  .key("id");
+    channelId: f.string({}),
+    statusTargetChannelId: f.string({}),
+    reaction: f.string({}),
+    name: f.string({}),
+    description: f.string({}),
+    autoAddRoleToThread: f.string({}),
+    leaderboard: f.object({}),
+    reactionThreshold: f.int({}),
+    karmaForCompletion: f.int({}),
+    maxFileSizeInBytes: f.int({}),
+    statusMessages: f.object({}),
+    permissions: f.object({}),
+    deckId: f.belongsTo().type<DeckId>(),
+    discordGuildId: f.belongsTo({}).type<DiscordGuildId>(),
+  },
+  relations: {
+    deck: relation("deck", { type: "belongsTo", fk: "deckId" }),
+    discordGuild: relation("discordGuild", { type: "belongsTo", fk: "discordGuildId" }),
+  },
+  keys: ["id"]
+})

@@ -1,5 +1,6 @@
 import { ensureMapValue } from "./collection-utils";
-import type { FieldEntry, StrictAnyDesc } from "./models/_desc";
+import type { AnyDesc } from "./models/_desc";
+import type { FieldEntry } from "./models/_fields";
 import { rootDesc } from "./models/models";
 
 type RootDesc = typeof rootDesc;
@@ -29,7 +30,7 @@ const parseField = (v: any, field: FieldEntry | null) => {
   }
 };
 
-const transformData = (desc: StrictAnyDesc, data: Record<string, any>) => {
+const transformData = (desc: AnyDesc, data: Record<string, any>) => {
   return Object.fromEntries(
     Object.entries(data).map(([k, v]) => [k, parseField(v, desc.fields[k])]),
   );
@@ -37,9 +38,9 @@ const transformData = (desc: StrictAnyDesc, data: Record<string, any>) => {
 
 export class ModelPool {
   private data: Map<string, any> = new Map();
-  private modelMap: Record<string, StrictAnyDesc>;
+  private modelMap: Record<string, AnyDesc>;
 
-  constructor(modelMap: Record<string, StrictAnyDesc>) {
+  constructor(modelMap: Record<string, AnyDesc>) {
     this.modelMap = modelMap;
   }
 

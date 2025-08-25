@@ -1,18 +1,21 @@
 
-import { makeModel, belongsTo } from "./_desc";
+import { makeModel, relation } from "./_desc";
 import * as f from "./_fields";
-import { accountDesc } from "./Account";
-import { userDesc } from "./User";
+import { type AccountId } from "./Account";
+import { type UserId } from "./User";
 
 
-export const accountUserAchievementDesc = makeModel("accountUserAchievement")
-  .fields({
-    value: f.object<any>(),
-    context: f.object<any>(),
-    accountId: belongsTo("account", () => accountDesc),
-    userId: belongsTo("user", () => userDesc),
-  })
-  .hasMany({
-    
-  })
-  .compoundKey("accountId", "userId", "key");
+export const accountUserAchievementDesc = makeModel({
+  name: "accountUserAchievement",
+  fields: {
+    value: f.object({}),
+    context: f.object({}),
+    accountId: f.belongsTo().type<AccountId>(),
+    userId: f.belongsTo().type<UserId>(),
+  },
+  relations: {
+    account: relation("account", { type: "belongsTo", fk: "accountId" }),
+    user: relation("user", { type: "belongsTo", fk: "userId" }),
+  },
+  keys: ["accountId", "userId", "key"]
+})

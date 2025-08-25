@@ -1,17 +1,19 @@
 
-import { makeModel, belongsTo } from "./_desc";
+import { makeModel, relation } from "./_desc";
 import * as f from "./_fields";
-import { userDesc } from "./User";
+import { type UserId } from "./User";
 
 
-export const userDismissedHintDesc = makeModel("userDismissedHint")
-  .fields({
-    hintKey: f.string(),
-    createdAt: f.date(),
-    returnAt: f.date(),
-    userId: belongsTo("user", () => userDesc),
-  })
-  .hasMany({
-    
-  })
-  .compoundKey("userId", "hintKey");
+export const userDismissedHintDesc = makeModel({
+  name: "userDismissedHint",
+  fields: {
+    hintKey: f.string({}),
+    createdAt: f.date({}),
+    returnAt: f.date({}),
+    userId: f.belongsTo().type<UserId>(),
+  },
+  relations: {
+    user: relation("user", { type: "belongsTo", fk: "userId" }),
+  },
+  keys: ["userId", "hintKey"]
+})

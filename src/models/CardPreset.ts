@@ -1,21 +1,24 @@
 
-import { makeModel, belongsTo } from "./_desc";
+import { makeModel, relation } from "./_desc";
 import * as f from "./_fields";
 import type { Nominal } from "./_type-helpers";
-import { accountDesc } from "./Account";
-import { userDesc } from "./User";
+import { type AccountId } from "./Account";
+import { type UserId } from "./User";
 
 export type CardPresetId = Nominal<string, "cardPreset">;
-export const cardPresetDesc = makeModel("cardPreset")
-  .fields({
+export const cardPresetDesc = makeModel({
+  name: "cardPreset",
+  fields: {
     id: f.id<CardPresetId>(),
-    name: f.string(),
-    data: f.object<any>(),
-    createdAt: f.date(),
-    accountId: belongsTo("account", () => accountDesc),
-    creatorId: belongsTo("creator", () => userDesc),
-  })
-  .hasMany({
-    
-  })
-  .key("id");
+    name: f.string({}),
+    data: f.object({}),
+    createdAt: f.date({}),
+    accountId: f.belongsTo().type<AccountId>(),
+    creatorId: f.belongsTo({}).type<UserId>(),
+  },
+  relations: {
+    account: relation("account", { type: "belongsTo", fk: "accountId" }),
+    creator: relation("user", { type: "belongsTo", fk: "creatorId" }),
+  },
+  keys: ["id"]
+})

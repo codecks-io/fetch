@@ -1,43 +1,46 @@
 import { ModelPool, type ApiResponse } from "./model-pool";
-import type { StrictAnyDesc } from "./models/_desc";
+import type { AnyDesc } from "./models/_desc";
 import { modelMap, type rootDesc } from "./models/models";
 import { serializeInstanceQuery, serializeRootQuery } from "./query-helpers";
 import type {
-  InferModelDict,
-  InferRelDict,
+  InferModelQuery,
+  InferRelQuery,
   Instance,
-  ModelDict,
-  RelDict,
-} from "./query-type";
+  ModelQuery,
+  RelQuery,
+} from "./query-type-2";
 import { reconcileInstanceQuery, reconcileRootQuery } from "./reconcile-query";
 
 type ModelMap = typeof modelMap;
 
 type Fetchers = {
-  fetchFromRoot: <const T extends RelDict<typeof rootDesc>>(
-    q: T,
-  ) => Promise<InferRelDict<typeof rootDesc, T>>;
-  fetchFromInstance: <M extends StrictAnyDesc, const T extends ModelDict<M>>(
+  fetchFromRoot: <const Q extends RelQuery<typeof rootDesc, ModelMap>>(
+    q: Q,
+  ) => Promise<InferRelQuery<typeof rootDesc, Q, ModelMap>>;
+  fetchFromInstance: <
+    M extends AnyDesc,
+    const Q extends ModelQuery<M, ModelMap>,
+  >(
     instance: Instance<M>,
-    q: T,
-  ) => Promise<InferModelDict<M, T>>;
+    q: Q,
+  ) => Promise<InferModelQuery<M, Q, ModelMap>>;
   fetchInstance: <
     K extends keyof ModelMap,
-    const T extends ModelDict<ModelMap[K]>,
+    const Q extends RelQuery<ModelMap[K], ModelMap>,
   >(
     model: K,
     id: string,
-    q: T,
-  ) => Promise<InferModelDict<ModelMap[K], T>>;
+    q: Q,
+  ) => Promise<InferModelQuery<ModelMap[K], Q, ModelMap>>;
   fetchInstances: <
     K extends keyof ModelMap,
     Id extends string,
-    const T extends ModelDict<ModelMap[K]>,
+    const Q extends RelQuery<ModelMap[K], ModelMap>,
   >(
     model: K,
     id: Id[],
-    q: T,
-  ) => Promise<Record<Id, InferModelDict<ModelMap[K], T>>>;
+    q: Q,
+  ) => Promise<Record<Id, InferModelQuery<ModelMap[K], Q, ModelMap>>>;
 };
 
 type FetchFunction = (url: string, init?: RequestInit) => Promise<Response>;
@@ -86,12 +89,12 @@ export const buildFetchers = (opts: FetcherOptions = {}): Fetchers => {
     return response;
   };
   const _fetchSingleInstance = async <
-    M extends StrictAnyDesc,
-    const T extends ModelDict<M>,
+    M extends AnyDesc,
+    const Q extends ModelQuery<M, ModelMap>,
   >(
     instance: Instance<M>,
-    q: T,
-  ): Promise<InferModelDict<M, T>> => {
+    q: Q,
+  ): Promise<InferModelQuery<M, Q, ModelMap>> => {
     const response = await fetchWithQuery(
       serializeInstanceQuery(q, [instance]),
     );

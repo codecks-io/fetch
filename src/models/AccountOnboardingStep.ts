@@ -4,19 +4,21 @@ import * as f from "./_fields";
 import type { Nominal } from "./_type-helpers";
 
 export type AccountOnboardingStepId = Nominal<string, "accountOnboardingStep">;
-export const accountOnboardingStepDesc = makeModel("accountOnboardingStep")
-  .fields({
+export const accountOnboardingStepDesc = makeModel({
+  name: "accountOnboardingStep",
+  fields: {
     key: f.id<AccountOnboardingStepId>(),
-    title: f.string(),
-    description: f.string(),
-    chapter: f.string(),
-    sortValue: f.string(),
-    variants: f.array<any>(),
-    xp: f.int(),
-    milestone: f.string(),
+    title: f.string({}),
+    description: f.string({}),
+    chapter: f.string({}),
+    sortValue: f.string({}),
+    variants: f.array({}),
+    xp: f.int({}),
+    milestone: f.string({}),
     
-  })
-  .hasMany({
+  },
+  relations: {
     
-  })
-  .key("key");
+  },
+  keys: ["key"]
+})

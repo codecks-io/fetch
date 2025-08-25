@@ -1,20 +1,23 @@
 
-import { makeModel, belongsTo } from "./_desc";
+import { makeModel, relation } from "./_desc";
 import * as f from "./_fields";
-import { userDesc } from "./User";
-import { accountDesc } from "./Account";
+import { type UserId } from "./User";
+import { type AccountId } from "./Account";
 
 
-export const accountRoleDesc = makeModel("accountRole")
-  .fields({
-    role: f.string(),
-    createdAt: f.date(),
-    lastChangedAt: f.date(),
-    roleAsPrio: f.int(),
-    userId: belongsTo("user", () => userDesc),
-    accountId: belongsTo("account", () => accountDesc),
-  })
-  .hasMany({
-    
-  })
-  .compoundKey("accountId", "userId");
+export const accountRoleDesc = makeModel({
+  name: "accountRole",
+  fields: {
+    role: f.string({}),
+    createdAt: f.date({}),
+    lastChangedAt: f.date({}),
+    roleAsPrio: f.int({}),
+    userId: f.belongsTo().type<UserId>(),
+    accountId: f.belongsTo().type<AccountId>(),
+  },
+  relations: {
+    user: relation("user", { type: "belongsTo", fk: "userId" }),
+    account: relation("account", { type: "belongsTo", fk: "accountId" }),
+  },
+  keys: ["accountId", "userId"]
+})

@@ -1,16 +1,18 @@
 
-import { makeModel, belongsTo } from "./_desc";
+import { makeModel, relation } from "./_desc";
 import * as f from "./_fields";
-import { discordGuildDesc } from "./DiscordGuild";
+import { type DiscordGuildId } from "./DiscordGuild";
 
 
-export const dailyDiscordGuildVoteMembershipDesc = makeModel("dailyDiscordGuildVoteMembership")
-  .fields({
-    t: f.date(),
-    membershipCount: f.int(),
-    discordGuildId: belongsTo("discordGuild", () => discordGuildDesc),
-  })
-  .hasMany({
-    
-  })
-  .compoundKey("t", "guildId");
+export const dailyDiscordGuildVoteMembershipDesc = makeModel({
+  name: "dailyDiscordGuildVoteMembership",
+  fields: {
+    t: f.date({}),
+    membershipCount: f.int({}),
+    discordGuildId: f.belongsTo({}).type<DiscordGuildId>(),
+  },
+  relations: {
+    discordGuild: relation("discordGuild", { type: "belongsTo", fk: "discordGuildId" }),
+  },
+  keys: ["t", "guildId"]
+})

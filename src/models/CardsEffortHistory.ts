@@ -3,14 +3,16 @@ import { makeModel } from "./_desc";
 import * as f from "./_fields";
 
 
-export const cardsEffortHistoryDesc = makeModel("cardsEffortHistory")
-  .fields({
-    effortSum: f.bigint(),
-    cardCount: f.bigint(),
-    date: f.day(),
+export const cardsEffortHistoryDesc = makeModel({
+  name: "cardsEffortHistory",
+  fields: {
+    effortSum: f.bigint({}),
+    cardCount: f.bigint({}),
+    date: f.day({}),
     
-  })
-  .hasMany({
+  },
+  relations: {
     
-  })
-  .compoundKey("date", "effortSum", "cardCount");
+  },
+  keys: ["date", "effortSum", "cardCount"]
+})

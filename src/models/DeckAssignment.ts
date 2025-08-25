@@ -1,19 +1,23 @@
 
-import { makeModel, belongsTo } from "./_desc";
+import { makeModel, relation } from "./_desc";
 import * as f from "./_fields";
-import { deckDesc } from "./Deck";
-import { userDesc } from "./User";
-import { accountDesc } from "./Account";
+import { type DeckId } from "./Deck";
+import { type UserId } from "./User";
+import { type AccountId } from "./Account";
 
 
-export const deckAssignmentDesc = makeModel("deckAssignment")
-  .fields({
-    lastAssignedAt: f.date(),
-    deckId: belongsTo("deck", () => deckDesc),
-    userId: belongsTo("user", () => userDesc),
-    accountId: belongsTo("account", () => accountDesc),
-  })
-  .hasMany({
-    
-  })
-  .compoundKey("userId", "deckId");
+export const deckAssignmentDesc = makeModel({
+  name: "deckAssignment",
+  fields: {
+    lastAssignedAt: f.date({}),
+    deckId: f.belongsTo().type<DeckId>(),
+    userId: f.belongsTo().type<UserId>(),
+    accountId: f.belongsTo().type<AccountId>(),
+  },
+  relations: {
+    deck: relation("deck", { type: "belongsTo", fk: "deckId" }),
+    user: relation("user", { type: "belongsTo", fk: "userId" }),
+    account: relation("account", { type: "belongsTo", fk: "accountId" }),
+  },
+  keys: ["userId", "deckId"]
+})

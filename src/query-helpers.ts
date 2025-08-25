@@ -1,4 +1,4 @@
-import type { StrictAnyDesc } from "./models/_desc";
+import type { AnyDesc } from "./models/_desc";
 import { rootDesc } from "./models/models";
 import type { Instance, ModelDict, RelDict } from "./query-type";
 
@@ -20,11 +20,11 @@ const serializeModel = (q: ModelDict<any>, modelDesc: any) => {
   return list;
 };
 
-const serializeRelations = (q: RelDict<any>, modelDesc: StrictAnyDesc) => {
+const serializeRelations = (q: RelDict<any>, modelDesc: AnyDesc) => {
   return Object.fromEntries(
     Object.entries(q).map(([k, v]) => [
       k,
-      serializeModel(v as ModelDict<any>, modelDesc.hasMany[k].getModel()),
+      serializeModel(v as ModelDict<any>, modelDesc.relations[k]),
     ]),
   );
 };
@@ -37,7 +37,7 @@ export const serializeRootQuery = <T extends RelDict<typeof rootDesc>>(
 
 export const serializeInstanceQuery = (
   q: ModelDict<any>,
-  instances: Instance<StrictAnyDesc>[],
+  instances: Instance<AnyDesc>[],
 ) => {
   return Object.fromEntries(
     instances.map((instance) => {

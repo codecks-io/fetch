@@ -1,88 +1,66 @@
 
-import { makeModel, belongsTo, hasMany, hasOne } from "./_desc";
+import { makeModel, relation } from "./_desc";
 import * as f from "./_fields";
 import type { Nominal } from "./_type-helpers";
-import { fileDesc } from "./File";
-import { releaseDesc } from "./Release";
-import { projectOrderDesc } from "./ProjectOrder";
-import { projectSelectionDesc } from "./ProjectSelection";
-import { queueSelectionDesc } from "./QueueSelection";
-import { accountRoleDesc } from "./AccountRole";
-import { cardDiffNotificationDesc } from "./CardDiffNotification";
-import { resolvableNotificationDesc } from "./ResolvableNotification";
-import { publicProjectMembershipDesc } from "./PublicProjectMembership";
-import { lastSeenCardUpvoteDesc } from "./LastSeenCardUpvote";
-import { dueCardDesc } from "./DueCard";
-import { assigneeDeckAssignmentDesc } from "./AssigneeDeckAssignment";
-import { autoFinishedTimeTrackingSegmentDesc } from "./AutoFinishedTimeTrackingSegment";
-import { savedSearchDesc } from "./SavedSearch";
-import { activityDesc } from "./Activity";
-import { userEmailDesc } from "./UserEmail";
-import { userTagDesc } from "./UserTag";
-import { pinnedMilestoneDesc } from "./PinnedMilestone";
-import { projectUserDesc } from "./ProjectUser";
-import { userProjectAccessDesc } from "./UserProjectAccess";
-import { projectUserSettingDesc } from "./ProjectUserSetting";
-import { accountUserSettingDesc } from "./AccountUserSetting";
-import { userDismissedHintDesc } from "./UserDismissedHint";
-import { integrationDesc } from "./Integration";
-import { activeTimeTrackerDesc } from "./ActiveTimeTracker";
-import { resolvableParticipantDesc } from "./ResolvableParticipant";
-import { cardUpvoteDesc } from "./CardUpvote";
-import { userOnboardingDesc } from "./UserOnboarding";
+import { type FileId } from "./File";
+import { type ReleaseId } from "./Release";
 
 export type UserId = Nominal<string, "user">;
-export const userDesc = makeModel("user")
-  .fields({
+export const userDesc = makeModel({
+  name: "user",
+  fields: {
     id: f.id<UserId>(),
-    name: f.string(),
+    name: f.string({}),
     fullName: f.string({ optional: true }),
     timezone: f.string({ optional: true }),
-    createdAt: f.date(),
-    hasPassword: f.bool(),
-    showCardIdInTimer: f.bool(),
-    disableMovingImages: f.bool(),
+    createdAt: f.date({}),
+    hasPassword: f.bool({}),
+    showCardIdInTimer: f.bool({}),
+    disableMovingImages: f.bool({}),
     autoMeFilterCardLimit: f.int({ optional: true }),
-    isIntegration: f.bool(),
-    statusColorPalette: f.string(),
+    isIntegration: f.bool({}),
+    statusColorPalette: f.string({}),
     wantsNewsletter: f.bool({ optional: true }),
     wantsDailyDigestMail: f.bool({ optional: true }),
     wantsConvoDigestMail: f.bool({ optional: true }),
-    disableAnimations: f.bool(),
-    enableClickToEditCards: f.bool(),
-    cdxRole: f.string(),
-    profileImageId: belongsTo("profileImage", () => fileDesc, { optional: true }),
-    lastSeenReleaseId: belongsTo("lastSeenRelease", () => releaseDesc),
-  })
-  .hasMany({
-    projectOrders: hasMany(() => projectOrderDesc),
-    projectSelections: hasMany(() => projectSelectionDesc),
-    queueSelections: hasMany(() => queueSelectionDesc),
-    accountRoles: hasMany(() => accountRoleDesc),
-    cardDiffNotifications: hasMany(() => cardDiffNotificationDesc),
-    resolvableNotifications: hasMany(() => resolvableNotificationDesc),
-    publicProjectMembership: hasMany(() => publicProjectMembershipDesc),
-    lastSeenCardUpvotes: hasMany(() => lastSeenCardUpvoteDesc),
-    dueCards: hasMany(() => dueCardDesc),
-    assigneeDeckAssignments: hasMany(() => assigneeDeckAssignmentDesc),
-    autoFinishedTimeTrackingSegments: hasMany(() => autoFinishedTimeTrackingSegmentDesc),
-    savedSearches: hasMany(() => savedSearchDesc),
-    activities: hasMany(() => activityDesc),
-    emails: hasMany(() => userEmailDesc),
-    tags: hasMany(() => userTagDesc),
-    unverifiedEmails: hasMany(() => userEmailDesc),
-    primaryEmail: hasOne(() => userEmailDesc),
-    pinnedMilestoneNext: hasOne(() => pinnedMilestoneDesc),
-    projectAccess: hasMany(() => projectUserDesc),
-    explicitProjectAccess: hasMany(() => projectUserDesc),
-    withProjectAccess: hasMany(() => userProjectAccessDesc),
-    projectSettings: hasMany(() => projectUserSettingDesc),
-    accountSettings: hasMany(() => accountUserSettingDesc),
-    dismissedHints: hasMany(() => userDismissedHintDesc),
-    slackIntegrations: hasMany(() => integrationDesc),
-    activeTimeTracker: hasOne(() => activeTimeTrackerDesc),
-    participations: hasMany(() => resolvableParticipantDesc),
-    upvotes: hasMany(() => cardUpvoteDesc),
-    userOnboarding: hasOne(() => userOnboardingDesc),
-  })
-  .key("id");
+    disableAnimations: f.bool({}),
+    enableClickToEditCards: f.bool({}),
+    cdxRole: f.string({}),
+    profileImageId: f.belongsTo({ optional: true }).type<FileId>(),
+    lastSeenReleaseId: f.belongsTo({}).type<ReleaseId>(),
+  },
+  relations: {
+    profileImage: relation("file", { type: "belongsTo", fk: "profileImageId" }),
+    lastSeenRelease: relation("release", { type: "belongsTo", fk: "lastSeenReleaseId" }),
+    projectOrders: relation("projectOrder", { type: "hasMany" }),
+    projectSelections: relation("projectSelection", { type: "hasMany" }),
+    queueSelections: relation("queueSelection", { type: "hasMany" }),
+    accountRoles: relation("accountRole", { type: "hasMany" }),
+    cardDiffNotifications: relation("cardDiffNotification", { type: "hasMany" }),
+    resolvableNotifications: relation("resolvableNotification", { type: "hasMany" }),
+    publicProjectMembership: relation("publicProjectMembership", { type: "hasMany" }),
+    lastSeenCardUpvotes: relation("lastSeenCardUpvote", { type: "hasMany" }),
+    dueCards: relation("dueCard", { type: "hasMany" }),
+    assigneeDeckAssignments: relation("assigneeDeckAssignment", { type: "hasMany" }),
+    autoFinishedTimeTrackingSegments: relation("autoFinishedTimeTrackingSegment", { type: "hasMany" }),
+    savedSearches: relation("savedSearch", { type: "hasMany" }),
+    activities: relation("activity", { type: "hasMany" }),
+    emails: relation("userEmail", { type: "hasMany" }),
+    tags: relation("userTag", { type: "hasMany" }),
+    unverifiedEmails: relation("userEmail", { type: "hasMany" }),
+    primaryEmail: relation("userEmail", { type: "hasOne" }),
+    pinnedMilestoneNext: relation("pinnedMilestone", { type: "hasOne" }),
+    projectAccess: relation("projectUser", { type: "hasMany" }),
+    explicitProjectAccess: relation("projectUser", { type: "hasMany" }),
+    withProjectAccess: relation("userProjectAccess", { type: "hasMany" }),
+    projectSettings: relation("projectUserSetting", { type: "hasMany" }),
+    accountSettings: relation("accountUserSetting", { type: "hasMany" }),
+    dismissedHints: relation("userDismissedHint", { type: "hasMany" }),
+    slackIntegrations: relation("integration", { type: "hasMany" }),
+    activeTimeTracker: relation("activeTimeTracker", { type: "hasOne" }),
+    participations: relation("resolvableParticipant", { type: "hasMany" }),
+    upvotes: relation("cardUpvote", { type: "hasMany" }),
+    userOnboarding: relation("userOnboarding", { type: "hasOne" }),
+  },
+  keys: ["id"]
+})
