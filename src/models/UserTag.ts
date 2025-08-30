@@ -12,8 +12,8 @@ export const userTagDesc = makeModel({
     id: f.id<UserTagId>(),
     tag: f.string({}),
     createdAt: f.date({}),
-    userId: f.belongsTo().type<UserId>(),
-    accountId: f.belongsTo().type<AccountId>(),
+    userId: f.belongsTo({}).type<UserId>(),
+    accountId: f.belongsTo({}).type<AccountId>(),
   },
   relations: {
     user: relation("user", { type: "belongsTo", fk: "userId" }),

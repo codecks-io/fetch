@@ -13,7 +13,7 @@ export const discordProjectNotificationDesc = makeModel({
     discordChannelId: f.string({}),
     disabledTypes: f.object({}),
     createdAt: f.date({}),
-    projectId: f.belongsTo().type<ProjectId>(),
+    projectId: f.belongsTo({}).type<ProjectId>(),
     discordGuildId: f.belongsTo({}).type<DiscordGuildId>(),
   },
   relations: {

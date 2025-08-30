@@ -13,8 +13,8 @@ export const userReportEmailDesc = makeModel({
     email: f.string({}),
     createdAt: f.date({}),
     enabled: f.string({}),
-    userReportSettingId: f.belongsTo().type<UserReportSettingId>(),
-    accountId: f.belongsTo().type<AccountId>(),
+    userReportSettingId: f.belongsTo({}).type<UserReportSettingId>(),
+    accountId: f.belongsTo({}).type<AccountId>(),
   },
   relations: {
     userReportSetting: relation("userReportSetting", { type: "belongsTo", fk: "userReportSettingId" }),

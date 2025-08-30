@@ -10,8 +10,8 @@ export const publicProjectMembershipDesc = makeModel({
   fields: {
     digestFrequencyInDays: f.int({}),
     createdAt: f.date({}),
-    userId: f.belongsTo().type<UserId>(),
-    projectId: f.belongsTo().type<ProjectId>(),
+    userId: f.belongsTo({}).type<UserId>(),
+    projectId: f.belongsTo({}).type<ProjectId>(),
   },
   relations: {
     user: relation("user", { type: "belongsTo", fk: "userId" }),

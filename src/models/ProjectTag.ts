@@ -14,7 +14,7 @@ export const projectTagDesc = makeModel({
     emoji: f.string({ optional: true }),
     description: f.string({ optional: true }),
     createdAt: f.date({}),
-    projectId: f.belongsTo().type<ProjectId>(),
+    projectId: f.belongsTo({}).type<ProjectId>(),
   },
   relations: {
     project: relation("project", { type: "belongsTo", fk: "projectId" }),

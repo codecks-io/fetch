@@ -10,9 +10,9 @@ export const milestoneProjectDesc = makeModel({
   name: "milestoneProject",
   fields: {
     
-    milestoneId: f.belongsTo().type<MilestoneId>(),
-    projectId: f.belongsTo().type<ProjectId>(),
-    accountId: f.belongsTo().type<AccountId>(),
+    milestoneId: f.belongsTo({}).type<MilestoneId>(),
+    projectId: f.belongsTo({}).type<ProjectId>(),
+    accountId: f.belongsTo({}).type<AccountId>(),
   },
   relations: {
     milestone: relation("milestone", { type: "belongsTo", fk: "milestoneId" }),

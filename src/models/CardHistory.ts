@@ -12,8 +12,8 @@ export const cardHistoryDesc = makeModel({
     diff: f.object({}),
     versionCreatedAt: f.date({}),
     version: f.int({}),
-    accountId: f.belongsTo().type<AccountId>(),
-    cardId: f.belongsTo().type<CardId>(),
+    accountId: f.belongsTo({}).type<AccountId>(),
+    cardId: f.belongsTo({}).type<CardId>(),
     changerId: f.belongsTo({}).type<UserId>(),
   },
   relations: {

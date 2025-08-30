@@ -8,7 +8,7 @@ import type {
   Instance,
   ModelQuery,
   RelQuery,
-} from "./query-type-2";
+} from "./query-type";
 import { reconcileInstanceQuery, reconcileRootQuery } from "./reconcile-query";
 
 type ModelMap = typeof modelMap;

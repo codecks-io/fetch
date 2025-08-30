@@ -12,7 +12,7 @@ export const savedSearchDesc = makeModel({
     id: f.id<SavedSearchId>(),
     tokens: f.array({}),
     forceOr: f.bool({}),
-    accountId: f.belongsTo().type<AccountId>(),
+    accountId: f.belongsTo({}).type<AccountId>(),
     ownerId: f.belongsTo({}).type<UserId>(),
   },
   relations: {

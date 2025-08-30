@@ -13,7 +13,7 @@ export const affiliateCodeStatDesc = makeModel({
     newVisitors: f.int({}),
     signups: f.int({}),
     revenue: f.int({}),
-    affiliateCodeId: f.belongsTo().type<AffiliateCodeId>(),
+    affiliateCodeId: f.belongsTo({}).type<AffiliateCodeId>(),
   },
   relations: {
     affiliateCode: relation("affiliateCode", { type: "belongsTo", fk: "affiliateCodeId" }),

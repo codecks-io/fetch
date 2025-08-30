@@ -17,9 +17,9 @@ export const timeTrackingSegmentDesc = makeModel({
     modifyDurationMsBy: f.int({}),
     addedManually: f.string({}),
     autoFinishedState: f.string({}),
-    cardId: f.belongsTo().type<CardId>(),
-    userId: f.belongsTo().type<UserId>(),
-    accountId: f.belongsTo().type<AccountId>(),
+    cardId: f.belongsTo({}).type<CardId>(),
+    userId: f.belongsTo({}).type<UserId>(),
+    accountId: f.belongsTo({}).type<AccountId>(),
   },
   relations: {
     card: relation("card", { type: "belongsTo", fk: "cardId" }),

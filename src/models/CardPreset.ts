@@ -13,7 +13,7 @@ export const cardPresetDesc = makeModel({
     name: f.string({}),
     data: f.object({}),
     createdAt: f.date({}),
-    accountId: f.belongsTo().type<AccountId>(),
+    accountId: f.belongsTo({}).type<AccountId>(),
     creatorId: f.belongsTo({}).type<UserId>(),
   },
   relations: {

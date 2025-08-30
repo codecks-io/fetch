@@ -8,7 +8,7 @@ export const sprintProgressDesc = makeModel({
   name: "sprintProgress",
   fields: {
     progress: f.object({}),
-    sprintId: f.belongsTo().type<SprintId>(),
+    sprintId: f.belongsTo({}).type<SprintId>(),
   },
   relations: {
     sprint: relation("sprint", { type: "belongsTo", fk: "sprintId" }),

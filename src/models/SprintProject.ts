@@ -10,9 +10,9 @@ export const sprintProjectDesc = makeModel({
   name: "sprintProject",
   fields: {
     
-    sprintConfigId: f.belongsTo().type<SprintConfigId>(),
-    projectId: f.belongsTo().type<ProjectId>(),
-    accountId: f.belongsTo().type<AccountId>(),
+    sprintConfigId: f.belongsTo({}).type<SprintConfigId>(),
+    projectId: f.belongsTo({}).type<ProjectId>(),
+    accountId: f.belongsTo({}).type<AccountId>(),
   },
   relations: {
     sprintConfig: relation("sprintConfig", { type: "belongsTo", fk: "sprintConfigId" }),

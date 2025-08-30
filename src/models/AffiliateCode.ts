@@ -20,7 +20,7 @@ export const affiliateCodeDesc = makeModel({
     remainingRedemptions: f.string({}),
     reward: f.object({}),
     createdAt: f.date({}),
-    accountId: f.belongsTo().type<AccountId>(),
+    accountId: f.belongsTo({}).type<AccountId>(),
     creatorId: f.belongsTo({}).type<UserId>(),
   },
   relations: {

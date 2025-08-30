@@ -11,9 +11,9 @@ export const projectSelectionDesc = makeModel({
   name: "projectSelection",
   fields: {
     id: f.id<ProjectSelectionId>(),
-    userId: f.belongsTo().type<UserId>(),
-    accountId: f.belongsTo().type<AccountId>(),
-    projectId: f.belongsTo().type<ProjectId>(),
+    userId: f.belongsTo({}).type<UserId>(),
+    accountId: f.belongsTo({}).type<AccountId>(),
+    projectId: f.belongsTo({}).type<ProjectId>(),
   },
   relations: {
     user: relation("user", { type: "belongsTo", fk: "userId" }),

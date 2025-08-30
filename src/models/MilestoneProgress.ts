@@ -8,7 +8,7 @@ export const milestoneProgressDesc = makeModel({
   name: "milestoneProgress",
   fields: {
     progress: f.object({}),
-    milestoneId: f.belongsTo().type<MilestoneId>(),
+    milestoneId: f.belongsTo({}).type<MilestoneId>(),
   },
   relations: {
     milestone: relation("milestone", { type: "belongsTo", fk: "milestoneId" }),

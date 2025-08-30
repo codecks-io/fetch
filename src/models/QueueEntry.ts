@@ -14,9 +14,9 @@ export const queueEntryDesc = makeModel({
     sortIndex: f.int({}),
     cardDoneAt: f.date({}),
     createdAt: f.date({}),
-    accountId: f.belongsTo().type<AccountId>(),
-    userId: f.belongsTo().type<UserId>(),
-    cardId: f.belongsTo().type<CardId>(),
+    accountId: f.belongsTo({}).type<AccountId>(),
+    userId: f.belongsTo({}).type<UserId>(),
+    cardId: f.belongsTo({}).type<CardId>(),
   },
   relations: {
     account: relation("account", { type: "belongsTo", fk: "accountId" }),

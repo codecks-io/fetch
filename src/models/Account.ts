@@ -1,3 +1,4 @@
+
 import { makeModel, relation } from "./_desc";
 import * as f from "./_fields";
 import type { Nominal } from "./_type-helpers";
@@ -64,9 +65,7 @@ export const accountDesc = makeModel({
     workflowItems: relation("workflowItem", { type: "hasMany" }),
     deckAssignments: relation("deckAssignment", { type: "hasMany" }),
     assigneeAssignments: relation("assigneeAssignment", { type: "hasMany" }),
-    assigneeDeckAssignments: relation("assigneeDeckAssignment", {
-      type: "hasMany",
-    }),
+    assigneeDeckAssignments: relation("assigneeDeckAssignment", { type: "hasMany" }),
     wizards: relation("wizard", { type: "hasMany" }),
     milestones: relation("milestone", { type: "hasMany" }),
     sprints: relation("sprint", { type: "hasMany" }),
@@ -74,14 +73,10 @@ export const accountDesc = makeModel({
     handCards: relation("handCard", { type: "hasMany" }),
     resolvables: relation("resolvable", { type: "hasMany" }),
     cardUpvotes: relation("cardUpvote", { type: "hasMany" }),
-    resolvableParticipants: relation("resolvableParticipant", {
-      type: "hasMany",
-    }),
+    resolvableParticipants: relation("resolvableParticipant", { type: "hasMany" }),
     userReportSettings: relation("userReportSetting", { type: "hasMany" }),
     cardOrders: relation("cardOrder", { type: "hasMany" }),
-    accountUserAchievements: relation("accountUserAchievement", {
-      type: "hasMany",
-    }),
+    accountUserAchievements: relation("accountUserAchievement", { type: "hasMany" }),
     userInviteCodes: relation("userInviteCode", { type: "hasMany" }),
     visionBoards: relation("visionBoard", { type: "hasMany" }),
     deckSubscriptions: relation("deckSubscription", { type: "hasMany" }),
@@ -102,5 +97,5 @@ export const accountDesc = makeModel({
     stripeAccountSync: relation("stripeAccountSync", { type: "hasOne" }),
     accountOnboarding: relation("accountOnboarding", { type: "hasOne" }),
   },
-  keys: ["id"],
-});
+  keys: ["id"]
+})

@@ -14,7 +14,7 @@ export const userInvitationDesc = makeModel({
     role: f.string({}),
     accessToProjectIds: f.array({}),
     createdAt: f.date({}),
-    accountId: f.belongsTo().type<AccountId>(),
+    accountId: f.belongsTo({}).type<AccountId>(),
     inviterId: f.belongsTo({}).type<UserId>(),
   },
   relations: {

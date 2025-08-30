@@ -11,7 +11,7 @@ export const accountOnboardingDesc = makeModel({
     accountId: f.id<AccountOnboardingId>(),
     variants: f.array({}),
     steps: f.object({}),
-    accountId: f.belongsTo().type<AccountId>(),
+    accountId: f.belongsTo({}).type<AccountId>(),
   },
   relations: {
     account: relation("account", { type: "belongsTo", fk: "accountId" }),

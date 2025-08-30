@@ -9,7 +9,7 @@ export const assigneeAssignmentDesc = makeModel({
   name: "assigneeAssignment",
   fields: {
     lastAssignedAt: f.date({}),
-    accountId: f.belongsTo().type<AccountId>(),
+    accountId: f.belongsTo({}).type<AccountId>(),
     assigneeId: f.belongsTo({}).type<UserId>(),
     assignedById: f.belongsTo({}).type<UserId>(),
   },

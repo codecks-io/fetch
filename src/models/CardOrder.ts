@@ -10,8 +10,8 @@ export const cardOrderDesc = makeModel({
   fields: {
     sortValue: f.string({}),
     label: f.string({}),
-    cardId: f.belongsTo().type<CardId>(),
-    accountId: f.belongsTo().type<AccountId>(),
+    cardId: f.belongsTo({}).type<CardId>(),
+    accountId: f.belongsTo({}).type<AccountId>(),
   },
   relations: {
     card: relation("card", { type: "belongsTo", fk: "cardId" }),

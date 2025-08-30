@@ -14,9 +14,9 @@ export const cardUpvoteDesc = makeModel({
     type: f.string({}),
     createdAt: f.date({}),
     discordUserInfo: f.object({}),
-    userId: f.belongsTo().type<UserId>(),
-    accountId: f.belongsTo().type<AccountId>(),
-    cardId: f.belongsTo().type<CardId>(),
+    userId: f.belongsTo({}).type<UserId>(),
+    accountId: f.belongsTo({}).type<AccountId>(),
+    cardId: f.belongsTo({}).type<CardId>(),
   },
   relations: {
     user: relation("user", { type: "belongsTo", fk: "userId" }),

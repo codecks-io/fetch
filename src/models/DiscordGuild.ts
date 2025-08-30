@@ -18,7 +18,7 @@ export const discordGuildDesc = makeModel({
     removeCommandEmoji: f.string({}),
     removeCommandRoleId: f.string({}),
     createdAt: f.date({}),
-    accountId: f.belongsTo().type<AccountId>(),
+    accountId: f.belongsTo({}).type<AccountId>(),
   },
   relations: {
     account: relation("account", { type: "belongsTo", fk: "accountId" }),

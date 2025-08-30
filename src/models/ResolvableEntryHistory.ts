@@ -12,7 +12,7 @@ export const resolvableEntryHistoryDesc = makeModel({
     content: f.string({}),
     lastChangedAt: f.date({}),
     version: f.int({}),
-    resolvableId: f.belongsTo().type<ResolvableId>(),
+    resolvableId: f.belongsTo({}).type<ResolvableId>(),
     authorId: f.belongsTo({}).type<UserId>(),
     entryId: f.belongsTo({}).type<ResolvableEntryId>(),
   },

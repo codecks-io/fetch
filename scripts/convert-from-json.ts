@@ -65,7 +65,7 @@ function generateTs(schema: any): string {
     if (typeof b === "string") {
       const fk = `${b}Id`;
       const fkType = `${capitalizeFirst(b)}Id`;
-      belongsToLines.push(`${fk}: f.belongsTo().type<${fkType}>(),`);
+      belongsToLines.push(`${fk}: f.belongsTo({}).type<${fkType}>(),`);
       modelImports.set(b, [`type ${fkType}`]);
       hasManyLines.push(
         `${b}: relation("${b}", { type: "belongsTo", fk: "${fk}" }),`,

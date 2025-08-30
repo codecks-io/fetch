@@ -28,7 +28,7 @@ export const projectDesc = makeModel({
     publicMessage: f.string({ optional: true }),
     publicHeading: f.string({ optional: true }),
     publicBackgroundColor: f.string({ optional: true }),
-    accountId: f.belongsTo().type<AccountId>(),
+    accountId: f.belongsTo({}).type<AccountId>(),
     coverFileId: f.belongsTo({ optional: true }).type<FileId>(),
     publicBannerFileId: f.belongsTo({ optional: true }).type<FileId>(),
     publicTileFileId: f.belongsTo({ optional: true }).type<FileId>(),

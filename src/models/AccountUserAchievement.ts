@@ -10,8 +10,8 @@ export const accountUserAchievementDesc = makeModel({
   fields: {
     value: f.object({}),
     context: f.object({}),
-    accountId: f.belongsTo().type<AccountId>(),
-    userId: f.belongsTo().type<UserId>(),
+    accountId: f.belongsTo({}).type<AccountId>(),
+    userId: f.belongsTo({}).type<UserId>(),
   },
   relations: {
     account: relation("account", { type: "belongsTo", fk: "accountId" }),

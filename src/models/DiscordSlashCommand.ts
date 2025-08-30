@@ -22,7 +22,7 @@ export const discordSlashCommandDesc = makeModel({
     maxFileSizeInBytes: f.int({}),
     statusMessages: f.object({}),
     permissions: f.object({}),
-    deckId: f.belongsTo().type<DeckId>(),
+    deckId: f.belongsTo({}).type<DeckId>(),
     discordGuildId: f.belongsTo({}).type<DiscordGuildId>(),
   },
   relations: {

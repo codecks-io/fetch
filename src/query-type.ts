@@ -1,179 +1,173 @@
-import type { BelongsTo, InferFieldType, StrictAnyDesc } from "./models/_desc";
+import type {
+  InferFieldType,
+  AnyDesc,
+  RelationEntry,
+  BelongsToOpts,
+} from "./models/_desc";
+import type { TypedField } from "./models/_fields";
 import type { FilterNeverKeys } from "./models/_type-helpers";
 
-type EnsureStrictAnyDesc<T> = T extends StrictAnyDesc ? T : never;
-
-type ExtractHasMany<M extends StrictAnyDesc> = FilterNeverKeys<{
-  [K in keyof M["hasMany"]]: M["hasMany"][K] extends {
-    isSingleton: false;
-    getModel: () => infer M;
-  }
-    ? EnsureStrictAnyDesc<M>
-    : never;
-}>;
-
-type ExtractHasOne<M extends StrictAnyDesc> = FilterNeverKeys<{
-  [K in keyof M["hasMany"]]: M["hasMany"][K] extends {
-    isSingleton: true;
-    getModel: () => infer M;
-  }
-    ? EnsureStrictAnyDesc<M>
-    : never;
-}>;
-
-type ExtractBelongsToHelper<M extends StrictAnyDesc> = {
-  [K in keyof M["fields"] as M["fields"][K] extends BelongsTo<
-    infer TRel extends string,
-    any,
-    any
-  >
-    ? TRel
-    : never]: M["fields"][K] extends BelongsTo<any, () => infer TModel, any>
-    ? TModel extends StrictAnyDesc
-      ? TModel
-      : never
-    : never;
-};
-
-type ExtractBelongsTo<M extends StrictAnyDesc> =
-  FilterNeverKeys<ExtractBelongsToHelper<M>> extends Record<
-    string,
-    StrictAnyDesc
-  >
-    ? FilterNeverKeys<ExtractBelongsToHelper<M>>
-    : never;
-
-type ExtractBelongsToWithOpts<M extends StrictAnyDesc> = {
-  [K in keyof M["fields"] as M["fields"][K] extends BelongsTo<
-    infer TRel extends string,
-    any,
-    any
-  >
-    ? TRel
-    : never]: M["fields"][K] extends BelongsTo<
-    any,
-    () => infer TModel,
-    infer Opts
-  >
-    ? TModel extends StrictAnyDesc
-      ? { model: TModel; options: Opts }
-      : never
-    : never;
-};
-
-export type ModelDict<T extends StrictAnyDesc> = {
+export type ModelQuery<T extends AnyDesc, TMap extends ModelMap> = {
   fields?: (keyof T["fields"])[];
-  relations?: RelDict<T>;
+  relations?: RelQuery<T, TMap>;
 };
 
-type ModelDictWithQuery<T extends StrictAnyDesc> = ModelDict<T> & {
+export type ModelQueryWithFilter<
+  T extends AnyDesc,
+  TMap extends ModelMap,
+> = ModelQuery<T, TMap> & {
   orderBy?: keyof T["fields"];
   limit?: number;
+  where?: any; // TODO
   as?: string;
 };
-type NamedModelDictWithQuery<T extends StrictAnyDesc> =
-  ModelDictWithQuery<T> & { as: string };
 
-export type RelDict<T extends StrictAnyDesc> = {
-  [K in keyof ExtractHasMany<T>]?:
-    | ModelDictWithQuery<ExtractHasMany<T>[K]>
-    | NamedModelDictWithQuery<ExtractHasMany<T>[K]>[];
-} & {
-  [K in keyof ExtractHasOne<T>]?: ModelDict<ExtractHasOne<T>[K]>;
-} & {
-  [K in keyof ExtractBelongsTo<T>]?: ModelDict<ExtractBelongsTo<T>[K]>;
+type ModelQueryWithFilterAndAs<
+  T extends AnyDesc,
+  TMap extends ModelMap,
+> = ModelQueryWithFilter<T, TMap> & {
+  as: string;
 };
 
-export type InferModelDict<
-  M extends StrictAnyDesc,
-  T extends ModelDict<M>,
-> = (T["fields"] extends (keyof M["fields"])[]
-  ? { [K in T["fields"][number]]: InferFieldType<M["fields"][K]> }
-  : {}) &
-  (T["relations"] extends RelDict<M> ? InferRelDict<M, T["relations"]> : {}) & {
-    [K in M["keys"] & string]: InferFieldType<M["fields"][K]>;
-  } & {
-    "~model": M;
-  };
+type ModelMap = Record<string, AnyDesc>;
 
-type ExtractNamedRelations<M extends StrictAnyDesc, T extends RelDict<M>> = {
-  [K in keyof T]: K extends keyof ExtractHasMany<M>
-    ? T[K] extends NamedModelDictWithQuery<any>[]
+export type RelQuery<T extends AnyDesc, TMap extends ModelMap> = {
+  [K in keyof T["relations"]]?: K extends keyof ExtractHasMany<T, TMap>
+    ?
+        | ModelQueryWithFilter<TMap[T["relations"][K]["relName"]], TMap>
+        | ModelQueryWithFilterAndAs<TMap[T["relations"][K]["relName"]], TMap>[]
+    : ModelQuery<TMap[T["relations"][K]["relName"]], TMap>;
+};
+
+type EnrichBelongsTo<
+  M extends AnyDesc,
+  TMap extends ModelMap,
+> = FilterNeverKeys<{
+  [K in keyof M["relations"]]: M["relations"][K] extends RelationEntry<
+    any,
+    infer Opts
+  >
+    ? Opts extends BelongsToOpts<infer TFk>
       ? {
-          [Item in T[K][number] as Item["as"]]: InferModelDict<
-            ExtractHasMany<M>[K],
-            Item
-          >;
+          model: TMap[M["relations"][K]["relName"]];
+          fk: TFk;
+          field: M["fields"][TFk] extends TypedField<
+            "belongsTo",
+            infer FieldType,
+            infer FieldOpts
+          >
+            ? { type: FieldType } & FieldOpts
+            : never;
         }
       : never
     : never;
-}[keyof T];
+}>;
+
+type ExtractHasMany<
+  M extends AnyDesc,
+  TMap extends ModelMap,
+> = FilterNeverKeys<{
+  [K in keyof M["relations"]]: M["relations"][K] extends RelationEntry<
+    infer RelName,
+    { type: "hasMany" }
+  >
+    ? { model: TMap[RelName] }
+    : never;
+}>;
+
+type ExtractHasOne<M extends AnyDesc, TMap extends ModelMap> = FilterNeverKeys<{
+  [K in keyof M["relations"]]: M["relations"][K] extends RelationEntry<
+    infer RelName,
+    { type: "hasOne" }
+  >
+    ? { model: TMap[RelName] }
+    : never;
+}>;
+
+// type RealModelMap = typeof modelMap;
+// type AccountDesc = typeof accountDesc;
+// type AccMany = ExtractHasMany<AccountDesc, RealModelMap>;
+// const accBel = {} as AccMany;
+
+// const a = {} as RelQuery<AccountDesc, RealModelMap>;
+
+export type InferModelQuery<
+  M extends AnyDesc,
+  Q extends ModelQuery<M, TMap>,
+  TMap extends ModelMap,
+> = (Q["fields"] extends (keyof M["fields"])[]
+  ? { [K in Q["fields"][number]]: InferFieldType<M["fields"][K]> }
+  : {}) &
+  (Q["relations"] extends RelQuery<M, TMap>
+    ? InferRelQuery<M, Q["relations"], TMap>
+    : {}) & {
+    [K in M["keys"][number] & string]: InferFieldType<M["fields"][K]>;
+  } & {
+    "~model": M["name"];
+    "~key": string;
+  };
+
+type IsOptional<T, Test> = Test extends true ? T | null : T;
 
 type EmptyObjIfNever<T> = [T] extends [never] ? {} : T;
+type EnsureAnyDesc<T> = T extends AnyDesc ? T : never;
 
-export type InferRelDict<
-  M extends StrictAnyDesc,
-  T extends RelDict<M>,
-> = EmptyObjIfNever<ExtractNamedRelations<M, T>> & {
-  [K in keyof T as K extends keyof ExtractHasMany<M>
-    ? T[K] extends NamedModelDictWithQuery<any>[]
-      ? never
-      : T[K] extends ModelDictWithQuery<any>
-        ? T[K]["as"] extends string
-          ? T[K]["as"]
-          : K
-        : never
-    : K]: K extends keyof ExtractHasMany<M>
-    ? T[K] extends ModelDictWithQuery<any>
-      ? InferModelDict<ExtractHasMany<M>[K], T[K]>[]
+type ExtractRelQueryArray<
+  M extends AnyDesc,
+  Q extends RelQuery<M, TMap>,
+  TMap extends ModelMap,
+> = {
+  [K in keyof Q]: K extends keyof ExtractHasMany<M, TMap>
+    ? Q[K] extends ModelQueryWithFilterAndAs<any, any>[]
+      ? {
+          [Item in Q[K][number] as Item["as"]]: InferModelQuery<
+            ExtractHasMany<M, TMap>[K]["model"],
+            Item,
+            TMap
+          >[];
+        }
       : never
-    : K extends keyof ExtractHasOne<M>
-      ? T[K] extends ModelDict<any>
-        ? ExtractHasOne<M>[K] extends { force: true }
-          ? InferModelDict<ExtractHasOne<M>[K], T[K]>
-          : M["hasMany"][K] extends { options: { force: true } }
-            ? InferModelDict<ExtractHasOne<M>[K], T[K]>
-            : InferModelDict<ExtractHasOne<M>[K], T[K]> | null
-        : never
-      : K extends keyof ExtractBelongsToWithOpts<M>
-        ? T[K] extends ModelDict<any>
-          ? ExtractBelongsToWithOpts<M>[K] extends {
-              model: infer M;
-              options: infer Opts;
-            }
-            ? Opts extends { optional: true }
-              ? InferModelDict<EnsureStrictAnyDesc<M>, T[K]> | null
-              : InferModelDict<EnsureStrictAnyDesc<M>, T[K]>
-            : never
-          : never
-        : never;
-};
+    : never;
+}[keyof Q];
 
-export type Instance<M extends StrictAnyDesc> = {
+export type InferRelQuery<
+  M extends AnyDesc,
+  Q extends RelQuery<M, TMap>,
+  TMap extends ModelMap,
+> = EmptyObjIfNever<
+  ExtractRelQueryArray<M, Q, TMap> & {
+    [K in keyof Q as Q[K] extends Array<any>
+      ? never
+      : Q[K] extends { as: string }
+        ? K extends keyof ExtractHasMany<any, any>
+          ? Q[K]["as"]
+          : K
+        : K]: K extends keyof EnrichBelongsTo<M, TMap>
+      ? IsOptional<
+          InferModelQuery<
+            EnrichBelongsTo<M, TMap>[K]["model"],
+            EnsureAnyDesc<Q[K]>,
+            TMap
+          >,
+          EnrichBelongsTo<M, TMap>[K]["field"]["optional"]
+        >
+      : K extends keyof ExtractHasMany<M, TMap>
+        ? InferModelQuery<
+            ExtractHasMany<M, TMap>[K]["model"],
+            EnsureAnyDesc<Q[K]>,
+            TMap
+          >[]
+        : K extends keyof ExtractHasOne<M, TMap>
+          ? InferModelQuery<
+              ExtractHasOne<M, TMap>[K]["model"],
+              EnsureAnyDesc<Q[K]>,
+              TMap
+            >
+          : never;
+  }
+>;
+
+export type Instance<M extends AnyDesc> = {
   "~model": M;
   "~key": string;
 };
-
-// export const modelQuery = <
-//   M extends StrictAnyDesc,
-//   const T extends ModelDict<M>,
-// >(
-//   model: M,
-//   q: T,
-// ): InferModelDict<M, T> => {
-//   return null as any;
-// };
-
-// export const a = modelQuery(accountDesc, {
-//   fields: ["name", "subdomain"],
-//   // relations: {
-//   //   creator: {
-//   //     fields: ["email"],
-//   //     relations: {
-//   //       bestFriend: {
-//   //         fields: ["email"],
-//   //       },
-//   //     },
-//   //   },
-//   // },
-// });

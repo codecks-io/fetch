@@ -13,8 +13,8 @@ export const publicProjectInfoDesc = makeModel({
     cardCount: f.string({}),
     visits7d: f.string({}),
     cardDoneStreak: f.string({}),
-    projectId: f.belongsTo().type<ProjectId>(),
-    accountId: f.belongsTo().type<AccountId>(),
+    projectId: f.belongsTo({}).type<ProjectId>(),
+    accountId: f.belongsTo({}).type<AccountId>(),
   },
   relations: {
     project: relation("project", { type: "belongsTo", fk: "projectId" }),

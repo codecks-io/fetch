@@ -10,9 +10,9 @@ export const deckGuardianDesc = makeModel({
   name: "deckGuardian",
   fields: {
     
-    userId: f.belongsTo().type<UserId>(),
-    accountId: f.belongsTo().type<AccountId>(),
-    deckId: f.belongsTo().type<DeckId>(),
+    userId: f.belongsTo({}).type<UserId>(),
+    accountId: f.belongsTo({}).type<AccountId>(),
+    deckId: f.belongsTo({}).type<DeckId>(),
   },
   relations: {
     user: relation("user", { type: "belongsTo", fk: "userId" }),

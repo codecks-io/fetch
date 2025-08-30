@@ -12,8 +12,8 @@ export const appInstallationDesc = makeModel({
   fields: {
     id: f.id<AppInstallationId>(),
     createdAt: f.date({}),
-    accountId: f.belongsTo().type<AccountId>(),
-    appId: f.belongsTo().type<AppId>(),
+    accountId: f.belongsTo({}).type<AccountId>(),
+    appId: f.belongsTo({}).type<AppId>(),
     installerId: f.belongsTo({}).type<UserId>(),
   },
   relations: {

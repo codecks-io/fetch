@@ -1,8 +1,8 @@
 import type { AnyDesc } from "./models/_desc";
-import { rootDesc } from "./models/models";
-import type { Instance, ModelDict, RelDict } from "./query-type";
+import { modelMap, rootDesc } from "./models/models";
+import type { Instance, ModelQuery, RelQuery } from "./query-type";
 
-const serializeModel = (q: ModelDict<any>, modelDesc: any) => {
+const serializeModel = (q: ModelQuery<any, any>, modelDesc: any) => {
   const list: any[] = q.fields ? [...q.fields] : [];
   if (!q.relations) return list;
   const relObj: Record<string, unknown> = {};
@@ -14,29 +14,31 @@ const serializeModel = (q: ModelDict<any>, modelDesc: any) => {
         const belongsToKey = modelDesc.belongsToMap[k];
         return belongsToKey || k;
       };
-      relObj[getKey()] = serializeModel(r as ModelDict<any>, modelDesc);
+      relObj[getKey()] = serializeModel(r as ModelQuery<any, any>, modelDesc);
     });
   });
   return list;
 };
 
-const serializeRelations = (q: RelDict<any>, modelDesc: AnyDesc) => {
+const serializeRelations = (q: RelQuery<any, any>, modelDesc: AnyDesc) => {
   return Object.fromEntries(
     Object.entries(q).map(([k, v]) => [
       k,
-      serializeModel(v as ModelDict<any>, modelDesc.relations[k]),
+      serializeModel(v as ModelQuery<any, any>, modelDesc.relations[k]),
     ]),
   );
 };
 
-export const serializeRootQuery = <T extends RelDict<typeof rootDesc>>(
+export const serializeRootQuery = <
+  T extends RelQuery<typeof rootDesc, typeof modelMap>,
+>(
   q: T,
 ): Record<string, unknown> => {
   return { _root: serializeRelations(q, rootDesc) };
 };
 
 export const serializeInstanceQuery = (
-  q: ModelDict<any>,
+  q: ModelQuery<any, any>,
   instances: Instance<AnyDesc>[],
 ) => {
   return Object.fromEntries(

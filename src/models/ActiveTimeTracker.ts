@@ -12,9 +12,9 @@ export const activeTimeTrackerDesc = makeModel({
   fields: {
     id: f.id<ActiveTimeTrackerId>(),
     createdAt: f.date({}),
-    cardId: f.belongsTo().type<CardId>(),
-    userId: f.belongsTo().type<UserId>(),
-    accountId: f.belongsTo().type<AccountId>(),
+    cardId: f.belongsTo({}).type<CardId>(),
+    userId: f.belongsTo({}).type<UserId>(),
+    accountId: f.belongsTo({}).type<AccountId>(),
   },
   relations: {
     card: relation("card", { type: "belongsTo", fk: "cardId" }),

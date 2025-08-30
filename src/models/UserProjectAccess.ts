@@ -10,8 +10,8 @@ export const userProjectAccessDesc = makeModel({
   fields: {
     role: f.string({}),
     projectRole: f.string({}),
-    userId: f.belongsTo().type<UserId>(),
-    projectId: f.belongsTo().type<ProjectId>(),
+    userId: f.belongsTo({}).type<UserId>(),
+    projectId: f.belongsTo({}).type<ProjectId>(),
   },
   relations: {
     user: relation("user", { type: "belongsTo", fk: "userId" }),

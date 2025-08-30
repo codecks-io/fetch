@@ -10,9 +10,9 @@ export const dueCardDesc = makeModel({
   name: "dueCard",
   fields: {
     createdAt: f.date({}),
-    userId: f.belongsTo().type<UserId>(),
-    accountId: f.belongsTo().type<AccountId>(),
-    cardId: f.belongsTo().type<CardId>(),
+    userId: f.belongsTo({}).type<UserId>(),
+    accountId: f.belongsTo({}).type<AccountId>(),
+    cardId: f.belongsTo({}).type<CardId>(),
   },
   relations: {
     user: relation("user", { type: "belongsTo", fk: "userId" }),

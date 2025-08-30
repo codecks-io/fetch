@@ -11,10 +11,10 @@ export const autoFinishedTimeTrackingSegmentDesc = makeModel({
   name: "autoFinishedTimeTrackingSegment",
   fields: {
     createdAt: f.date({}),
-    userId: f.belongsTo().type<UserId>(),
-    accountId: f.belongsTo().type<AccountId>(),
-    cardId: f.belongsTo().type<CardId>(),
-    timeTrackingSegmentId: f.belongsTo().type<TimeTrackingSegmentId>(),
+    userId: f.belongsTo({}).type<UserId>(),
+    accountId: f.belongsTo({}).type<AccountId>(),
+    cardId: f.belongsTo({}).type<CardId>(),
+    timeTrackingSegmentId: f.belongsTo({}).type<TimeTrackingSegmentId>(),
   },
   relations: {
     user: relation("user", { type: "belongsTo", fk: "userId" }),

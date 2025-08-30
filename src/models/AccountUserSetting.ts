@@ -12,8 +12,8 @@ export const accountUserSettingDesc = makeModel({
     wantsWeeklyDigestMail: f.bool({}),
     timelineScaleTypeOverwrite: f.string({}),
     startWeekdayOverwrite: f.string({}),
-    accountId: f.belongsTo().type<AccountId>(),
-    userId: f.belongsTo().type<UserId>(),
+    accountId: f.belongsTo({}).type<AccountId>(),
+    userId: f.belongsTo({}).type<UserId>(),
     inboxDeckId: f.belongsTo({}).type<DeckId>(),
   },
   relations: {

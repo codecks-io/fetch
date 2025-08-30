@@ -14,9 +14,9 @@ export const cardDiffNotificationDesc = makeModel({
     changers: f.array({}),
     lastUpdatedAt: f.date({}),
     createdAt: f.date({}),
-    userId: f.belongsTo().type<UserId>(),
-    cardId: f.belongsTo().type<CardId>(),
-    accountId: f.belongsTo().type<AccountId>(),
+    userId: f.belongsTo({}).type<UserId>(),
+    cardId: f.belongsTo({}).type<CardId>(),
+    accountId: f.belongsTo({}).type<AccountId>(),
   },
   relations: {
     user: relation("user", { type: "belongsTo", fk: "userId" }),

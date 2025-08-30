@@ -25,7 +25,7 @@ export const stripeAccountSyncDesc = makeModel({
     planName: f.string({}),
     pendingPlanType: f.string({}),
     repeatingCoupon: f.object({}),
-    accountId: f.belongsTo().type<AccountId>(),
+    accountId: f.belongsTo({}).type<AccountId>(),
   },
   relations: {
     account: relation("account", { type: "belongsTo", fk: "accountId" }),

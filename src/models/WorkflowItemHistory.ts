@@ -11,7 +11,7 @@ export const workflowItemHistoryDesc = makeModel({
     diff: f.object({}),
     versionCreatedAt: f.date({}),
     version: f.int({}),
-    accountId: f.belongsTo().type<AccountId>(),
+    accountId: f.belongsTo({}).type<AccountId>(),
     changerId: f.belongsTo({}).type<UserId>(),
   },
   relations: {

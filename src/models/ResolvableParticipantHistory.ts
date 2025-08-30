@@ -14,7 +14,7 @@ export const resolvableParticipantHistoryDesc = makeModel({
     lastChangedAt: f.date({}),
     version: f.int({}),
     reaction: f.string({}),
-    resolvableId: f.belongsTo().type<ResolvableId>(),
+    resolvableId: f.belongsTo({}).type<ResolvableId>(),
     userId: f.belongsTo({}).type<UserId>(),
     addedById: f.belongsTo({}).type<UserId>(),
   },

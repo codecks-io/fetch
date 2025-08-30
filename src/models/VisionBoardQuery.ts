@@ -16,8 +16,8 @@ export const visionBoardQueryDesc = makeModel({
     type: f.string({}),
     payload: f.object({}),
     createdAt: f.date({}),
-    cardId: f.belongsTo().type<CardId>(),
-    accountId: f.belongsTo().type<AccountId>(),
+    cardId: f.belongsTo({}).type<CardId>(),
+    accountId: f.belongsTo({}).type<AccountId>(),
   },
   relations: {
     card: relation("card", { type: "belongsTo", fk: "cardId" }),

@@ -12,8 +12,8 @@ export const accountRoleDesc = makeModel({
     createdAt: f.date({}),
     lastChangedAt: f.date({}),
     roleAsPrio: f.int({}),
-    userId: f.belongsTo().type<UserId>(),
-    accountId: f.belongsTo().type<AccountId>(),
+    userId: f.belongsTo({}).type<UserId>(),
+    accountId: f.belongsTo({}).type<AccountId>(),
   },
   relations: {
     user: relation("user", { type: "belongsTo", fk: "userId" }),

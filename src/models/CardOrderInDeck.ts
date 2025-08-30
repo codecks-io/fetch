@@ -10,8 +10,8 @@ export const cardOrderInDeckDesc = makeModel({
   name: "cardOrderInDeck",
   fields: {
     sortIndex: f.string({}),
-    cardId: f.belongsTo().type<CardId>(),
-    deckId: f.belongsTo().type<DeckId>(),
+    cardId: f.belongsTo({}).type<CardId>(),
+    deckId: f.belongsTo({}).type<DeckId>(),
     changerId: f.belongsTo({}).type<UserId>(),
   },
   relations: {

@@ -25,7 +25,7 @@ export const milestoneDesc = makeModel({
     userCapacities: f.object({}),
     isDeleted: f.bool({}),
     preferredOrder: f.string({ optional: true }),
-    accountId: f.belongsTo().type<AccountId>(),
+    accountId: f.belongsTo({}).type<AccountId>(),
     creatorId: f.belongsTo({}).type<UserId>(),
     coverFileId: f.belongsTo({ optional: true }).type<FileId>(),
   },

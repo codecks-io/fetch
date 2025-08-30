@@ -15,8 +15,8 @@ export const integrationDesc = makeModel({
     userData: f.object({}),
     createdAt: f.date({}),
     version: f.int({}),
-    accountId: f.belongsTo().type<AccountId>(),
-    userId: f.belongsTo().type<UserId>(),
+    accountId: f.belongsTo({}).type<AccountId>(),
+    userId: f.belongsTo({}).type<UserId>(),
     creatorId: f.belongsTo({}).type<UserId>(),
   },
   relations: {

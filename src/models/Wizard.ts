@@ -14,7 +14,7 @@ export const wizardDesc = makeModel({
     data: f.object({}),
     createdAt: f.date({}),
     finishedAt: f.date({}),
-    accountId: f.belongsTo().type<AccountId>(),
+    accountId: f.belongsTo({}).type<AccountId>(),
   },
   relations: {
     account: relation("account", { type: "belongsTo", fk: "accountId" }),

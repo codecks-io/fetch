@@ -9,7 +9,7 @@ export const dailyPublicProjectMembershipDesc = makeModel({
   fields: {
     t: f.date({}),
     membershipCount: f.int({}),
-    projectId: f.belongsTo().type<ProjectId>(),
+    projectId: f.belongsTo({}).type<ProjectId>(),
   },
   relations: {
     project: relation("project", { type: "belongsTo", fk: "projectId" }),

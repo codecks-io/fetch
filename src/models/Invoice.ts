@@ -16,7 +16,7 @@ export const invoiceDesc = makeModel({
     subtotal: f.int({}),
     charged: f.int({}),
     chargeData: f.object({}),
-    accountId: f.belongsTo().type<AccountId>(),
+    accountId: f.belongsTo({}).type<AccountId>(),
   },
   relations: {
     account: relation("account", { type: "belongsTo", fk: "accountId" }),

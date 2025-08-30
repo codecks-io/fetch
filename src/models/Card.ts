@@ -42,7 +42,7 @@ export const cardDesc = makeModel({
     dueDate: f.day({ optional: true }),
     isDoc: f.bool({ optional: true }),
     childCardInfo: f.string({}),
-    accountId: f.belongsTo().type<AccountId>(),
+    accountId: f.belongsTo({}).type<AccountId>(),
     deckId: f.belongsTo({ optional: true }).type<DeckId>(),
     assigneeId: f.belongsTo({ optional: true }).type<UserId>(),
     creatorId: f.belongsTo({ optional: true }).type<UserId>(),

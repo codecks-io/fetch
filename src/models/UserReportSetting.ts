@@ -14,7 +14,7 @@ export const userReportSettingDesc = makeModel({
     createdAt: f.date({}),
     deckMapping: f.object({}),
     prioMapping: f.object({}),
-    accountId: f.belongsTo().type<AccountId>(),
+    accountId: f.belongsTo({}).type<AccountId>(),
   },
   relations: {
     account: relation("account", { type: "belongsTo", fk: "accountId" }),

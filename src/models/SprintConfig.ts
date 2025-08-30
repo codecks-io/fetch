@@ -26,7 +26,7 @@ export const sprintConfigDesc = makeModel({
     autoAssignStartedCard: f.bool({}),
     autoAssignNewCard: f.bool({}),
     beastGracePeriodHours: f.int({}),
-    accountId: f.belongsTo().type<AccountId>(),
+    accountId: f.belongsTo({}).type<AccountId>(),
     creatorId: f.belongsTo({}).type<UserId>(),
   },
   relations: {

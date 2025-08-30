@@ -11,8 +11,8 @@ export const queueSelectionDesc = makeModel({
   fields: {
     id: f.id<QueueSelectionId>(),
     sortIndex: f.int({}),
-    userId: f.belongsTo().type<UserId>(),
-    accountId: f.belongsTo().type<AccountId>(),
+    userId: f.belongsTo({}).type<UserId>(),
+    accountId: f.belongsTo({}).type<AccountId>(),
     queueUserId: f.belongsTo({}).type<UserId>(),
   },
   relations: {

@@ -14,8 +14,8 @@ export const visionBoardDesc = makeModel({
     accountSeq: f.int({}),
     createdAt: f.date({}),
     isDeleted: f.bool({}),
-    cardId: f.belongsTo().type<CardId>(),
-    accountId: f.belongsTo().type<AccountId>(),
+    cardId: f.belongsTo({}).type<CardId>(),
+    accountId: f.belongsTo({}).type<AccountId>(),
     creatorId: f.belongsTo({}).type<UserId>(),
   },
   relations: {

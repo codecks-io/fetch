@@ -10,8 +10,8 @@ export const assigneeDeckAssignmentDesc = makeModel({
   name: "assigneeDeckAssignment",
   fields: {
     lastAssignedAt: f.date({}),
-    accountId: f.belongsTo().type<AccountId>(),
-    deckId: f.belongsTo().type<DeckId>(),
+    accountId: f.belongsTo({}).type<AccountId>(),
+    deckId: f.belongsTo({}).type<DeckId>(),
     assigneeId: f.belongsTo({}).type<UserId>(),
     assignedById: f.belongsTo({}).type<UserId>(),
   },

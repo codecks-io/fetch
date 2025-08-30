@@ -10,7 +10,7 @@ export const userOnboardingDesc = makeModel({
   fields: {
     userId: f.id<UserOnboardingId>(),
     steps: f.object({}),
-    userId: f.belongsTo().type<UserId>(),
+    userId: f.belongsTo({}).type<UserId>(),
   },
   relations: {
     user: relation("user", { type: "belongsTo", fk: "userId" }),

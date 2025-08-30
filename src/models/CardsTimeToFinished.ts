@@ -11,7 +11,7 @@ export const cardsTimeToFinishedDesc = makeModel({
     effort: f.int({}),
     startedAt: f.date({}),
     doneAt: f.date({}),
-    cardId: f.belongsTo().type<CardId>(),
+    cardId: f.belongsTo({}).type<CardId>(),
     assigneeId: f.belongsTo({}).type<UserId>(),
   },
   relations: {

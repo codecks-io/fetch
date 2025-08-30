@@ -15,9 +15,9 @@ export const attachmentDesc = makeModel({
     content: f.string({}),
     title: f.string({}),
     createdAt: f.date({}),
-    fileId: f.belongsTo().type<FileId>(),
-    cardId: f.belongsTo().type<CardId>(),
-    accountId: f.belongsTo().type<AccountId>(),
+    fileId: f.belongsTo({}).type<FileId>(),
+    cardId: f.belongsTo({}).type<CardId>(),
+    accountId: f.belongsTo({}).type<AccountId>(),
     creatorId: f.belongsTo({}).type<UserId>(),
   },
   relations: {

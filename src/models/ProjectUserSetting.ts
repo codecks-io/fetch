@@ -9,8 +9,8 @@ export const projectUserSettingDesc = makeModel({
   name: "projectUserSetting",
   fields: {
     
-    projectId: f.belongsTo().type<ProjectId>(),
-    userId: f.belongsTo().type<UserId>(),
+    projectId: f.belongsTo({}).type<ProjectId>(),
+    userId: f.belongsTo({}).type<UserId>(),
   },
   relations: {
     project: relation("project", { type: "belongsTo", fk: "projectId" }),

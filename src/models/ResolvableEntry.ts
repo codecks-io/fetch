@@ -16,8 +16,8 @@ export const resolvableEntryDesc = makeModel({
     createdAt: f.date({}),
     version: f.int({}),
     meta: f.object({}),
-    resolvableId: f.belongsTo().type<ResolvableId>(),
-    cardId: f.belongsTo().type<CardId>(),
+    resolvableId: f.belongsTo({}).type<ResolvableId>(),
+    cardId: f.belongsTo({}).type<CardId>(),
     authorId: f.belongsTo({}).type<UserId>(),
   },
   relations: {

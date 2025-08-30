@@ -11,8 +11,8 @@ export const timeTrackingSumDesc = makeModel({
     sumMs: f.int({}),
     runningStartedAt: f.date({}),
     runningModifyDurationMsBy: f.int({}),
-    cardId: f.belongsTo().type<CardId>(),
-    userId: f.belongsTo().type<UserId>(),
+    cardId: f.belongsTo({}).type<CardId>(),
+    userId: f.belongsTo({}).type<UserId>(),
   },
   relations: {
     card: relation("card", { type: "belongsTo", fk: "cardId" }),

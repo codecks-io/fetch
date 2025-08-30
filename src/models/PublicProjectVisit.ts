@@ -10,7 +10,7 @@ export const publicProjectVisitDesc = makeModel({
     t: f.date({}),
     topReferrers: f.object({}),
     visitCounts: f.int({}),
-    projectId: f.belongsTo().type<ProjectId>(),
+    projectId: f.belongsTo({}).type<ProjectId>(),
   },
   relations: {
     project: relation("project", { type: "belongsTo", fk: "projectId" }),

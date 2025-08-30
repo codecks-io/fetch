@@ -18,7 +18,7 @@ export const fileDesc = makeModel({
     createdAt: f.date({}),
     deletedAt: f.date({}),
     selfHosted: f.string({}),
-    accountId: f.belongsTo().type<AccountId>(),
+    accountId: f.belongsTo({}).type<AccountId>(),
     uploaderId: f.belongsTo({}).type<UserId>(),
     deletedById: f.belongsTo({}).type<UserId>(),
   },

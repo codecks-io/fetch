@@ -1,18 +1,20 @@
 import type { ApiResponse, ModelPool } from "./model-pool";
-import type { StrictAnyDesc } from "./models/_desc";
-import { rootDesc } from "./models/models";
+import type { AnyDesc } from "./models/_desc";
+import { modelMap, rootDesc } from "./models/models";
 import type {
-  InferModelDict,
-  InferRelDict,
-  ModelDict,
-  RelDict,
+  InferModelQuery,
+  InferRelQuery,
+  ModelQuery,
+  RelQuery,
 } from "./query-type";
 
-export const reconcileRootQuery = <T extends RelDict<typeof rootDesc>>(
+export const reconcileRootQuery = <
+  T extends RelQuery<typeof rootDesc, typeof modelMap>,
+>(
   query: T,
   response: ApiResponse,
   pool: ModelPool,
-): InferRelDict<typeof rootDesc, T> => {
+): InferRelQuery<typeof rootDesc, T, typeof modelMap> => {
   const result: Record<string, any> = {};
   const responsePart = response._root;
   for (const [relName, modelFields] of Object.entries(query)) {
@@ -37,15 +39,15 @@ export const reconcileRootQuery = <T extends RelDict<typeof rootDesc>>(
 };
 
 export const reconcileInstanceQuery = <
-  M extends StrictAnyDesc,
-  const T extends ModelDict<M>,
+  M extends AnyDesc,
+  const T extends ModelQuery<M, typeof modelMap>,
 >(
   query: T,
   response: ApiResponse,
   instanceModel: M,
   key: string,
   pool: ModelPool,
-): InferModelDict<M, T> => {
+): InferModelQuery<M, T, typeof modelMap> => {
   const instance = pool.get(instanceModel.name, key);
   if (!instance) {
     console.warn(`no instance found in pool: [${instanceModel.name}, ${key}]`);

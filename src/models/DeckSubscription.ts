@@ -11,9 +11,9 @@ export const deckSubscriptionDesc = makeModel({
   name: "deckSubscription",
   fields: {
     id: f.id<DeckSubscriptionId>(),
-    userId: f.belongsTo().type<UserId>(),
-    deckId: f.belongsTo().type<DeckId>(),
-    accountId: f.belongsTo().type<AccountId>(),
+    userId: f.belongsTo({}).type<UserId>(),
+    deckId: f.belongsTo({}).type<DeckId>(),
+    accountId: f.belongsTo({}).type<AccountId>(),
   },
   relations: {
     user: relation("user", { type: "belongsTo", fk: "userId" }),
