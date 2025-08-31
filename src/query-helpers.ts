@@ -2,7 +2,7 @@ import type { AnyDesc } from "./models/_desc";
 import { modelMap, rootDesc } from "./models/models";
 import type { Instance, ModelQuery, RelQuery } from "./query-type";
 
-const serializeModel = (q: ModelQuery<any, any>, modelDesc: any) => {
+const serializeModel = (q: ModelQuery<any, any>, modelDesc: AnyDesc) => {
   const list: any[] = q.fields ? [...q.fields] : [];
   if (!q.relations) return list;
   const relObj: Record<string, unknown> = {};
@@ -10,11 +10,7 @@ const serializeModel = (q: ModelQuery<any, any>, modelDesc: any) => {
   Object.entries(q.relations).forEach(([k, _v]) => {
     const rels = Array.isArray(_v) ? _v : [_v];
     rels.forEach((r) => {
-      const getKey = () => {
-        const belongsToKey = modelDesc.belongsToMap[k];
-        return belongsToKey || k;
-      };
-      relObj[getKey()] = serializeModel(r as ModelQuery<any, any>, modelDesc);
+      relObj[k] = serializeModel(r as ModelQuery<any, any>, modelDesc);
     });
   });
   return list;

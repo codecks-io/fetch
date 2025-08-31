@@ -12,7 +12,7 @@ test("simple field", () => {
 test("belongs to", () => {
   expect(
     serializeRootQuery({
-      account: { relations: { disabledByUser: { fields: ["name"] } } },
+      account: { relations: { disabledBy: { fields: ["name"] } } },
     }),
   ).toEqual({ _root: { account: [{ disabledBy: ["name"] }] } });
 });

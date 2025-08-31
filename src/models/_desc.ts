@@ -29,7 +29,7 @@ export type BelongsToOpts<TFk extends string> = {
 type HasManyOpts = { type: "hasMany" };
 type HasOneOpts = { type: "hasOne" };
 
-type RelationOpts = BelongsToOpts<any> | HasManyOpts | HasOneOpts;
+export type RelationOpts = BelongsToOpts<any> | HasManyOpts | HasOneOpts;
 
 export type RelationEntry<
   TRelName extends string,
@@ -51,7 +51,7 @@ export const makeModel = <
   relations: THasMany;
   keys: TKey;
 }): ModelDesc<TName, TFields, THasMany, TKey> => {
-  return null as any;
+  return opts;
 };
 
 export const relation = <

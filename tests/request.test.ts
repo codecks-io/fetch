@@ -11,7 +11,7 @@ test("base root test", async () => {
   const { fetchFromRoot } = getFetchers();
   const response = await fetchFromRoot({
     account: {
-      fields: ["name", "billingCity"],
+      fields: ["name"],
     },
   });
   await expect(response).toEqual({
@@ -45,8 +45,8 @@ test("belongsTo", async () => {
     "~key": "1",
     id: 1,
     name: "myOrg",
-    disabledBy: 2,
-    disabledByUser: {
+    disabledById: 2,
+    disabledBy: {
       "~model": "user",
       "~key": "2",
       id: 2,
@@ -55,21 +55,21 @@ test("belongsTo", async () => {
   });
 });
 
-// test("belongsToIsNull", async () => {
-//   const { fetchFromInstance } = getFetchers();
-//   const response = await fetchFromInstance(
-//     { "~model": accountDesc, "~key": "2" },
-//     { fields: ["name"], relations: { disabledByUser: { fields: ["name"] } } },
-//   );
-//   await expect(response).toEqual({
-//     "~model": "account",
-//     "~key": "2",
-//     id: 2,
-//     name: "myOrg2",
-//     disabledBy: null,
-//     disabledByUser: null,
-//   });
-// });
+test("belongsToIsNull", async () => {
+  const { fetchFromInstance } = getFetchers();
+  const response = await fetchFromInstance(
+    { "~model": accountDesc, "~key": "2" },
+    { fields: ["name"], relations: { disabledBy: { fields: ["name"] } } },
+  );
+  await expect(response).toEqual({
+    "~model": "account",
+    "~key": "2",
+    id: 2,
+    name: "myOrg2",
+    disabledById: null,
+    disabledBy: null,
+  });
+});
 
 test("hasMany", async () => {
   const { fetchFromInstance } = getFetchers();
@@ -103,47 +103,39 @@ test("hasMany", async () => {
   });
 });
 
-// test("haOne", async () => {
-//   const { fetchFromRoot } = getFetchers();
-//   const response = await fetchFromRoot({ account: { fields: ["name"] } });
-
-//   // TODO:
-//   await expect(response).toEqual(null);
-// });
-
-// test("hasManyNamed", async () => {
-//   const { fetchFromInstance } = getFetchers();
-//   const response = await fetchFromInstance(
-//     { "~model": accountDesc, "~key": "1" },
-//     {
-//       fields: ["name"],
-//       relations: { roles: { as: "myRoles", fields: ["role"] } },
-//     },
-//   );
-//   await expect(response).toEqual({
-//     "~model": "account",
-//     "~key": "1",
-//     id: 1,
-//     name: "myOrg",
-//     "~myRoles": ["[1,1]", "[1,2]"],
-//     myRoles: [
-//       {
-//         "~model": "accountRole",
-//         "~key": "[1,1]",
-//         accountId: 1,
-//         userId: 1,
-//         role: "admin",
-//       },
-//       {
-//         "~model": "accountRole",
-//         "~key": "[1,2]",
-//         accountId: 1,
-//         userId: 2,
-//         role: "member",
-//       },
-//     ],
-//   });
-// });
+test("hasManyNamed", async () => {
+  const { fetchFromInstance } = getFetchers();
+  const response = await fetchFromInstance(
+    { "~model": accountDesc, "~key": "1" },
+    {
+      fields: ["name"],
+      relations: { roles: { as: "myRoles", fields: ["role"] } },
+    },
+  );
+  await expect(response).toEqual({
+    "~model": "account",
+    "~key": "1",
+    id: 1,
+    name: "myOrg",
+    "~myRoles": ["[1,1]", "[1,2]"],
+    myRoles: [
+      {
+        "~model": "accountRole",
+        "~key": "[1,1]",
+        accountId: 1,
+        userId: 1,
+        role: "admin",
+      },
+      {
+        "~model": "accountRole",
+        "~key": "[1,2]",
+        accountId: 1,
+        userId: 2,
+        role: "member",
+      },
+    ],
+  });
+});
 
 test("hasManyNamedInArray", async () => {
   const { fetchFromInstance } = getFetchers();
@@ -180,16 +172,16 @@ test("hasManyNamedInArray", async () => {
   });
 });
 
-// test("transform fields", async () => {
-//   const { fetchFromInstance } = getFetchers();
-//   const response = await fetchFromInstance(
-//     { "~model": accountDesc, "~key": "1" },
-//     { fields: ["createdAt"] },
-//   );
-//   await expect(response).toEqual({
-//     "~model": "account",
-//     "~key": "1",
-//     id: 1,
-//     createdAt: new Date("2015-01-01T00:00:00.000Z"),
-//   });
-// });
+test("transform fields", async () => {
+  const { fetchFromInstance } = getFetchers();
+  const response = await fetchFromInstance(
+    { "~model": accountDesc, "~key": "1" },
+    { fields: ["createdAt"] },
+  );
+  await expect(response).toEqual({
+    "~model": "account",
+    "~key": "1",
+    id: 1,
+    createdAt: new Date("2015-01-01T00:00:00.000Z"),
+  });
+});
