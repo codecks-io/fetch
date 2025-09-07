@@ -1,9 +1,9 @@
 import { ensureMapValue } from "./collection-utils";
 import type { AnyDesc } from "./models/_desc";
 import type { FieldEntry } from "./models/_fields";
-import { rootDesc } from "./models/models";
+import { _rootDesc } from "./models/_root";
 
-type RootDesc = typeof rootDesc;
+type RootDesc = typeof _rootDesc;
 const ROOT_ID = "";
 
 export type ApiResponse = Record<RootDesc["name"], Record<string, any>> &
@@ -63,7 +63,7 @@ export class ModelPool {
 
   public add(data: ApiResponse) {
     Object.entries(data).forEach(([modelName, payload]) => {
-      if (modelName === rootDesc.name) {
+      if (modelName === _rootDesc.name) {
         this.addModelInstance(modelName, ROOT_ID, payload);
       } else {
         Object.entries(payload).forEach(([id, payload]) => {

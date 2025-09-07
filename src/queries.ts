@@ -1,6 +1,6 @@
 import { ModelPool, type ApiResponse } from "./model-pool";
 import type { AnyDesc } from "./models/_desc";
-import { modelMap, type rootDesc } from "./models/models";
+import { modelMap } from "./models";
 import { serializeInstanceQuery, serializeRootQuery } from "./query-helpers";
 import type {
   InferModelQuery,
@@ -10,13 +10,14 @@ import type {
   RelQuery,
 } from "./query-type";
 import { reconcileInstanceQuery, reconcileRootQuery } from "./reconcile-query";
+import type { _rootDesc } from "./models/_root";
 
 type ModelMap = typeof modelMap;
 
 type Fetchers = {
-  fetchFromRoot: <const Q extends RelQuery<typeof rootDesc, ModelMap>>(
+  fetchFromRoot: <const Q extends RelQuery<typeof _rootDesc, ModelMap>>(
     q: Q,
-  ) => Promise<InferRelQuery<typeof rootDesc, Q, ModelMap>>;
+  ) => Promise<InferRelQuery<typeof _rootDesc, Q, ModelMap>>;
   fetchFromInstance: <
     M extends AnyDesc,
     const Q extends ModelQuery<M, ModelMap>,

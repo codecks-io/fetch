@@ -47,13 +47,16 @@ function generateTs(schema: any): string {
   const fieldLines: string[] = [];
   const belongsToLines: string[] = [];
   const hasManyLines: string[] = [];
+  const fields = new Set<string>();
 
   // fields
   for (const fItem of schema.fields || []) {
     if (typeof fItem === "string") {
+      fields.add(fItem);
       fieldLines.push(fieldToTs(fItem, "string"));
     } else if (typeof fItem === "object") {
       for (const [fname, fdef] of Object.entries(fItem)) {
+        fields.add(fname);
         fieldLines.push(fieldToTs(fname, fdef));
       }
     }
@@ -70,6 +73,7 @@ function generateTs(schema: any): string {
       hasManyLines.push(
         `${b}: relation("${b}", { type: "belongsTo", fk: "${fk}" }),`,
       );
+      fields.add(fk);
     } else if (typeof b === "object") {
       for (const [alias, def] of Object.entries<any>(b)) {
         const model = def.model ?? alias;
@@ -82,6 +86,7 @@ function generateTs(schema: any): string {
         hasManyLines.push(
           `${alias}: relation("${model}", { type: "belongsTo", fk: "${fk}" }),`,
         );
+        fields.add(fk);
       }
     }
   }
@@ -110,6 +115,7 @@ function generateTs(schema: any): string {
   const getKeyLine = () => {
     if (name === "_root") return "";
     const addIdField = (idField: string) => {
+      if (fields.has(idField)) return;
       imports.push('import type { Nominal } from "./_type-helpers";');
       idDefinition = `export type ${Name}Id = Nominal<string, "${name}">;`;
       fieldLines.unshift(`${idField}: f.id<${Name}Id>(),`);
@@ -156,6 +162,15 @@ export const ${name}Desc = makeModel({
 })`;
 }
 
+const generateIndexTs = (names: string[]) => {
+  const imports = names
+    .map((name) => `import { ${name}Desc } from "./${capitalizeFirst(name)}";`)
+    .join("\n");
+  // export const modelMap = {user: userDesc, account: accountDesc, ...}
+  const modelMap = `export const modelMap = {\n  ${names.map((name) => `"${name}": ${name}Desc`).join(",\n  ")}\n}`;
+  return [imports, modelMap].join("\n\n\n");
+};
+
 // --- Main CLI ---
 const inputPaths = process.argv.slice(2);
 if (inputPaths.length === 0) {
@@ -163,8 +178,11 @@ if (inputPaths.length === 0) {
   process.exit(1);
 }
 
+const schemaNames: string[] = [];
+
 for (const inputPath of inputPaths) {
   const schema = JSON.parse(fs.readFileSync(inputPath, "utf-8"));
+  schemaNames.push(schema.name);
   const tsOutput = generateTs(schema);
 
   const outPath = path.join(
@@ -175,3 +193,7 @@ for (const inputPath of inputPaths) {
   fs.writeFileSync(outPath, tsOutput);
   console.log(`Generated ${outPath}`);
 }
+
+const indexPath = path.join(process.cwd(), "src/models/index.ts");
+fs.writeFileSync(indexPath, generateIndexTs(schemaNames));
+console.log(`Generated ${indexPath}`);

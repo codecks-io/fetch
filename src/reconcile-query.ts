@@ -1,6 +1,7 @@
 import type { ApiResponse, ModelPool } from "./model-pool";
+import { modelMap } from "./models";
 import type { AnyDesc, RelationEntry, RelationOpts } from "./models/_desc";
-import { modelMap, rootDesc } from "./models/models";
+import { _rootDesc } from "./models/_root";
 import type {
   InferModelQuery,
   InferRelQuery,
@@ -9,17 +10,17 @@ import type {
 } from "./query-type";
 
 export const reconcileRootQuery = <
-  T extends RelQuery<typeof rootDesc, typeof modelMap>,
+  T extends RelQuery<typeof _rootDesc, typeof modelMap>,
 >(
   query: T,
   response: ApiResponse,
   pool: ModelPool,
-): InferRelQuery<typeof rootDesc, T, typeof modelMap> => {
+): InferRelQuery<typeof _rootDesc, T, typeof modelMap> => {
   const result: Record<string, any> = {};
   const responsePart = response._root;
   for (const [relName, modelFields] of Object.entries(query)) {
     const relDesc =
-      rootDesc.relations[relName as keyof (typeof rootDesc)["relations"]];
+      _rootDesc.relations[relName as keyof (typeof _rootDesc)["relations"]];
     const id = responsePart[relName];
     if (!id) {
       result[relName] = null;
@@ -76,7 +77,7 @@ export const reconcileInstanceQuery = <
         );
       }
       const opts = relDesc.options as RelationOpts;
-      const relModel = modelMap[relDesc.relName];
+      const relModel = modelMap[relDesc.relName as keyof typeof modelMap];
 
       switch (opts.type) {
         case "belongsTo":

@@ -1,14 +1,12 @@
 
 import { makeModel, relation } from "./_desc";
 import * as f from "./_fields";
-import type { Nominal } from "./_type-helpers";
 import { type AccountId } from "./Account";
 
-export type AccountOnboardingId = Nominal<string, "accountOnboarding">;
+
 export const accountOnboardingDesc = makeModel({
   name: "accountOnboarding",
   fields: {
-    accountId: f.id<AccountOnboardingId>(),
     variants: f.array({}),
     steps: f.object({}),
     accountId: f.belongsTo({}).type<AccountId>(),

@@ -81,6 +81,7 @@ export const accountDesc = makeModel({
     visionBoards: relation("visionBoard", { type: "hasMany" }),
     deckSubscriptions: relation("deckSubscription", { type: "hasMany" }),
     appInstallations: relation("appInstallation", { type: "hasMany" }),
+    files: relation("file", { type: "hasMany" }),
     decks: relation("deck", { type: "hasMany" }),
     queueEntries: relation("queueEntry", { type: "hasMany" }),
     visionBoardQueries: relation("visionBoardQuery", { type: "hasMany" }),

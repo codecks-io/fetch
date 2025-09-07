@@ -1,14 +1,12 @@
 
 import { makeModel, relation } from "./_desc";
 import * as f from "./_fields";
-import type { Nominal } from "./_type-helpers";
 import { type AccountId } from "./Account";
 
-export type StripeAccountSyncId = Nominal<string, "stripeAccountSync">;
+
 export const stripeAccountSyncDesc = makeModel({
   name: "stripeAccountSync",
   fields: {
-    accountId: f.id<StripeAccountSyncId>(),
     status: f.string({}),
     euVatIdData: f.object({}),
     vatCountryCode: f.string({}),
