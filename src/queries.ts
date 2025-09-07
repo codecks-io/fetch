@@ -1,5 +1,4 @@
 import { ModelPool, type ApiResponse } from "./model-pool";
-import type { AnyDesc } from "./models/_desc";
 import { modelMap } from "./models";
 import { serializeInstanceQuery, serializeRootQuery } from "./query-helpers";
 import type {
@@ -19,12 +18,12 @@ type Fetchers = {
     q: Q,
   ) => Promise<InferRelQuery<typeof _rootDesc, Q, ModelMap>>;
   fetchFromInstance: <
-    M extends AnyDesc,
-    const Q extends ModelQuery<M, ModelMap>,
+    M extends keyof ModelMap,
+    const Q extends ModelQuery<ModelMap[M], ModelMap>,
   >(
     instance: Instance<M>,
     q: Q,
-  ) => Promise<InferModelQuery<M, Q, ModelMap>>;
+  ) => Promise<InferModelQuery<ModelMap[M], Q, ModelMap>>;
   fetchInstance: <
     K extends keyof ModelMap,
     const Q extends RelQuery<ModelMap[K], ModelMap>,
@@ -90,21 +89,21 @@ export const buildFetchers = (opts: FetcherOptions = {}): Fetchers => {
     return response;
   };
   const _fetchSingleInstance = async <
-    M extends AnyDesc,
-    const Q extends ModelQuery<M, ModelMap>,
+    M extends keyof ModelMap,
+    const Q extends ModelQuery<ModelMap[M], ModelMap>,
   >(
     instance: Instance<M>,
     q: Q,
-  ): Promise<InferModelQuery<M, Q, ModelMap>> => {
+  ): Promise<InferModelQuery<ModelMap[M], Q, ModelMap>> => {
     const response = await fetchWithQuery(
-      serializeInstanceQuery(q, [instance]),
+      serializeInstanceQuery(q, [instance], modelMap),
     );
     const pool = new ModelPool(modelMap);
     pool.add(response);
     return reconcileInstanceQuery(
       q,
       response,
-      instance["~model"],
+      modelMap[instance["~model"]],
       instance["~key"],
       pool,
     );
@@ -119,21 +118,20 @@ export const buildFetchers = (opts: FetcherOptions = {}): Fetchers => {
     },
     fetchFromInstance: _fetchSingleInstance,
     fetchInstance: async (key, id, q) => {
-      const modelDesc = modelMap[key];
-      const instance: Instance<typeof modelDesc> = {
-        "~model": modelDesc,
+      const instance: Instance<typeof key> = {
+        "~model": key,
         "~key": id,
       };
       return _fetchSingleInstance(instance, q);
     },
     fetchInstances: async (key, ids, q) => {
       const modelDesc = modelMap[key];
-      const instances: Instance<typeof modelDesc>[] = ids.map((id) => ({
-        "~model": modelDesc,
+      const instances: Instance<typeof key>[] = ids.map((id) => ({
+        "~model": key,
         "~key": id,
       }));
       const response = await fetchWithQuery(
-        serializeInstanceQuery(q, instances),
+        serializeInstanceQuery(q, instances, modelMap),
       );
       const pool = new ModelPool(modelMap);
       pool.add(response);

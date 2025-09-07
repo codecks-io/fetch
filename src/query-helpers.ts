@@ -3,6 +3,8 @@ import { modelMap } from "./models";
 import type { Instance, ModelQuery, RelQuery } from "./query-type";
 import { _rootDesc } from "./models/_root";
 
+type ModelMap = typeof modelMap;
+
 const serializeModel = (q: ModelQuery<any, any>, modelDesc: AnyDesc) => {
   const list: any[] = q.fields ? [...q.fields] : [];
   if (!q.relations) return list;
@@ -36,14 +38,15 @@ export const serializeRootQuery = <
 
 export const serializeInstanceQuery = (
   q: ModelQuery<any, any>,
-  instances: Instance<AnyDesc>[],
+  instances: Instance<keyof ModelMap>[],
+  modelMap: ModelMap,
 ) => {
   return Object.fromEntries(
     instances.map((instance) => {
-      const desc = instance["~model"];
+      const name = instance["~model"];
       return [
-        `${desc.name}(${instance["~key"]})`,
-        serializeModel(q, instance["~model"]),
+        `${name}(${instance["~key"]})`,
+        serializeModel(q, modelMap[name]),
       ];
     }),
   );

@@ -167,7 +167,7 @@ export type InferRelQuery<
   }
 >;
 
-export type Instance<M extends AnyDesc> = {
+export type Instance<M extends keyof ModelMap> = {
   "~model": M;
   "~key": string;
 };
