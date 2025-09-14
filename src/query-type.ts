@@ -12,15 +12,39 @@ export type ModelQuery<T extends AnyDesc, TMap extends ModelMap> = {
   relations?: RelQuery<T, TMap>;
 };
 
-type HasManyQuery<T extends AnyDesc, TMap extends ModelMap> = ModelQuery<
+type SimpleHasManyQuery<T extends AnyDesc, TMap extends ModelMap> = ModelQuery<
   T,
   TMap
 > & {
+  type?: "query";
   orderBy?: keyof T["fields"];
   limit?: number;
   where?: any; // TODO
   as?: string;
 };
+
+type CountOrExistQuery<T extends AnyDesc, TMap extends ModelMap> = {
+  type: "count" | "exists";
+  where?: any; // TODO
+  as: string;
+  fields?: never;
+  relations?: never;
+};
+
+type FirstOrLastQuery<T extends AnyDesc, TMap extends ModelMap> = ModelQuery<
+  T,
+  TMap
+> & {
+  type: "first" | "last";
+  where?: any; // TODO
+  as: string;
+  orderBy: keyof T["fields"];
+};
+
+type HasManyQuery<T extends AnyDesc, TMap extends ModelMap> =
+  | SimpleHasManyQuery<T, TMap>
+  | CountOrExistQuery<T, TMap>
+  | FirstOrLastQuery<T, TMap>;
 
 type HasManyQueryWithAs<
   T extends AnyDesc,
@@ -156,7 +180,13 @@ type InferHasMany<
   M extends AnyDesc,
   TMap extends ModelMap,
   QM extends HasManyQuery<M, TMap>,
-> = InferModelQuery<M, EnsureModelQuery<QM>, TMap>[];
+> = QM extends { type: "count" }
+  ? number
+  : QM extends { type: "exist" }
+    ? boolean
+    : QM extends { type: "first" | "last" }
+      ? InferModelQuery<M, EnsureModelQuery<QM>, TMap> | null
+      : InferModelQuery<M, EnsureModelQuery<QM>, TMap>[];
 
 type InferRelEntry<
   M extends AnyDesc,

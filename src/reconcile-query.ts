@@ -62,11 +62,11 @@ export const reconcileInstanceQuery = <
   for (const field of query.fields || []) {
     result[field as string] = instance[field];
   }
-  for (const [relName, _modelFields] of Object.entries(query.relations || {})) {
-    const modelFieldsList = Array.isArray(_modelFields)
-      ? _modelFields
-      : [_modelFields];
-    for (const modelFields of modelFieldsList) {
+  for (const [relName, _relEntries] of Object.entries(query.relations || {})) {
+    const relEntryList = Array.isArray(_relEntries)
+      ? _relEntries
+      : [_relEntries];
+    for (const relEntry of relEntryList) {
       const relDesc = instanceModel.relations[relName] as RelationEntry<
         any,
         any
@@ -84,7 +84,7 @@ export const reconcileInstanceQuery = <
           result[opts.fk] = instance[relName];
           result[relName] = opts.fk
             ? reconcileInstanceQuery(
-                modelFields as any,
+                relEntry as any,
                 response,
                 relModel,
                 `${instance[relName]}`,
@@ -95,7 +95,7 @@ export const reconcileInstanceQuery = <
         case "hasOne":
           result[`~${relName}`] = instance[relName];
           result[relName] = reconcileInstanceQuery(
-            modelFields as any,
+            relEntry as any,
             response,
             relModel,
             `${instance[relName]}`,
@@ -103,17 +103,29 @@ export const reconcileInstanceQuery = <
           );
           break;
         case "hasMany":
-          const asName = (modelFields as any).as ?? relName;
-          result[`~${asName}`] = instance[relName];
-          result[asName] = (instance[relName] as string[]).map((id) =>
-            reconcileInstanceQuery(
-              modelFields as any,
-              response,
-              relModel,
-              `${id}`,
-              pool,
-            ),
-          );
+          const asName = (relEntry as any).as ?? relName;
+          switch (relEntry.type) {
+            case "count": {
+              result[asName] = instance[`count(${relName})`];
+              break;
+            }
+            case "exists": {
+              result[asName] = instance[`exists(${relName})`];
+              break;
+            }
+            default: {
+              result[`~${asName}`] = instance[relName];
+              result[asName] = (instance[relName] as string[]).map((id) =>
+                reconcileInstanceQuery(
+                  relEntry as any,
+                  response,
+                  relModel,
+                  `${id}`,
+                  pool,
+                ),
+              );
+            }
+          }
           break;
       }
     }

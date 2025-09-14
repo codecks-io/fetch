@@ -9,13 +9,21 @@ const serializeModel = (q: ModelQuery<any, any>, modelDesc: AnyDesc) => {
   const list: any[] = q.fields ? [...q.fields] : [];
   if (!q.relations) return list;
   const relObj: Record<string, unknown> = {};
-  list.push(relObj);
   Object.entries(q.relations).forEach(([k, _v]) => {
     const rels = Array.isArray(_v) ? _v : [_v];
     rels.forEach((r) => {
-      relObj[k] = serializeModel(r as ModelQuery<any, any>, modelDesc);
+      switch (r?.type) {
+        case "count": {
+          list.push(`count(${k})`);
+          break;
+        }
+        default:
+          relObj[k] = serializeModel(r as ModelQuery<any, any>, modelDesc);
+          break;
+      }
     });
   });
+  if (Object.keys(relObj).length) list.push(relObj);
   return list;
 };
 

@@ -15,7 +15,8 @@ test("base root test", async () => {
       fields: ["name"],
     },
   });
-  await expect(response).toEqual({
+  // response.account.
+  expect(response).toEqual({
     account: { "~model": "account", "~key": "1", name: "myOrg", id: 1 },
   });
 });
@@ -25,7 +26,7 @@ test("base model test", async () => {
   const response = await fetchFromInstance(myAccountInstance, {
     fields: ["name", "subdomain"],
   });
-  await expect(response).toEqual({
+  expect(response).toEqual({
     "~model": "account",
     "~key": "1",
     id: 1,
@@ -40,7 +41,7 @@ test("belongsTo", async () => {
     fields: ["name"],
     relations: { disabledBy: { fields: ["name"] } },
   });
-  await expect(response).toEqual({
+  expect(response).toEqual({
     "~model": "account",
     "~key": "1",
     id: 1,
@@ -61,7 +62,7 @@ test("belongsToIsNull", async () => {
     { "~model": "account", "~key": "2" },
     { fields: ["name"], relations: { disabledBy: { fields: ["name"] } } },
   );
-  await expect(response).toEqual({
+  expect(response).toEqual({
     "~model": "account",
     "~key": "2",
     id: 2,
@@ -77,8 +78,9 @@ test("hasMany", async () => {
     fields: ["name"],
     relations: { roles: { fields: ["role"] } },
   });
+  response.roles[0];
 
-  await expect(response).toEqual({
+  expect(response).toEqual({
     "~model": "account",
     "~key": "1",
     id: 1,
@@ -109,7 +111,9 @@ test("hasManyNamed", async () => {
     fields: ["name"],
     relations: { roles: { as: "myRoles", fields: ["role"] } },
   });
-  await expect(response).toEqual({
+  response.myRoles[0];
+
+  expect(response).toEqual({
     "~model": "account",
     "~key": "1",
     id: 1,
@@ -140,8 +144,9 @@ test("hasManyNamedInArray", async () => {
     fields: ["name"],
     relations: { roles: [{ as: "myRoles", fields: ["role"] }] },
   });
+  response.myRoles[0];
 
-  await expect(response).toEqual({
+  expect(response).toEqual({
     "~model": "account",
     "~key": "1",
     id: 1,
@@ -171,7 +176,7 @@ test("transform fields", async () => {
   const response = await fetchFromInstance(myAccountInstance, {
     fields: ["createdAt"],
   });
-  await expect(response).toEqual({
+  expect(response).toEqual({
     "~model": "account",
     "~key": "1",
     id: 1,
@@ -183,6 +188,23 @@ test("hasMany - count", async () => {
   const { fetchFromInstance } = getFetchers();
   const response = await fetchFromInstance(myAccountInstance, {
     fields: ["name"],
-    relations: { roles: { fields: ["role"] } },
+    relations: { roles: { type: "count", as: "roleCount" } },
+  });
+  // response.roleCount;
+  expect(response).toEqual({
+    "~model": "account",
+    "~key": "1",
+    id: 1,
+    name: "myOrg",
+    roleCount: 1,
   });
 });
+
+// test("hasMany - first", async () => {
+//   const { fetchFromInstance } = getFetchers();
+//   const response = await fetchFromInstance(myAccountInstance, {
+//     fields: ["name"],
+//     relations: { roles: { type: "first", as: "firstRole", orderBy: "createdAt", fields: ["role"] } },
+//   });
+//   response.firstRole?.role
+// });

@@ -58,3 +58,11 @@ test("complex", () => {
     _root: { account: ["subdomain", { roles: ["role", { user: ["name"] }] }] },
   });
 });
+
+test("has many count", () => {
+  expect(
+    serializeRootQuery({
+      account: { relations: { roles: { type: "count", as: "roleCount" } } },
+    }),
+  ).toEqual({ _root: { account: ["count(roles)"] } });
+});
