@@ -1,6 +1,7 @@
 import { test, expect } from "vitest";
 import { buildFetchers } from "../src/queries";
-import { accountDesc } from "../src/models/Account";
+
+const myAccountInstance = { "~model": "account", "~key": "1" } as const;
 
 const getFetchers = () =>
   buildFetchers({
@@ -21,10 +22,9 @@ test("base root test", async () => {
 
 test("base model test", async () => {
   const { fetchFromInstance } = getFetchers();
-  const response = await fetchFromInstance(
-    { "~model": accountDesc, "~key": "1" },
-    { fields: ["name", "subdomain"] },
-  );
+  const response = await fetchFromInstance(myAccountInstance, {
+    fields: ["name", "subdomain"],
+  });
   await expect(response).toEqual({
     "~model": "account",
     "~key": "1",
@@ -36,10 +36,10 @@ test("base model test", async () => {
 
 test("belongsTo", async () => {
   const { fetchFromInstance } = getFetchers();
-  const response = await fetchFromInstance(
-    { "~model": accountDesc, "~key": "1" },
-    { fields: ["name"], relations: { disabledBy: { fields: ["name"] } } },
-  );
+  const response = await fetchFromInstance(myAccountInstance, {
+    fields: ["name"],
+    relations: { disabledBy: { fields: ["name"] } },
+  });
   await expect(response).toEqual({
     "~model": "account",
     "~key": "1",
@@ -58,7 +58,7 @@ test("belongsTo", async () => {
 test("belongsToIsNull", async () => {
   const { fetchFromInstance } = getFetchers();
   const response = await fetchFromInstance(
-    { "~model": accountDesc, "~key": "2" },
+    { "~model": "account", "~key": "2" },
     { fields: ["name"], relations: { disabledBy: { fields: ["name"] } } },
   );
   await expect(response).toEqual({
@@ -73,10 +73,10 @@ test("belongsToIsNull", async () => {
 
 test("hasMany", async () => {
   const { fetchFromInstance } = getFetchers();
-  const response = await fetchFromInstance(
-    { "~model": accountDesc, "~key": "1" },
-    { fields: ["name"], relations: { roles: { fields: ["role"] } } },
-  );
+  const response = await fetchFromInstance(myAccountInstance, {
+    fields: ["name"],
+    relations: { roles: { fields: ["role"] } },
+  });
 
   await expect(response).toEqual({
     "~model": "account",
@@ -105,13 +105,10 @@ test("hasMany", async () => {
 
 test("hasManyNamed", async () => {
   const { fetchFromInstance } = getFetchers();
-  const response = await fetchFromInstance(
-    { "~model": accountDesc, "~key": "1" },
-    {
-      fields: ["name"],
-      relations: { roles: { as: "myRoles", fields: ["role"] } },
-    },
-  );
+  const response = await fetchFromInstance(myAccountInstance, {
+    fields: ["name"],
+    relations: { roles: { as: "myRoles", fields: ["role"] } },
+  });
   await expect(response).toEqual({
     "~model": "account",
     "~key": "1",
@@ -139,13 +136,10 @@ test("hasManyNamed", async () => {
 
 test("hasManyNamedInArray", async () => {
   const { fetchFromInstance } = getFetchers();
-  const response = await fetchFromInstance(
-    { "~model": accountDesc, "~key": "1" },
-    {
-      fields: ["name"],
-      relations: { roles: [{ as: "myRoles", fields: ["role"] }] },
-    },
-  );
+  const response = await fetchFromInstance(myAccountInstance, {
+    fields: ["name"],
+    relations: { roles: [{ as: "myRoles", fields: ["role"] }] },
+  });
 
   await expect(response).toEqual({
     "~model": "account",
@@ -174,14 +168,21 @@ test("hasManyNamedInArray", async () => {
 
 test("transform fields", async () => {
   const { fetchFromInstance } = getFetchers();
-  const response = await fetchFromInstance(
-    { "~model": accountDesc, "~key": "1" },
-    { fields: ["createdAt"] },
-  );
+  const response = await fetchFromInstance(myAccountInstance, {
+    fields: ["createdAt"],
+  });
   await expect(response).toEqual({
     "~model": "account",
     "~key": "1",
     id: 1,
     createdAt: new Date("2015-01-01T00:00:00.000Z"),
+  });
+});
+
+test("hasMany - count", async () => {
+  const { fetchFromInstance } = getFetchers();
+  const response = await fetchFromInstance(myAccountInstance, {
+    fields: ["name"],
+    relations: { roles: { fields: ["role"] } },
   });
 });

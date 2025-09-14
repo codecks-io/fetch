@@ -12,32 +12,53 @@ export type ModelQuery<T extends AnyDesc, TMap extends ModelMap> = {
   relations?: RelQuery<T, TMap>;
 };
 
-export type ModelQueryWithFilter<
-  T extends AnyDesc,
-  TMap extends ModelMap,
-> = ModelQuery<T, TMap> & {
+type HasManyQuery<T extends AnyDesc, TMap extends ModelMap> = ModelQuery<
+  T,
+  TMap
+> & {
   orderBy?: keyof T["fields"];
   limit?: number;
   where?: any; // TODO
   as?: string;
 };
 
-type ModelQueryWithFilterAndAs<
+type HasManyQueryWithAs<
   T extends AnyDesc,
   TMap extends ModelMap,
-> = ModelQueryWithFilter<T, TMap> & {
+> = HasManyQuery<T, TMap> & {
   as: string;
 };
 
 type ModelMap = Record<string, AnyDesc>;
 
+type HasManyRelQueryEntry<
+  T extends AnyDesc,
+  TMap extends ModelMap,
+  K extends keyof ExtractHasMany<T, TMap>,
+> =
+  | HasManyQuery<TMap[T["relations"][K]["relName"]], TMap>
+  | HasManyQueryWithAs<TMap[T["relations"][K]["relName"]], TMap>[];
+
+type RelQueryEntry<
+  T extends AnyDesc,
+  TMap extends ModelMap,
+  K extends keyof T["relations"],
+> = K extends keyof ExtractHasMany<T, TMap>
+  ? HasManyRelQueryEntry<T, TMap, K>
+  : ModelQuery<TMap[T["relations"][K]["relName"]], TMap>;
+
+/**
+ * examples for account:
+ * {disabledBy: {fields: []}} // belongst
+ * {cards: {fields: []}}
+ * {cards: [{as: "myCards", fields: []}]}
+ */
 export type RelQuery<T extends AnyDesc, TMap extends ModelMap> = {
-  [K in keyof T["relations"]]?: K extends keyof ExtractHasMany<T, TMap>
-    ?
-        | ModelQueryWithFilter<TMap[T["relations"][K]["relName"]], TMap>
-        | ModelQueryWithFilterAndAs<TMap[T["relations"][K]["relName"]], TMap>[]
-    : ModelQuery<TMap[T["relations"][K]["relName"]], TMap>;
+  [K in keyof T["relations"]]?: RelQueryEntry<T, TMap, K>;
 };
+
+type EnsureModelQuery<T> = T extends ModelQuery<any, any> ? T : never;
+type EnsureHasManyQuery<T> = T extends HasManyQuery<any, any> ? T : never;
 
 type EnrichBelongsTo<
   M extends AnyDesc,
@@ -101,8 +122,10 @@ export type InferModelQuery<
   (Q["relations"] extends RelQuery<M, TMap>
     ? InferRelQuery<M, Q["relations"], TMap>
     : {}) & {
+    // add id fields
     [K in M["keys"][number] & string]: InferFieldType<M["fields"][K]>;
   } & {
+    // add meta info
     "~model": M["name"];
     "~key": string;
   };
@@ -110,62 +133,76 @@ export type InferModelQuery<
 type IsOptional<T, Test> = Test extends true ? T | null : T;
 
 type EmptyObjIfNever<T> = [T] extends [never] ? {} : T;
-type EnsureAnyDesc<T> = T extends AnyDesc ? T : never;
 
 type ExtractRelQueryArray<
   M extends AnyDesc,
-  Q extends RelQuery<M, TMap>,
   TMap extends ModelMap,
+  Q extends RelQuery<M, TMap>,
 > = {
   [K in keyof Q]: K extends keyof ExtractHasMany<M, TMap>
-    ? Q[K] extends ModelQueryWithFilterAndAs<any, any>[]
+    ? Q[K] extends HasManyQueryWithAs<any, any>[]
       ? {
-          [Item in Q[K][number] as Item["as"]]: InferModelQuery<
+          [Item in Q[K][number] as Item["as"]]: InferHasMany<
             ExtractHasMany<M, TMap>[K]["model"],
-            Item,
-            TMap
-          >[];
+            TMap,
+            Item
+          >;
         }
       : never
     : never;
 }[keyof Q];
 
+type InferHasMany<
+  M extends AnyDesc,
+  TMap extends ModelMap,
+  QM extends HasManyQuery<M, TMap>,
+> = InferModelQuery<M, EnsureModelQuery<QM>, TMap>[];
+
+type InferRelEntry<
+  M extends AnyDesc,
+  TMap extends ModelMap,
+  Q extends RelQuery<any, any>,
+  K extends keyof Q,
+> = K extends keyof EnrichBelongsTo<M, TMap>
+  ? IsOptional<
+      InferModelQuery<
+        EnrichBelongsTo<M, TMap>[K]["model"],
+        EnsureModelQuery<Q[K]>,
+        TMap
+      >,
+      EnrichBelongsTo<M, TMap>[K]["field"]["optional"]
+    >
+  : K extends keyof ExtractHasMany<M, TMap>
+    ? InferHasMany<
+        ExtractHasMany<M, TMap>[K]["model"],
+        TMap,
+        EnsureHasManyQuery<Q[K]>
+      >
+    : K extends keyof ExtractHasOne<M, TMap>
+      ? InferModelQuery<
+          ExtractHasOne<M, TMap>[K]["model"],
+          EnsureModelQuery<Q[K]>,
+          TMap
+        >
+      : never;
+
+type InferKeyName<Q extends RelQuery<any, any>, K extends keyof Q> =
+  Q[K] extends Array<any>
+    ? never
+    : Q[K] extends { as: string }
+      ? K extends keyof ExtractHasMany<any, any>
+        ? Q[K]["as"]
+        : K
+      : K;
+
 export type InferRelQuery<
   M extends AnyDesc,
   Q extends RelQuery<M, TMap>,
   TMap extends ModelMap,
-> = EmptyObjIfNever<
-  ExtractRelQueryArray<M, Q, TMap> & {
-    [K in keyof Q as Q[K] extends Array<any>
-      ? never
-      : Q[K] extends { as: string }
-        ? K extends keyof ExtractHasMany<any, any>
-          ? Q[K]["as"]
-          : K
-        : K]: K extends keyof EnrichBelongsTo<M, TMap>
-      ? IsOptional<
-          InferModelQuery<
-            EnrichBelongsTo<M, TMap>[K]["model"],
-            EnsureAnyDesc<Q[K]>,
-            TMap
-          >,
-          EnrichBelongsTo<M, TMap>[K]["field"]["optional"]
-        >
-      : K extends keyof ExtractHasMany<M, TMap>
-        ? InferModelQuery<
-            ExtractHasMany<M, TMap>[K]["model"],
-            EnsureAnyDesc<Q[K]>,
-            TMap
-          >[]
-        : K extends keyof ExtractHasOne<M, TMap>
-          ? InferModelQuery<
-              ExtractHasOne<M, TMap>[K]["model"],
-              EnsureAnyDesc<Q[K]>,
-              TMap
-            >
-          : never;
-  }
->;
+> = EmptyObjIfNever<ExtractRelQueryArray<M, TMap, Q>> &
+  EmptyObjIfNever<{
+    [K in keyof Q as InferKeyName<Q, K>]: InferRelEntry<M, TMap, Q, K>;
+  }>;
 
 export type Instance<M extends keyof ModelMap> = {
   "~model": M;
