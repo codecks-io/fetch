@@ -1,3 +1,4 @@
+import type { Filter, Order } from "./has-many-filter-type";
 import type {
   InferFieldType,
   AnyDesc,
@@ -7,44 +8,49 @@ import type {
 import type { TypedField } from "./models/_fields";
 import type { FilterNeverKeys } from "./models/_type-helpers";
 
-export type ModelQuery<T extends AnyDesc, TMap extends ModelMap> = {
+type ModelMap = Record<string, AnyDesc>;
+
+export interface ModelQuery<T extends AnyDesc, TMap extends ModelMap> {
   fields?: (keyof T["fields"])[];
   relations?: RelQuery<T, TMap>;
-};
+}
 
-type SimpleHasManyQuery<T extends AnyDesc, TMap extends ModelMap> = ModelQuery<
-  T,
-  TMap
-> & {
+interface SimpleHasManyQuery<T extends AnyDesc, TMap extends ModelMap>
+  extends ModelQuery<T, TMap> {
   type?: "query";
-  orderBy?: keyof T["fields"];
+  orderBy?: Order<T>;
   limit?: number;
-  where?: any; // TODO
+  filter?: Filter<T, TMap>;
   as?: string;
-};
+}
 
-type CountOrExistQuery<T extends AnyDesc, TMap extends ModelMap> = {
+interface CountOrExistQuery<T extends AnyDesc, TMap extends ModelMap> {
   type: "count" | "exists";
-  where?: any; // TODO
+  filter?: Filter<T, TMap>;
   as: string;
   fields?: never;
   relations?: never;
-};
+}
 
-type FirstOrLastQuery<T extends AnyDesc, TMap extends ModelMap> = ModelQuery<
-  T,
-  TMap
-> & {
+interface FirstOrLastQuery<T extends AnyDesc, TMap extends ModelMap>
+  extends ModelQuery<T, TMap> {
   type: "first" | "last";
-  where?: any; // TODO
+  filter?: Filter<T, TMap>;
   as: string;
-  orderBy: keyof T["fields"];
-};
+  orderBy: Order<T>;
+}
 
 type HasManyQuery<T extends AnyDesc, TMap extends ModelMap> =
   | SimpleHasManyQuery<T, TMap>
   | CountOrExistQuery<T, TMap>
   | FirstOrLastQuery<T, TMap>;
+
+type AbstractHasManyQuery =
+  | (ModelQuery<any, any> & {
+      type?: "query" | "first" | "last";
+      as?: string;
+    })
+  | { type: "count" | "exists"; as: string };
 
 type HasManyQueryWithAs<
   T extends AnyDesc,
@@ -52,8 +58,6 @@ type HasManyQueryWithAs<
 > = HasManyQuery<T, TMap> & {
   as: string;
 };
-
-type ModelMap = Record<string, AnyDesc>;
 
 type HasManyRelQueryEntry<
   T extends AnyDesc,
@@ -82,7 +86,7 @@ export type RelQuery<T extends AnyDesc, TMap extends ModelMap> = {
 };
 
 type EnsureModelQuery<T> = T extends ModelQuery<any, any> ? T : never;
-type EnsureHasManyQuery<T> = T extends HasManyQuery<any, any> ? T : never;
+type EnsureHasManyQuery<T> = T extends AbstractHasManyQuery ? T : never;
 
 type EnrichBelongsTo<
   M extends AnyDesc,

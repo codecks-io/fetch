@@ -190,7 +190,7 @@ test("hasMany - count", async () => {
     fields: ["name"],
     relations: { roles: { type: "count", as: "roleCount" } },
   });
-  // response.roleCount;
+  response.roleCount;
   expect(response).toEqual({
     "~model": "account",
     "~key": "1",
@@ -200,11 +200,21 @@ test("hasMany - count", async () => {
   });
 });
 
-// test("hasMany - first", async () => {
-//   const { fetchFromInstance } = getFetchers();
-//   const response = await fetchFromInstance(myAccountInstance, {
-//     fields: ["name"],
-//     relations: { roles: { type: "first", as: "firstRole", orderBy: "createdAt", fields: ["role"] } },
-//   });
-//   response.firstRole?.role
-// });
+test("hasMany - first", async () => {
+  const { fetchFromInstance } = getFetchers();
+  const response = await fetchFromInstance(myAccountInstance, {
+    fields: ["name"],
+    relations: {
+      roles: {
+        type: "first",
+        as: "firstRole",
+        orderBy: "-accountId",
+        fields: ["role"],
+        filter: {
+          role: null,
+        },
+      },
+    },
+  });
+  response.firstRole;
+});
