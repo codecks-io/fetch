@@ -2,7 +2,7 @@ import type { AnyDesc, InferFieldType } from "./models/_desc";
 type ModelMap = Record<string, AnyDesc>;
 
 type OneOrArray<T> = T | T[];
-// type NormalAndNegatedKeys<T> = T & { [K in keyof T & string as `!${K}`]: T[K] };
+type NormalAndNegatedKeys<T> = T & { [K in keyof T & string as `!${K}`]: T[K] };
 
 type OrderString<T extends string> = `${T}` | `-${T}`;
 
@@ -31,4 +31,24 @@ type FieldQuery<T extends AnyDesc> = {
     | Operators<InferFieldType<T["fields"][K]>>;
 };
 
-export type Filter<T extends AnyDesc, TMap extends ModelMap> = FieldQuery<T>;
+type RelationQuery<
+  T extends AnyDesc,
+  TMap extends ModelMap,
+> = NormalAndNegatedKeys<{
+  [K in keyof T["relations"]]?: SimpleFilter<
+    TMap[T["relations"][K]["relName"]],
+    TMap
+  >;
+}>;
+
+type SimpleFilter<T extends AnyDesc, TMap extends ModelMap> =
+  | FieldQuery<T>
+  | RelationQuery<T, TMap>;
+
+export type Filter<T extends AnyDesc, TMap extends ModelMap> = SimpleFilter<
+  T,
+  TMap
+> & {
+  $and?: Filter<T, TMap>[];
+  $or?: Filter<T, TMap>[];
+};
