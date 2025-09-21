@@ -1,10 +1,8 @@
-
-import { makeModel, relation } from "./_desc";
+import {makeModel, relation} from "./_desc";
 import * as f from "./_fields";
-import { type ResolvableId } from "./Resolvable";
-import { type UserId } from "./User";
-import { type ResolvableEntryId } from "./ResolvableEntry";
-
+import {type ResolvableId} from "./Resolvable";
+import {type UserId} from "./User";
+import {type ResolvableEntryId} from "./ResolvableEntry";
 
 export const resolvableEntryHistoryDesc = makeModel({
   name: "resolvableEntryHistory",
@@ -17,9 +15,9 @@ export const resolvableEntryHistoryDesc = makeModel({
     entryId: f.belongsTo({}).type<ResolvableEntryId>(),
   },
   relations: {
-    resolvable: relation("resolvable", { type: "belongsTo", fk: "resolvableId" }),
-    author: relation("user", { type: "belongsTo", fk: "authorId" }),
-    entry: relation("resolvableEntry", { type: "belongsTo", fk: "entryId" }),
+    resolvable: relation("resolvable", {type: "belongsTo", fk: "resolvableId"}),
+    author: relation("user", {type: "belongsTo", fk: "authorId"}),
+    entry: relation("resolvableEntry", {type: "belongsTo", fk: "entryId"}),
   },
-  keys: ["entryId", "version"]
-})
+  keys: ["entryId", "version"],
+});

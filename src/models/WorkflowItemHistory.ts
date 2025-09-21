@@ -1,9 +1,7 @@
-
-import { makeModel, relation } from "./_desc";
+import {makeModel, relation} from "./_desc";
 import * as f from "./_fields";
-import { type AccountId } from "./Account";
-import { type UserId } from "./User";
-
+import {type AccountId} from "./Account";
+import {type UserId} from "./User";
 
 export const workflowItemHistoryDesc = makeModel({
   name: "workflowItemHistory",
@@ -15,8 +13,8 @@ export const workflowItemHistoryDesc = makeModel({
     changerId: f.belongsTo({}).type<UserId>(),
   },
   relations: {
-    account: relation("account", { type: "belongsTo", fk: "accountId" }),
-    changer: relation("user", { type: "belongsTo", fk: "changerId" }),
+    account: relation("account", {type: "belongsTo", fk: "accountId"}),
+    changer: relation("user", {type: "belongsTo", fk: "changerId"}),
   },
-  keys: ["itemId", "version"]
-})
+  keys: ["itemId", "version"],
+});

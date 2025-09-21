@@ -1,8 +1,7 @@
-
-import { makeModel, relation } from "./_desc";
+import {makeModel, relation} from "./_desc";
 import * as f from "./_fields";
-import type { Nominal } from "./_type-helpers";
-import { type AccountId } from "./Account";
+import type {Nominal} from "./_type-helpers";
+import {type AccountId} from "./Account";
 
 export type InvoiceId = Nominal<string, "invoice">;
 export const invoiceDesc = makeModel({
@@ -19,7 +18,7 @@ export const invoiceDesc = makeModel({
     accountId: f.belongsTo({}).type<AccountId>(),
   },
   relations: {
-    account: relation("account", { type: "belongsTo", fk: "accountId" }),
+    account: relation("account", {type: "belongsTo", fk: "accountId"}),
   },
-  keys: ["id"]
-})
+  keys: ["id"],
+});

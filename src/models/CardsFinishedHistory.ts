@@ -1,8 +1,6 @@
-
-import { makeModel, relation } from "./_desc";
+import {makeModel, relation} from "./_desc";
 import * as f from "./_fields";
-import { type UserId } from "./User";
-
+import {type UserId} from "./User";
 
 export const cardsFinishedHistoryDesc = makeModel({
   name: "cardsFinishedHistory",
@@ -13,7 +11,7 @@ export const cardsFinishedHistoryDesc = makeModel({
     assigneeId: f.belongsTo({}).type<UserId>(),
   },
   relations: {
-    assignee: relation("user", { type: "belongsTo", fk: "assigneeId" }),
+    assignee: relation("user", {type: "belongsTo", fk: "assigneeId"}),
   },
-  keys: ["date", "effortSum", "cardCount", "assigneeId"]
-})
+  keys: ["date", "effortSum", "cardCount", "assigneeId"],
+});

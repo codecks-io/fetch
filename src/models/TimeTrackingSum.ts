@@ -1,9 +1,7 @@
-
-import { makeModel, relation } from "./_desc";
+import {makeModel, relation} from "./_desc";
 import * as f from "./_fields";
-import { type CardId } from "./Card";
-import { type UserId } from "./User";
-
+import {type CardId} from "./Card";
+import {type UserId} from "./User";
 
 export const timeTrackingSumDesc = makeModel({
   name: "timeTrackingSum",
@@ -15,8 +13,8 @@ export const timeTrackingSumDesc = makeModel({
     userId: f.belongsTo({}).type<UserId>(),
   },
   relations: {
-    card: relation("card", { type: "belongsTo", fk: "cardId" }),
-    user: relation("user", { type: "belongsTo", fk: "userId" }),
+    card: relation("card", {type: "belongsTo", fk: "cardId"}),
+    user: relation("user", {type: "belongsTo", fk: "userId"}),
   },
-  keys: ["cardId", "userId"]
-})
+  keys: ["cardId", "userId"],
+});

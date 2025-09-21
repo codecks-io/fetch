@@ -1,27 +1,19 @@
-import type { ApiResponse, ModelPool } from "./model-pool";
-import { modelMap } from "./models";
-import type { AnyDesc, RelationEntry, RelationOpts } from "./models/_desc";
-import { _rootDesc } from "./models/_root";
-import { getRelKey } from "./query-helpers";
-import type {
-  InferModelQuery,
-  InferRelQuery,
-  ModelQuery,
-  RelQuery,
-} from "./query-type";
+import type {ApiResponse, ModelPool} from "./model-pool";
+import {modelMap} from "./models";
+import type {AnyDesc, RelationEntry, RelationOpts} from "./models/_desc";
+import {_rootDesc} from "./models/_root";
+import {getRelKey} from "./query-helpers";
+import type {InferModelQuery, InferRelQuery, ModelQuery, RelQuery} from "./query-type";
 
-export const reconcileRootQuery = <
-  T extends RelQuery<typeof _rootDesc, typeof modelMap>,
->(
+export const reconcileRootQuery = <T extends RelQuery<typeof _rootDesc, typeof modelMap>>(
   query: T,
   response: ApiResponse,
-  pool: ModelPool,
+  pool: ModelPool
 ): InferRelQuery<typeof _rootDesc, T, typeof modelMap> => {
   const result: Record<string, any> = {};
   const responsePart = response._root;
   for (const [relName, modelFields] of Object.entries(query)) {
-    const relDesc =
-      _rootDesc.relations[relName as keyof (typeof _rootDesc)["relations"]];
+    const relDesc = _rootDesc.relations[relName as keyof (typeof _rootDesc)["relations"]];
     const id = responsePart[relName];
     if (!id) {
       result[relName] = null;
@@ -33,7 +25,7 @@ export const reconcileRootQuery = <
         modelMap[relDesc.relName],
         // TODO: we somehow should ensure that all ids are string!?
         `${id}`,
-        pool,
+        pool
       );
     }
   }
@@ -48,7 +40,7 @@ export const reconcileInstanceQuery = <
   response: ApiResponse,
   instanceModel: M,
   key: string,
-  pool: ModelPool,
+  pool: ModelPool
 ): InferModelQuery<M, T, typeof modelMap> => {
   const instance = pool.get(instanceModel.name, key);
   if (!instance) {
@@ -64,18 +56,11 @@ export const reconcileInstanceQuery = <
     result[field as string] = instance[field];
   }
   for (const [relName, _relEntries] of Object.entries(query.relations || {})) {
-    const relEntryList = Array.isArray(_relEntries)
-      ? _relEntries
-      : [_relEntries];
+    const relEntryList = Array.isArray(_relEntries) ? _relEntries : [_relEntries];
     for (const relEntry of relEntryList) {
-      const relDesc = instanceModel.relations[relName] as RelationEntry<
-        any,
-        any
-      >;
+      const relDesc = instanceModel.relations[relName] as RelationEntry<any, any>;
       if (!relDesc) {
-        throw new Error(
-          `Can't find relation ${relName} in ${instanceModel.name}`,
-        );
+        throw new Error(`Can't find relation ${relName} in ${instanceModel.name}`);
       }
       const opts = relDesc.options as RelationOpts;
       const relModel = modelMap[relDesc.relName as keyof typeof modelMap];
@@ -89,7 +74,7 @@ export const reconcileInstanceQuery = <
                 response,
                 relModel,
                 `${instance[relName]}`,
-                pool,
+                pool
               )
             : null;
           break;
@@ -100,7 +85,7 @@ export const reconcileInstanceQuery = <
             response,
             relModel,
             `${instance[relName]}`,
-            pool,
+            pool
           );
           break;
         case "hasMany":
@@ -123,19 +108,13 @@ export const reconcileInstanceQuery = <
                 response,
                 relModel,
                 `${val}`,
-                pool,
+                pool
               );
               break;
             default: {
               result[`~${asName}`] = val;
               result[asName] = (val as string[]).map((id) =>
-                reconcileInstanceQuery(
-                  relEntry as any,
-                  response,
-                  relModel,
-                  `${id}`,
-                  pool,
-                ),
+                reconcileInstanceQuery(relEntry as any, response, relModel, `${id}`, pool)
               );
             }
           }

@@ -1,8 +1,6 @@
-
-import { makeModel, relation } from "./_desc";
+import {makeModel, relation} from "./_desc";
 import * as f from "./_fields";
-import { type MilestoneId } from "./Milestone";
-
+import {type MilestoneId} from "./Milestone";
 
 export const milestoneProgressDesc = makeModel({
   name: "milestoneProgress",
@@ -11,7 +9,7 @@ export const milestoneProgressDesc = makeModel({
     milestoneId: f.belongsTo({}).type<MilestoneId>(),
   },
   relations: {
-    milestone: relation("milestone", { type: "belongsTo", fk: "milestoneId" }),
+    milestone: relation("milestone", {type: "belongsTo", fk: "milestoneId"}),
   },
-  keys: ["milestoneId", "date"]
-})
+  keys: ["milestoneId", "date"],
+});

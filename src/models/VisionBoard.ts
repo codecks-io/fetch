@@ -1,10 +1,9 @@
-
-import { makeModel, relation } from "./_desc";
+import {makeModel, relation} from "./_desc";
 import * as f from "./_fields";
-import type { Nominal } from "./_type-helpers";
-import { type CardId } from "./Card";
-import { type AccountId } from "./Account";
-import { type UserId } from "./User";
+import type {Nominal} from "./_type-helpers";
+import {type CardId} from "./Card";
+import {type AccountId} from "./Account";
+import {type UserId} from "./User";
 
 export type VisionBoardId = Nominal<string, "visionBoard">;
 export const visionBoardDesc = makeModel({
@@ -19,9 +18,9 @@ export const visionBoardDesc = makeModel({
     creatorId: f.belongsTo({}).type<UserId>(),
   },
   relations: {
-    card: relation("card", { type: "belongsTo", fk: "cardId" }),
-    account: relation("account", { type: "belongsTo", fk: "accountId" }),
-    creator: relation("user", { type: "belongsTo", fk: "creatorId" }),
+    card: relation("card", {type: "belongsTo", fk: "cardId"}),
+    account: relation("account", {type: "belongsTo", fk: "accountId"}),
+    creator: relation("user", {type: "belongsTo", fk: "creatorId"}),
   },
-  keys: ["id"]
-})
+  keys: ["id"],
+});

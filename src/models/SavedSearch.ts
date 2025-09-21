@@ -1,9 +1,8 @@
-
-import { makeModel, relation } from "./_desc";
+import {makeModel, relation} from "./_desc";
 import * as f from "./_fields";
-import type { Nominal } from "./_type-helpers";
-import { type AccountId } from "./Account";
-import { type UserId } from "./User";
+import type {Nominal} from "./_type-helpers";
+import {type AccountId} from "./Account";
+import {type UserId} from "./User";
 
 export type SavedSearchId = Nominal<string, "savedSearch">;
 export const savedSearchDesc = makeModel({
@@ -16,8 +15,8 @@ export const savedSearchDesc = makeModel({
     ownerId: f.belongsTo({}).type<UserId>(),
   },
   relations: {
-    account: relation("account", { type: "belongsTo", fk: "accountId" }),
-    owner: relation("user", { type: "belongsTo", fk: "ownerId" }),
+    account: relation("account", {type: "belongsTo", fk: "accountId"}),
+    owner: relation("user", {type: "belongsTo", fk: "ownerId"}),
   },
-  keys: ["id"]
-})
+  keys: ["id"],
+});

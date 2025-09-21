@@ -1,7 +1,5 @@
-
-import { makeModel } from "./_desc";
+import {makeModel} from "./_desc";
 import * as f from "./_fields";
-
 
 export const cardsEffortHistoryDesc = makeModel({
   name: "cardsEffortHistory",
@@ -9,10 +7,7 @@ export const cardsEffortHistoryDesc = makeModel({
     effortSum: f.bigint({}),
     cardCount: f.bigint({}),
     date: f.day({}),
-    
   },
-  relations: {
-    
-  },
-  keys: ["date", "effortSum", "cardCount"]
-})
+  relations: {},
+  keys: ["date", "effortSum", "cardCount"],
+});

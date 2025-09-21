@@ -1,7 +1,6 @@
-
-import { makeModel } from "./_desc";
+import {makeModel} from "./_desc";
 import * as f from "./_fields";
-import type { Nominal } from "./_type-helpers";
+import type {Nominal} from "./_type-helpers";
 
 export type ReleaseId = Nominal<string, "release">;
 export const releaseDesc = makeModel({
@@ -13,10 +12,7 @@ export const releaseDesc = makeModel({
     content: f.string({}),
     title: f.string({}),
     createdAt: f.date({}),
-    
   },
-  relations: {
-    
-  },
-  keys: ["id"]
-})
+  relations: {},
+  keys: ["id"],
+});

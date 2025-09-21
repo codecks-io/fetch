@@ -1,7 +1,6 @@
-
-import { makeModel } from "./_desc";
+import {makeModel} from "./_desc";
 import * as f from "./_fields";
-import type { Nominal } from "./_type-helpers";
+import type {Nominal} from "./_type-helpers";
 
 export type AccountOnboardingStepId = Nominal<string, "accountOnboardingStep">;
 export const accountOnboardingStepDesc = makeModel({
@@ -15,10 +14,7 @@ export const accountOnboardingStepDesc = makeModel({
     variants: f.array({}),
     xp: f.int({}),
     milestone: f.string({}),
-    
   },
-  relations: {
-    
-  },
-  keys: ["key"]
-})
+  relations: {},
+  keys: ["key"],
+});

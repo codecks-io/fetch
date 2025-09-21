@@ -1,9 +1,7 @@
-
-import { makeModel, relation } from "./_desc";
+import {makeModel, relation} from "./_desc";
 import * as f from "./_fields";
-import { type CardId } from "./Card";
-import { type UserId } from "./User";
-
+import {type CardId} from "./Card";
+import {type UserId} from "./User";
 
 export const cardsTimeToFinishedDesc = makeModel({
   name: "cardsTimeToFinished",
@@ -15,8 +13,8 @@ export const cardsTimeToFinishedDesc = makeModel({
     assigneeId: f.belongsTo({}).type<UserId>(),
   },
   relations: {
-    card: relation("card", { type: "belongsTo", fk: "cardId" }),
-    assignee: relation("user", { type: "belongsTo", fk: "assigneeId" }),
+    card: relation("card", {type: "belongsTo", fk: "cardId"}),
+    assignee: relation("user", {type: "belongsTo", fk: "assigneeId"}),
   },
-  keys: ["cardId", "startedAt", "doneAt", "effort", "assigneeId"]
-})
+  keys: ["cardId", "startedAt", "doneAt", "effort", "assigneeId"],
+});

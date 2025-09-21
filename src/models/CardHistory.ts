@@ -1,10 +1,8 @@
-
-import { makeModel, relation } from "./_desc";
+import {makeModel, relation} from "./_desc";
 import * as f from "./_fields";
-import { type AccountId } from "./Account";
-import { type CardId } from "./Card";
-import { type UserId } from "./User";
-
+import {type AccountId} from "./Account";
+import {type CardId} from "./Card";
+import {type UserId} from "./User";
 
 export const cardHistoryDesc = makeModel({
   name: "cardHistory",
@@ -17,9 +15,9 @@ export const cardHistoryDesc = makeModel({
     changerId: f.belongsTo({}).type<UserId>(),
   },
   relations: {
-    account: relation("account", { type: "belongsTo", fk: "accountId" }),
-    card: relation("card", { type: "belongsTo", fk: "cardId" }),
-    changer: relation("user", { type: "belongsTo", fk: "changerId" }),
+    account: relation("account", {type: "belongsTo", fk: "accountId"}),
+    card: relation("card", {type: "belongsTo", fk: "cardId"}),
+    changer: relation("user", {type: "belongsTo", fk: "changerId"}),
   },
-  keys: ["cardId", "version"]
-})
+  keys: ["cardId", "version"],
+});

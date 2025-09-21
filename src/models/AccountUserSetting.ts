@@ -1,10 +1,8 @@
-
-import { makeModel, relation } from "./_desc";
+import {makeModel, relation} from "./_desc";
 import * as f from "./_fields";
-import { type AccountId } from "./Account";
-import { type UserId } from "./User";
-import { type DeckId } from "./Deck";
-
+import {type AccountId} from "./Account";
+import {type UserId} from "./User";
+import {type DeckId} from "./Deck";
 
 export const accountUserSettingDesc = makeModel({
   name: "accountUserSetting",
@@ -17,9 +15,9 @@ export const accountUserSettingDesc = makeModel({
     inboxDeckId: f.belongsTo({}).type<DeckId>(),
   },
   relations: {
-    account: relation("account", { type: "belongsTo", fk: "accountId" }),
-    user: relation("user", { type: "belongsTo", fk: "userId" }),
-    inboxDeck: relation("deck", { type: "belongsTo", fk: "inboxDeckId" }),
+    account: relation("account", {type: "belongsTo", fk: "accountId"}),
+    user: relation("user", {type: "belongsTo", fk: "userId"}),
+    inboxDeck: relation("deck", {type: "belongsTo", fk: "inboxDeckId"}),
   },
-  keys: ["accountId", "userId"]
-})
+  keys: ["accountId", "userId"],
+});

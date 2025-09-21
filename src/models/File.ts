@@ -1,9 +1,8 @@
-
-import { makeModel, relation } from "./_desc";
+import {makeModel, relation} from "./_desc";
 import * as f from "./_fields";
-import type { Nominal } from "./_type-helpers";
-import { type AccountId } from "./Account";
-import { type UserId } from "./User";
+import type {Nominal} from "./_type-helpers";
+import {type AccountId} from "./Account";
+import {type UserId} from "./User";
 
 export type FileId = Nominal<string, "file">;
 export const fileDesc = makeModel({
@@ -23,9 +22,9 @@ export const fileDesc = makeModel({
     deletedById: f.belongsTo({}).type<UserId>(),
   },
   relations: {
-    account: relation("account", { type: "belongsTo", fk: "accountId" }),
-    uploader: relation("user", { type: "belongsTo", fk: "uploaderId" }),
-    deletedBy: relation("user", { type: "belongsTo", fk: "deletedById" }),
+    account: relation("account", {type: "belongsTo", fk: "accountId"}),
+    uploader: relation("user", {type: "belongsTo", fk: "uploaderId"}),
+    deletedBy: relation("user", {type: "belongsTo", fk: "deletedById"}),
   },
-  keys: ["id"]
-})
+  keys: ["id"],
+});

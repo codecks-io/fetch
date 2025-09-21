@@ -1,9 +1,8 @@
-
-import { makeModel, relation } from "./_desc";
+import {makeModel, relation} from "./_desc";
 import * as f from "./_fields";
-import type { Nominal } from "./_type-helpers";
-import { type AccountId } from "./Account";
-import { type UserId } from "./User";
+import type {Nominal} from "./_type-helpers";
+import {type AccountId} from "./Account";
+import {type UserId} from "./User";
 
 export type AffiliateCodeId = Nominal<string, "affiliateCode">;
 export const affiliateCodeDesc = makeModel({
@@ -24,9 +23,9 @@ export const affiliateCodeDesc = makeModel({
     creatorId: f.belongsTo({}).type<UserId>(),
   },
   relations: {
-    account: relation("account", { type: "belongsTo", fk: "accountId" }),
-    creator: relation("user", { type: "belongsTo", fk: "creatorId" }),
-    stats: relation("affiliateCodeStat", { type: "hasMany" }),
+    account: relation("account", {type: "belongsTo", fk: "accountId"}),
+    creator: relation("user", {type: "belongsTo", fk: "creatorId"}),
+    stats: relation("affiliateCodeStat", {type: "hasMany"}),
   },
-  keys: ["id"]
-})
+  keys: ["id"],
+});

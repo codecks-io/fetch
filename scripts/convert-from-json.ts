@@ -70,9 +70,7 @@ function generateTs(schema: any): string {
       const fkType = `${capitalizeFirst(b)}Id`;
       belongsToLines.push(`${fk}: f.belongsTo({}).type<${fkType}>(),`);
       modelImports.set(b, [`type ${fkType}`]);
-      hasManyLines.push(
-        `${b}: relation("${b}", { type: "belongsTo", fk: "${fk}" }),`,
-      );
+      hasManyLines.push(`${b}: relation("${b}", { type: "belongsTo", fk: "${fk}" }),`);
       fields.add(fk);
     } else if (typeof b === "object") {
       for (const [alias, def] of Object.entries<any>(b)) {
@@ -80,12 +78,10 @@ function generateTs(schema: any): string {
         const fk = `${alias}Id`;
         const fkType = `${capitalizeFirst(model)}Id`;
         belongsToLines.push(
-          `${fk}: f.belongsTo(${def.optional ? "{ optional: true }" : "{}"}).type<${fkType}>(),`,
+          `${fk}: f.belongsTo(${def.optional ? "{ optional: true }" : "{}"}).type<${fkType}>(),`
         );
         modelImports.set(model, [`type ${fkType}`]);
-        hasManyLines.push(
-          `${alias}: relation("${model}", { type: "belongsTo", fk: "${fk}" }),`,
-        );
+        hasManyLines.push(`${alias}: relation("${model}", { type: "belongsTo", fk: "${fk}" }),`);
         fields.add(fk);
       }
     }
@@ -95,16 +91,12 @@ function generateTs(schema: any): string {
   for (const h of schema.hasMany || []) {
     descImports.add("relation");
     if (typeof h === "string") {
-      hasManyLines.push(
-        `${h}: relation("${removeTrailingS(h)}", { type: "hasMany" }),`,
-      );
+      hasManyLines.push(`${h}: relation("${removeTrailingS(h)}", { type: "hasMany" }),`);
     } else if (typeof h === "object") {
       for (const [alias, def] of Object.entries<any>(h)) {
         const model = def.model ?? removeTrailingS(alias);
         const type = def.isSingleton ? "hasOne" : "hasMany";
-        hasManyLines.push(
-          `${alias}: relation("${model}", { type: "${type}" }),`,
-        );
+        hasManyLines.push(`${alias}: relation("${model}", { type: "${type}" }),`);
       }
     }
   }
@@ -135,9 +127,7 @@ function generateTs(schema: any): string {
   const keyLine = getKeyLine();
   for (const [key, list] of modelImports) {
     if (key === name) continue;
-    imports.push(
-      `import { ${list.join(", ")} } from "./${capitalizeFirst(key)}";`,
-    );
+    imports.push(`import { ${list.join(", ")} } from "./${capitalizeFirst(key)}";`);
   }
 
   if (fieldLines.length || belongsToLines.length) {
@@ -185,11 +175,7 @@ for (const inputPath of inputPaths) {
   schemaNames.push(schema.name);
   const tsOutput = generateTs(schema);
 
-  const outPath = path.join(
-    process.cwd(),
-    "src/models",
-    capitalizeFirst(schema.name) + ".ts",
-  );
+  const outPath = path.join(process.cwd(), "src/models", capitalizeFirst(schema.name) + ".ts");
   fs.writeFileSync(outPath, tsOutput);
   console.log(`Generated ${outPath}`);
 }

@@ -1,8 +1,6 @@
-
-import { makeModel, relation } from "./_desc";
+import {makeModel, relation} from "./_desc";
 import * as f from "./_fields";
-import { type DiscordGuildId } from "./DiscordGuild";
-
+import {type DiscordGuildId} from "./DiscordGuild";
 
 export const dailyDiscordGuildVoteMembershipDesc = makeModel({
   name: "dailyDiscordGuildVoteMembership",
@@ -12,7 +10,7 @@ export const dailyDiscordGuildVoteMembershipDesc = makeModel({
     discordGuildId: f.belongsTo({}).type<DiscordGuildId>(),
   },
   relations: {
-    discordGuild: relation("discordGuild", { type: "belongsTo", fk: "discordGuildId" }),
+    discordGuild: relation("discordGuild", {type: "belongsTo", fk: "discordGuildId"}),
   },
-  keys: ["t", "guildId"]
-})
+  keys: ["t", "guildId"],
+});

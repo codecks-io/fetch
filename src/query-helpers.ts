@@ -1,19 +1,11 @@
-import type { AnyDesc } from "./models/_desc";
-import { modelMap } from "./models";
-import type {
-  HasManyQuery,
-  Instance,
-  ModelQuery,
-  RelQuery,
-} from "./query-type";
-import { _rootDesc } from "./models/_root";
+import type {AnyDesc} from "./models/_desc";
+import {modelMap} from "./models";
+import type {HasManyQuery, Instance, ModelQuery, RelQuery} from "./query-type";
+import {_rootDesc} from "./models/_root";
 
 type ModelMap = typeof modelMap;
 
-export const getRelKey = <T extends HasManyQuery<any, any>>(
-  r: T,
-  k: string,
-) => {
+export const getRelKey = <T extends HasManyQuery<any, any>>(r: T, k: string) => {
   const isPlainKey = () => {
     if (r.type === "first") return false;
     if (r.filter && Object.keys(r.filter).length > 0) return false;
@@ -23,7 +15,7 @@ export const getRelKey = <T extends HasManyQuery<any, any>>(
     return true;
   };
   if (isPlainKey()) return k;
-  const q: Record<string, any> = { ...r.filter };
+  const q: Record<string, any> = {...r.filter};
   if (r.type === "first") {
     q.$first = true;
     q.$order = r.orderBy;
@@ -53,10 +45,7 @@ const serializeModel = (q: ModelQuery<any, any>, modelDesc: AnyDesc) => {
           break;
         }
         default:
-          relObj[getRelKey(r, k)] = serializeModel(
-            r as ModelQuery<any, any>,
-            modelDesc,
-          );
+          relObj[getRelKey(r, k)] = serializeModel(r as ModelQuery<any, any>, modelDesc);
           break;
       }
     });
@@ -70,30 +59,25 @@ const serializeRelations = (q: RelQuery<any, any>, modelDesc: AnyDesc) => {
     Object.entries(q).map(([k, v]) => [
       k,
       serializeModel(v as ModelQuery<any, any>, modelDesc.relations[k]),
-    ]),
+    ])
   );
 };
 
-export const serializeRootQuery = <
-  T extends RelQuery<typeof _rootDesc, typeof modelMap>,
->(
-  q: T,
+export const serializeRootQuery = <T extends RelQuery<typeof _rootDesc, typeof modelMap>>(
+  q: T
 ): Record<string, unknown> => {
-  return { _root: serializeRelations(q, _rootDesc) };
+  return {_root: serializeRelations(q, _rootDesc)};
 };
 
 export const serializeInstanceQuery = (
   q: ModelQuery<any, any>,
   instances: Instance<keyof ModelMap>[],
-  modelMap: ModelMap,
+  modelMap: ModelMap
 ) => {
   return Object.fromEntries(
     instances.map((instance) => {
       const name = instance["~model"];
-      return [
-        `${name}(${instance["~key"]})`,
-        serializeModel(q, modelMap[name]),
-      ];
-    }),
+      return [`${name}(${instance["~key"]})`, serializeModel(q, modelMap[name])];
+    })
   );
 };

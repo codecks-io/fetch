@@ -1,10 +1,8 @@
-
-import { makeModel, relation } from "./_desc";
+import {makeModel, relation} from "./_desc";
 import * as f from "./_fields";
-import { type ResolvableId } from "./Resolvable";
-import { type AccountId } from "./Account";
-import { type UserId } from "./User";
-
+import {type ResolvableId} from "./Resolvable";
+import {type AccountId} from "./Account";
+import {type UserId} from "./User";
 
 export const resolvableParticipantDesc = makeModel({
   name: "resolvableParticipant",
@@ -21,10 +19,10 @@ export const resolvableParticipantDesc = makeModel({
     addedById: f.belongsTo({}).type<UserId>(),
   },
   relations: {
-    resolvable: relation("resolvable", { type: "belongsTo", fk: "resolvableId" }),
-    account: relation("account", { type: "belongsTo", fk: "accountId" }),
-    user: relation("user", { type: "belongsTo", fk: "userId" }),
-    addedBy: relation("user", { type: "belongsTo", fk: "addedById" }),
+    resolvable: relation("resolvable", {type: "belongsTo", fk: "resolvableId"}),
+    account: relation("account", {type: "belongsTo", fk: "accountId"}),
+    user: relation("user", {type: "belongsTo", fk: "userId"}),
+    addedBy: relation("user", {type: "belongsTo", fk: "addedById"}),
   },
-  keys: ["participantId", "resolvableId"]
-})
+  keys: ["participantId", "resolvableId"],
+});

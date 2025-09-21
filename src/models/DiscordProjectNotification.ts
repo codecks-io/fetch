@@ -1,9 +1,8 @@
-
-import { makeModel, relation } from "./_desc";
+import {makeModel, relation} from "./_desc";
 import * as f from "./_fields";
-import type { Nominal } from "./_type-helpers";
-import { type ProjectId } from "./Project";
-import { type DiscordGuildId } from "./DiscordGuild";
+import type {Nominal} from "./_type-helpers";
+import {type ProjectId} from "./Project";
+import {type DiscordGuildId} from "./DiscordGuild";
 
 export type DiscordProjectNotificationId = Nominal<string, "discordProjectNotification">;
 export const discordProjectNotificationDesc = makeModel({
@@ -17,8 +16,8 @@ export const discordProjectNotificationDesc = makeModel({
     discordGuildId: f.belongsTo({}).type<DiscordGuildId>(),
   },
   relations: {
-    project: relation("project", { type: "belongsTo", fk: "projectId" }),
-    discordGuild: relation("discordGuild", { type: "belongsTo", fk: "discordGuildId" }),
+    project: relation("project", {type: "belongsTo", fk: "projectId"}),
+    discordGuild: relation("discordGuild", {type: "belongsTo", fk: "discordGuildId"}),
   },
-  keys: ["id"]
-})
+  keys: ["id"],
+});

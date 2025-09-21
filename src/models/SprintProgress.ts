@@ -1,8 +1,6 @@
-
-import { makeModel, relation } from "./_desc";
+import {makeModel, relation} from "./_desc";
 import * as f from "./_fields";
-import { type SprintId } from "./Sprint";
-
+import {type SprintId} from "./Sprint";
 
 export const sprintProgressDesc = makeModel({
   name: "sprintProgress",
@@ -11,7 +9,7 @@ export const sprintProgressDesc = makeModel({
     sprintId: f.belongsTo({}).type<SprintId>(),
   },
   relations: {
-    sprint: relation("sprint", { type: "belongsTo", fk: "sprintId" }),
+    sprint: relation("sprint", {type: "belongsTo", fk: "sprintId"}),
   },
-  keys: ["sprintId", "date"]
-})
+  keys: ["sprintId", "date"],
+});

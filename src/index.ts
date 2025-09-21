@@ -1,36 +1,24 @@
-import { ModelPool, type ApiResponse } from "./model-pool";
-import { modelMap } from "./models";
-import { serializeInstanceQuery, serializeRootQuery } from "./query-helpers";
-import type {
-  InferModelQuery,
-  InferRelQuery,
-  Instance,
-  ModelQuery,
-  RelQuery,
-} from "./query-type";
-import { reconcileInstanceQuery, reconcileRootQuery } from "./reconcile-query";
-import type { _rootDesc } from "./models/_root";
+import {ModelPool, type ApiResponse} from "./model-pool";
+import {modelMap} from "./models";
+import {serializeInstanceQuery, serializeRootQuery} from "./query-helpers";
+import type {InferModelQuery, InferRelQuery, Instance, ModelQuery, RelQuery} from "./query-type";
+import {reconcileInstanceQuery, reconcileRootQuery} from "./reconcile-query";
+import type {_rootDesc} from "./models/_root";
 
 type ModelMap = typeof modelMap;
 
 type Fetchers = {
   fetchFromRoot: <const Q extends RelQuery<typeof _rootDesc, ModelMap>>(
-    q: Q,
+    q: Q
   ) => Promise<InferRelQuery<typeof _rootDesc, Q, ModelMap>>;
-  fetchFromInstance: <
-    M extends keyof ModelMap,
-    const Q extends ModelQuery<ModelMap[M], ModelMap>,
-  >(
+  fetchFromInstance: <M extends keyof ModelMap, const Q extends ModelQuery<ModelMap[M], ModelMap>>(
     instance: Instance<M>,
-    q: Q,
+    q: Q
   ) => Promise<InferModelQuery<ModelMap[M], Q, ModelMap>>;
-  fetchInstance: <
-    K extends keyof ModelMap,
-    const Q extends RelQuery<ModelMap[K], ModelMap>,
-  >(
+  fetchInstance: <K extends keyof ModelMap, const Q extends RelQuery<ModelMap[K], ModelMap>>(
     model: K,
     id: string,
-    q: Q,
+    q: Q
   ) => Promise<InferModelQuery<ModelMap[K], Q, ModelMap>>;
   fetchInstances: <
     K extends keyof ModelMap,
@@ -39,7 +27,7 @@ type Fetchers = {
   >(
     model: K,
     id: Id[],
-    q: Q,
+    q: Q
   ) => Promise<Record<Id, InferModelQuery<ModelMap[K], Q, ModelMap>>>;
 };
 
@@ -72,13 +60,13 @@ export const buildFetchers = (opts: FetcherOptions = {}): Fetchers => {
     }
     const fullUrl = opts.baseUrl ? `${opts.baseUrl}${url}` : url;
 
-    return fetchImpl(fullUrl, { ...init, headers });
+    return fetchImpl(fullUrl, {...init, headers});
   };
 
   const fetchWithQuery = async (query: Record<string, unknown>) => {
     const response = await configuredFetch("", {
       method: "POST",
-      body: JSON.stringify({ query: JSON.stringify(query) }),
+      body: JSON.stringify({query: JSON.stringify(query)}),
     }).then(async (r) => {
       const content = await r.json();
       if (r.status !== 200) {
@@ -93,11 +81,9 @@ export const buildFetchers = (opts: FetcherOptions = {}): Fetchers => {
     const Q extends ModelQuery<ModelMap[M], ModelMap>,
   >(
     instance: Instance<M>,
-    q: Q,
+    q: Q
   ): Promise<InferModelQuery<ModelMap[M], Q, ModelMap>> => {
-    const response = await fetchWithQuery(
-      serializeInstanceQuery(q, [instance], modelMap),
-    );
+    const response = await fetchWithQuery(serializeInstanceQuery(q, [instance], modelMap));
     const pool = new ModelPool(modelMap);
     pool.add(response);
     return reconcileInstanceQuery(
@@ -105,7 +91,7 @@ export const buildFetchers = (opts: FetcherOptions = {}): Fetchers => {
       response,
       modelMap[instance["~model"]],
       instance["~key"],
-      pool,
+      pool
     );
   };
 
@@ -130,16 +116,11 @@ export const buildFetchers = (opts: FetcherOptions = {}): Fetchers => {
         "~model": key,
         "~key": id,
       }));
-      const response = await fetchWithQuery(
-        serializeInstanceQuery(q, instances, modelMap),
-      );
+      const response = await fetchWithQuery(serializeInstanceQuery(q, instances, modelMap));
       const pool = new ModelPool(modelMap);
       pool.add(response);
       return Object.fromEntries(
-        ids.map((id) => [
-          id,
-          reconcileInstanceQuery(q, response, modelDesc, id, pool),
-        ]),
+        ids.map((id) => [id, reconcileInstanceQuery(q, response, modelDesc, id, pool)])
       ) as any;
     },
   };

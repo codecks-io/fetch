@@ -1,9 +1,8 @@
-
-import { makeModel, relation } from "./_desc";
+import {makeModel, relation} from "./_desc";
 import * as f from "./_fields";
-import type { Nominal } from "./_type-helpers";
-import { type AccountId } from "./Account";
-import { type UserId } from "./User";
+import type {Nominal} from "./_type-helpers";
+import {type AccountId} from "./Account";
+import {type UserId} from "./User";
 
 export type IntegrationId = Nominal<string, "integration">;
 export const integrationDesc = makeModel({
@@ -20,9 +19,9 @@ export const integrationDesc = makeModel({
     creatorId: f.belongsTo({}).type<UserId>(),
   },
   relations: {
-    account: relation("account", { type: "belongsTo", fk: "accountId" }),
-    user: relation("user", { type: "belongsTo", fk: "userId" }),
-    creator: relation("user", { type: "belongsTo", fk: "creatorId" }),
+    account: relation("account", {type: "belongsTo", fk: "accountId"}),
+    user: relation("user", {type: "belongsTo", fk: "userId"}),
+    creator: relation("user", {type: "belongsTo", fk: "creatorId"}),
   },
-  keys: ["id"]
-})
+  keys: ["id"],
+});

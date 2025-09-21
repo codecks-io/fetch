@@ -1,4 +1,4 @@
-import type { FieldEntry, InferSimpleFieldEntry } from "./_fields";
+import type {FieldEntry, InferSimpleFieldEntry} from "./_fields";
 
 export type ModelDesc<
   TName extends string,
@@ -26,15 +26,12 @@ export type BelongsToOpts<TFk extends string> = {
   type: "belongsTo";
   fk: TFk;
 };
-type HasManyOpts = { type: "hasMany" };
-type HasOneOpts = { type: "hasOne" };
+type HasManyOpts = {type: "hasMany"};
+type HasOneOpts = {type: "hasOne"};
 
 export type RelationOpts = BelongsToOpts<any> | HasManyOpts | HasOneOpts;
 
-export type RelationEntry<
-  TRelName extends string,
-  TOpts extends RelationOpts,
-> = {
+export type RelationEntry<TRelName extends string, TOpts extends RelationOpts> = {
   relName: TRelName;
   options: TOpts;
 };
@@ -54,14 +51,11 @@ export const makeModel = <
   return opts;
 };
 
-export const relation = <
-  RelName extends string,
-  const Opts extends RelationOpts,
->(
+export const relation = <RelName extends string, const Opts extends RelationOpts>(
   relName: RelName,
-  options: Opts,
+  options: Opts
 ): RelationEntry<RelName, Opts> => {
-  return { relName, options };
+  return {relName, options};
 };
 
 export type InferFieldType<T extends FieldEntry> = T extends FieldEntry

@@ -1,7 +1,7 @@
-import { _rootDesc } from "./_root";
-import { accountDesc } from "./Account";
-import { accountRoleDesc } from "./AccountRole";
-import { userDesc } from "./User";
+import {_rootDesc} from "./_root";
+import {accountDesc} from "./Account";
+import {accountRoleDesc} from "./AccountRole";
+import {userDesc} from "./User";
 
 export const rootDesc = _rootDesc;
 

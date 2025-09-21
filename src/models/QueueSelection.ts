@@ -1,9 +1,8 @@
-
-import { makeModel, relation } from "./_desc";
+import {makeModel, relation} from "./_desc";
 import * as f from "./_fields";
-import type { Nominal } from "./_type-helpers";
-import { type UserId } from "./User";
-import { type AccountId } from "./Account";
+import type {Nominal} from "./_type-helpers";
+import {type UserId} from "./User";
+import {type AccountId} from "./Account";
 
 export type QueueSelectionId = Nominal<string, "queueSelection">;
 export const queueSelectionDesc = makeModel({
@@ -16,9 +15,9 @@ export const queueSelectionDesc = makeModel({
     queueUserId: f.belongsTo({}).type<UserId>(),
   },
   relations: {
-    user: relation("user", { type: "belongsTo", fk: "userId" }),
-    account: relation("account", { type: "belongsTo", fk: "accountId" }),
-    queueUser: relation("user", { type: "belongsTo", fk: "queueUserId" }),
+    user: relation("user", {type: "belongsTo", fk: "userId"}),
+    account: relation("account", {type: "belongsTo", fk: "accountId"}),
+    queueUser: relation("user", {type: "belongsTo", fk: "queueUserId"}),
   },
-  keys: ["id"]
-})
+  keys: ["id"],
+});

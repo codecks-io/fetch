@@ -1,9 +1,8 @@
-
-import { makeModel, relation } from "./_desc";
+import {makeModel, relation} from "./_desc";
 import * as f from "./_fields";
-import type { Nominal } from "./_type-helpers";
-import { type AccountId } from "./Account";
-import { type UserId } from "./User";
+import type {Nominal} from "./_type-helpers";
+import {type AccountId} from "./Account";
+import {type UserId} from "./User";
 
 export type UserInvitationId = Nominal<string, "userInvitation">;
 export const userInvitationDesc = makeModel({
@@ -18,8 +17,8 @@ export const userInvitationDesc = makeModel({
     inviterId: f.belongsTo({}).type<UserId>(),
   },
   relations: {
-    account: relation("account", { type: "belongsTo", fk: "accountId" }),
-    inviter: relation("user", { type: "belongsTo", fk: "inviterId" }),
+    account: relation("account", {type: "belongsTo", fk: "accountId"}),
+    inviter: relation("user", {type: "belongsTo", fk: "inviterId"}),
   },
-  keys: ["id"]
-})
+  keys: ["id"],
+});

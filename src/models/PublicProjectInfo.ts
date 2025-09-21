@@ -1,9 +1,7 @@
-
-import { makeModel, relation } from "./_desc";
+import {makeModel, relation} from "./_desc";
 import * as f from "./_fields";
-import { type ProjectId } from "./Project";
-import { type AccountId } from "./Account";
-
+import {type ProjectId} from "./Project";
+import {type AccountId} from "./Account";
 
 export const publicProjectInfoDesc = makeModel({
   name: "publicProjectInfo",
@@ -17,8 +15,8 @@ export const publicProjectInfoDesc = makeModel({
     accountId: f.belongsTo({}).type<AccountId>(),
   },
   relations: {
-    project: relation("project", { type: "belongsTo", fk: "projectId" }),
-    account: relation("account", { type: "belongsTo", fk: "accountId" }),
+    project: relation("project", {type: "belongsTo", fk: "projectId"}),
+    account: relation("account", {type: "belongsTo", fk: "accountId"}),
   },
-  keys: ["projectId"]
-})
+  keys: ["projectId"],
+});

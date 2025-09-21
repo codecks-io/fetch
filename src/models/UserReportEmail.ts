@@ -1,9 +1,8 @@
-
-import { makeModel, relation } from "./_desc";
+import {makeModel, relation} from "./_desc";
 import * as f from "./_fields";
-import type { Nominal } from "./_type-helpers";
-import { type UserReportSettingId } from "./UserReportSetting";
-import { type AccountId } from "./Account";
+import type {Nominal} from "./_type-helpers";
+import {type UserReportSettingId} from "./UserReportSetting";
+import {type AccountId} from "./Account";
 
 export type UserReportEmailId = Nominal<string, "userReportEmail">;
 export const userReportEmailDesc = makeModel({
@@ -17,8 +16,11 @@ export const userReportEmailDesc = makeModel({
     accountId: f.belongsTo({}).type<AccountId>(),
   },
   relations: {
-    userReportSetting: relation("userReportSetting", { type: "belongsTo", fk: "userReportSettingId" }),
-    account: relation("account", { type: "belongsTo", fk: "accountId" }),
+    userReportSetting: relation("userReportSetting", {
+      type: "belongsTo",
+      fk: "userReportSettingId",
+    }),
+    account: relation("account", {type: "belongsTo", fk: "accountId"}),
   },
-  keys: ["id"]
-})
+  keys: ["id"],
+});

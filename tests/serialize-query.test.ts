@@ -1,44 +1,44 @@
-import { expect, test } from "vitest";
-import { serializeRootQuery } from "../src/query-helpers";
+import {expect, test} from "vitest";
+import {serializeRootQuery} from "../src/query-helpers";
 
 test("simple field", () => {
   expect(
     serializeRootQuery({
-      account: { fields: ["name"] },
-    }),
-  ).toEqual({ _root: { account: ["name"] } });
+      account: {fields: ["name"]},
+    })
+  ).toEqual({_root: {account: ["name"]}});
 });
 
 test("belongs to", () => {
   expect(
     serializeRootQuery({
-      account: { relations: { disabledBy: { fields: ["name"] } } },
-    }),
-  ).toEqual({ _root: { account: [{ disabledBy: ["name"] }] } });
+      account: {relations: {disabledBy: {fields: ["name"]}}},
+    })
+  ).toEqual({_root: {account: [{disabledBy: ["name"]}]}});
 });
 
 test("has many", () => {
   expect(
     serializeRootQuery({
-      account: { relations: { roles: { fields: ["role"] } } },
-    }),
-  ).toEqual({ _root: { account: [{ roles: ["role"] }] } });
+      account: {relations: {roles: {fields: ["role"]}}},
+    })
+  ).toEqual({_root: {account: [{roles: ["role"]}]}});
 });
 
 test("has many", () => {
   expect(
     serializeRootQuery({
-      account: { relations: { roles: { fields: ["role"] } } },
-    }),
-  ).toEqual({ _root: { account: [{ roles: ["role"] }] } });
+      account: {relations: {roles: {fields: ["role"]}}},
+    })
+  ).toEqual({_root: {account: [{roles: ["role"]}]}});
 });
 
 test("has many named", () => {
   expect(
     serializeRootQuery({
-      account: { relations: { roles: [{ fields: ["role"], as: "myRoles" }] } },
-    }),
-  ).toEqual({ _root: { account: [{ roles: ["role"] }] } });
+      account: {relations: {roles: [{fields: ["role"], as: "myRoles"}]}},
+    })
+  ).toEqual({_root: {account: [{roles: ["role"]}]}});
 });
 
 test("complex", () => {
@@ -49,22 +49,22 @@ test("complex", () => {
         relations: {
           roles: {
             fields: ["role"],
-            relations: { user: { fields: ["name"] } },
+            relations: {user: {fields: ["name"]}},
           },
         },
       },
-    }),
+    })
   ).toEqual({
-    _root: { account: ["subdomain", { roles: ["role", { user: ["name"] }] }] },
+    _root: {account: ["subdomain", {roles: ["role", {user: ["name"]}]}]},
   });
 });
 
 test("has many count", () => {
   expect(
     serializeRootQuery({
-      account: { relations: { roles: { type: "count", as: "roleCount" } } },
-    }),
-  ).toEqual({ _root: { account: ["count(roles)"] } });
+      account: {relations: {roles: {type: "count", as: "roleCount"}}},
+    })
+  ).toEqual({_root: {account: ["count(roles)"]}});
 });
 
 test("has many first", () => {
@@ -81,13 +81,10 @@ test("has many first", () => {
           },
         },
       },
-    }),
+    })
   ).toEqual({
     _root: {
-      account: [
-        "name",
-        { 'roles({"$first":true,"$order":"-accountId"})': ["role"] },
-      ],
+      account: ["name", {'roles({"$first":true,"$order":"-accountId"})': ["role"]}],
     },
   });
 });

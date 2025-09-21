@@ -1,7 +1,7 @@
-import { ensureMapValue } from "./collection-utils";
-import type { AnyDesc } from "./models/_desc";
-import type { FieldEntry } from "./models/_fields";
-import { _rootDesc } from "./models/_root";
+import {ensureMapValue} from "./collection-utils";
+import type {AnyDesc} from "./models/_desc";
+import type {FieldEntry} from "./models/_fields";
+import {_rootDesc} from "./models/_root";
 
 type RootDesc = typeof _rootDesc;
 const ROOT_ID = "";
@@ -32,7 +32,7 @@ const parseField = (v: any, field: FieldEntry | null) => {
 
 const transformData = (desc: AnyDesc, data: Record<string, any>) => {
   return Object.fromEntries(
-    Object.entries(data).map(([k, v]) => [k, parseField(v, desc.fields[k])]),
+    Object.entries(data).map(([k, v]) => [k, parseField(v, desc.fields[k])])
   );
 };
 
@@ -44,11 +44,7 @@ export class ModelPool {
     this.modelMap = modelMap;
   }
 
-  private addModelInstance(
-    model: string,
-    id: string,
-    _data: Record<string, any>,
-  ) {
+  private addModelInstance(model: string, id: string, _data: Record<string, any>) {
     const instanceById = ensureMapValue(this.data, model, () => new Map());
     const exists = instanceById.get(id);
     const desc = this.modelMap[model];

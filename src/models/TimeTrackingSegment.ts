@@ -1,10 +1,9 @@
-
-import { makeModel, relation } from "./_desc";
+import {makeModel, relation} from "./_desc";
 import * as f from "./_fields";
-import type { Nominal } from "./_type-helpers";
-import { type CardId } from "./Card";
-import { type UserId } from "./User";
-import { type AccountId } from "./Account";
+import type {Nominal} from "./_type-helpers";
+import {type CardId} from "./Card";
+import {type UserId} from "./User";
+import {type AccountId} from "./Account";
 
 export type TimeTrackingSegmentId = Nominal<string, "timeTrackingSegment">;
 export const timeTrackingSegmentDesc = makeModel({
@@ -12,7 +11,7 @@ export const timeTrackingSegmentDesc = makeModel({
   fields: {
     id: f.id<TimeTrackingSegmentId>(),
     createdAt: f.date({}),
-    finishedAt: f.date({ optional: true }),
+    finishedAt: f.date({optional: true}),
     startedAt: f.date({}),
     modifyDurationMsBy: f.int({}),
     addedManually: f.string({}),
@@ -22,9 +21,9 @@ export const timeTrackingSegmentDesc = makeModel({
     accountId: f.belongsTo({}).type<AccountId>(),
   },
   relations: {
-    card: relation("card", { type: "belongsTo", fk: "cardId" }),
-    user: relation("user", { type: "belongsTo", fk: "userId" }),
-    account: relation("account", { type: "belongsTo", fk: "accountId" }),
+    card: relation("card", {type: "belongsTo", fk: "cardId"}),
+    user: relation("user", {type: "belongsTo", fk: "userId"}),
+    account: relation("account", {type: "belongsTo", fk: "accountId"}),
   },
-  keys: ["id"]
-})
+  keys: ["id"],
+});

@@ -1,9 +1,7 @@
-
-import { makeModel, relation } from "./_desc";
+import {makeModel, relation} from "./_desc";
 import * as f from "./_fields";
-import { type AccountId } from "./Account";
-import { type UserId } from "./User";
-
+import {type AccountId} from "./Account";
+import {type UserId} from "./User";
 
 export const assigneeAssignmentDesc = makeModel({
   name: "assigneeAssignment",
@@ -14,9 +12,9 @@ export const assigneeAssignmentDesc = makeModel({
     assignedById: f.belongsTo({}).type<UserId>(),
   },
   relations: {
-    account: relation("account", { type: "belongsTo", fk: "accountId" }),
-    assignee: relation("user", { type: "belongsTo", fk: "assigneeId" }),
-    assignedBy: relation("user", { type: "belongsTo", fk: "assignedById" }),
+    account: relation("account", {type: "belongsTo", fk: "accountId"}),
+    assignee: relation("user", {type: "belongsTo", fk: "assigneeId"}),
+    assignedBy: relation("user", {type: "belongsTo", fk: "assignedById"}),
   },
-  keys: ["assigneeId", "assignedById"]
-})
+  keys: ["assigneeId", "assignedById"],
+});

@@ -1,11 +1,9 @@
-
-import { makeModel, relation } from "./_desc";
+import {makeModel, relation} from "./_desc";
 import * as f from "./_fields";
-import { type UserId } from "./User";
-import { type ResolvableId } from "./Resolvable";
-import { type AccountId } from "./Account";
-import { type ResolvableEntryId } from "./ResolvableEntry";
-
+import {type UserId} from "./User";
+import {type ResolvableId} from "./Resolvable";
+import {type AccountId} from "./Account";
+import {type ResolvableEntryId} from "./ResolvableEntry";
 
 export const resolvableNotificationDesc = makeModel({
   name: "resolvableNotification",
@@ -16,8 +14,8 @@ export const resolvableNotificationDesc = makeModel({
     unseenAuthors: f.array({}),
     isLastParticipant: f.bool({}),
     lastUpdatedAt: f.date({}),
-    snoozeUntil: f.date({ optional: true }),
-    remindMeOn: f.date({ optional: true }),
+    snoozeUntil: f.date({optional: true}),
+    remindMeOn: f.date({optional: true}),
     createdAt: f.date({}),
     userId: f.belongsTo({}).type<UserId>(),
     resolvableId: f.belongsTo({}).type<ResolvableId>(),
@@ -26,11 +24,11 @@ export const resolvableNotificationDesc = makeModel({
     latestSeenEntryId: f.belongsTo({}).type<ResolvableEntryId>(),
   },
   relations: {
-    user: relation("user", { type: "belongsTo", fk: "userId" }),
-    resolvable: relation("resolvable", { type: "belongsTo", fk: "resolvableId" }),
-    account: relation("account", { type: "belongsTo", fk: "accountId" }),
-    latestEntry: relation("resolvableEntry", { type: "belongsTo", fk: "latestEntryId" }),
-    latestSeenEntry: relation("resolvableEntry", { type: "belongsTo", fk: "latestSeenEntryId" }),
+    user: relation("user", {type: "belongsTo", fk: "userId"}),
+    resolvable: relation("resolvable", {type: "belongsTo", fk: "resolvableId"}),
+    account: relation("account", {type: "belongsTo", fk: "accountId"}),
+    latestEntry: relation("resolvableEntry", {type: "belongsTo", fk: "latestEntryId"}),
+    latestSeenEntry: relation("resolvableEntry", {type: "belongsTo", fk: "latestSeenEntryId"}),
   },
-  keys: ["userId", "resolvableId"]
-})
+  keys: ["userId", "resolvableId"],
+});

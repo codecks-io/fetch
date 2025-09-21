@@ -1,8 +1,6 @@
-
-import { makeModel, relation } from "./_desc";
+import {makeModel, relation} from "./_desc";
 import * as f from "./_fields";
-import { type AffiliateCodeId } from "./AffiliateCode";
-
+import {type AffiliateCodeId} from "./AffiliateCode";
 
 export const affiliateCodeStatDesc = makeModel({
   name: "affiliateCodeStat",
@@ -16,7 +14,7 @@ export const affiliateCodeStatDesc = makeModel({
     affiliateCodeId: f.belongsTo({}).type<AffiliateCodeId>(),
   },
   relations: {
-    affiliateCode: relation("affiliateCode", { type: "belongsTo", fk: "affiliateCodeId" }),
+    affiliateCode: relation("affiliateCode", {type: "belongsTo", fk: "affiliateCodeId"}),
   },
-  keys: ["affiliateCodeId", "month"]
-})
+  keys: ["affiliateCodeId", "month"],
+});

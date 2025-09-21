@@ -1,8 +1,6 @@
-
-import { makeModel, relation } from "./_desc";
+import {makeModel, relation} from "./_desc";
 import * as f from "./_fields";
-import { type AccountId } from "./Account";
-
+import {type AccountId} from "./Account";
 
 export const stripeAccountSyncDesc = makeModel({
   name: "stripeAccountSync",
@@ -26,7 +24,7 @@ export const stripeAccountSyncDesc = makeModel({
     accountId: f.belongsTo({}).type<AccountId>(),
   },
   relations: {
-    account: relation("account", { type: "belongsTo", fk: "accountId" }),
+    account: relation("account", {type: "belongsTo", fk: "accountId"}),
   },
-  keys: ["accountId"]
-})
+  keys: ["accountId"],
+});
