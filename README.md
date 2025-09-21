@@ -1,23 +1,27 @@
-# tsdown-starter
+# @codecks/fetch
 
-A starter for creating a TypeScript package.
+## Usage
 
-## Development
+```ts
+import {buildFetchers} from "@codecks/fetch";
 
-- Install dependencies:
+const {fetchFromRoot, fetchInstance} = buildFetchers({
+  baseUrl: "https://api.codecks.io/",
+});
 
-```bash
-npm install
-```
+const rootResponse = await fetchFromRoot({
+  account: {
+    fields: ["name"],
+  },
+});
 
-- Run the unit tests:
+console.log(rootResponse);
+// > {account: {id: 1, name: "myOrg"}}
 
-```bash
-npm run test
-```
+const card = await fetchInstance("card", 1, {
+  fields: ["title"],
+});
 
-- Build the library:
-
-```bash
-npm run build
+console.log(card);
+// > {cardId: 1, title: "My Title"}
 ```

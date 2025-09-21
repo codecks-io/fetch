@@ -1,6 +1,6 @@
 {
-  "name": "cdx-fetch",
-  "version": "0.1.0",
+  "name": "@codecks/fetch",
+  "version": "0.0.1",
   "description": "Quickly create deeply nested queries for the Codecks API with advanced TypeScript support",
   "type": "module",
   "license": "MIT",
@@ -30,15 +30,16 @@
     "build": "tsdown",
     "format": "prettier --write .",
     "check-format": "prettier --check .",
-    "ci": "npm run build && npm run check-format && npm run test",
     "dev": "tsdown --watch",
     "test": "vitest",
     "typecheck": "tsc --noEmit",
-    "release": "bumpp && npm publish"
+    "ci": "npm run typescheck && npm run build && npm run check-format && npm run test",
+    "local-release": "changeset version && changeset publish",
+    "prepublishOnly": "npm run ci"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.29.7",
     "@types/node": "^22.15.17",
-    "bumpp": "^10.1.0",
     "msw": "^2.10.4",
     "prettier": "^3.6.2",
     "tsdown": "^0.11.9",
