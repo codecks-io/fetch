@@ -210,11 +210,22 @@ test("hasMany - first", async () => {
         as: "firstRole",
         orderBy: "-accountId",
         fields: ["role"],
-        filter: {
-          role: null,
-        },
       },
     },
   });
-  response.firstRole;
+
+  expect(response).toEqual({
+    "~model": "account",
+    "~key": "1",
+    id: 1,
+    name: "myOrg",
+    "~firstRole": "[1,1]",
+    firstRole: {
+      "~model": "accountRole",
+      "~key": "[1,1]",
+      accountId: 1,
+      userId: 1,
+      role: "admin",
+    },
+  });
 });

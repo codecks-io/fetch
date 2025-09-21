@@ -54,6 +54,24 @@ const queryMap: Record<string, any> = {
       1: { name: "myOrg", id: 1, "count(roles)": 1 },
     },
   },
+  '{"account(1)":["name",{"roles({\\"$first\\":true,\\"$order\\":\\"-accountId\\"})":["role"]}]}':
+    {
+      account: {
+        1: {
+          name: "myOrg",
+          id: 1,
+          'roles({"$first":true,"$order":"-accountId"})': "[1,1]",
+        },
+      },
+      accountRole: {
+        "[1,1]": {
+          accountId: 1,
+          userId: 1,
+          role: "admin",
+          "~model": "accountRole",
+        },
+      },
+    },
 };
 
 export const handlers = [

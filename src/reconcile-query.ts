@@ -2,6 +2,7 @@ import type { ApiResponse, ModelPool } from "./model-pool";
 import { modelMap } from "./models";
 import type { AnyDesc, RelationEntry, RelationOpts } from "./models/_desc";
 import { _rootDesc } from "./models/_root";
+import { getRelKey } from "./query-helpers";
 import type {
   InferModelQuery,
   InferRelQuery,
@@ -104,18 +105,30 @@ export const reconcileInstanceQuery = <
           break;
         case "hasMany":
           const asName = (relEntry as any).as ?? relName;
+          const relKey = getRelKey(relEntry, relName);
+          const val = instance[relKey];
           switch (relEntry.type) {
             case "count": {
-              result[asName] = instance[`count(${relName})`];
+              result[asName] = instance[`count(${relKey})`];
               break;
             }
             case "exists": {
-              result[asName] = instance[`exists(${relName})`];
+              result[asName] = instance[`exists(${relKey})`];
               break;
             }
+            case "first":
+              result[`~${asName}`] = val;
+              result[asName] = reconcileInstanceQuery(
+                relEntry as any,
+                response,
+                relModel,
+                `${val}`,
+                pool,
+              );
+              break;
             default: {
-              result[`~${asName}`] = instance[relName];
-              result[asName] = (instance[relName] as string[]).map((id) =>
+              result[`~${asName}`] = val;
+              result[asName] = (val as string[]).map((id) =>
                 reconcileInstanceQuery(
                   relEntry as any,
                   response,

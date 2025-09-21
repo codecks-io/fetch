@@ -20,6 +20,7 @@ interface SimpleHasManyQuery<T extends AnyDesc, TMap extends ModelMap>
   type?: "query";
   orderBy?: Order<T>;
   limit?: number;
+  offset?: number;
   filter?: Filter<T, TMap>;
   as?: string;
 }
@@ -34,20 +35,20 @@ interface CountOrExistQuery<T extends AnyDesc, TMap extends ModelMap> {
 
 interface FirstOrLastQuery<T extends AnyDesc, TMap extends ModelMap>
   extends ModelQuery<T, TMap> {
-  type: "first" | "last";
+  type: "first";
   filter?: Filter<T, TMap>;
   as: string;
   orderBy: Order<T>;
 }
 
-type HasManyQuery<T extends AnyDesc, TMap extends ModelMap> =
+export type HasManyQuery<T extends AnyDesc, TMap extends ModelMap> =
   | SimpleHasManyQuery<T, TMap>
   | CountOrExistQuery<T, TMap>
   | FirstOrLastQuery<T, TMap>;
 
 type AbstractHasManyQuery =
   | (ModelQuery<any, any> & {
-      type?: "query" | "first" | "last";
+      type?: "query" | "first";
       as?: string;
     })
   | { type: "count" | "exists"; as: string };
@@ -188,7 +189,7 @@ type InferHasMany<
   ? number
   : QM extends { type: "exist" }
     ? boolean
-    : QM extends { type: "first" | "last" }
+    : QM extends { type: "first" }
       ? InferModelQuery<M, EnsureModelQuery<QM>, TMap> | null
       : InferModelQuery<M, EnsureModelQuery<QM>, TMap>[];
 
