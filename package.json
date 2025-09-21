@@ -33,7 +33,7 @@
     "dev": "tsdown --watch",
     "test": "vitest",
     "typecheck": "tsc --noEmit",
-    "ci": "npm run typescheck && npm run build && npm run check-format && npm run test",
+    "ci": "npm run typecheck && npm run build && npm run check-format && npm run test",
     "local-release": "changeset version && changeset publish",
     "prepublishOnly": "npm run ci"
   },
