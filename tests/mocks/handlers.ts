@@ -1,7 +1,7 @@
 import {http, HttpResponse} from "msw";
 
 const queryMap: Record<string, any> = {
-  '{"_root":{"account":["name"]}}': {
+  '{"_root":[{"account":["name"]}]}': {
     _root: {account: 1},
     account: {
       1: {name: "myOrg", id: 1},
@@ -76,10 +76,11 @@ const queryMap: Record<string, any> = {
 export const handlers = [
   http.post("https://api.example.com/", async ({request}) => {
     const body: any = await request.json();
-    const response = queryMap[body.query];
-    // console.log("q", body.query, response);
+    const queryAsStr = JSON.stringify(body.query);
+    const response = queryMap[queryAsStr];
+    // console.log("q", queryAsStr, response);
     if (!response) {
-      return HttpResponse.json({error: `No mock reply for '${body.query}'`}, {status: 404});
+      return HttpResponse.json({error: `No mock reply for '${queryAsStr}'`}, {status: 404});
     }
     return HttpResponse.json(response);
   }),

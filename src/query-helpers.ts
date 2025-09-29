@@ -66,7 +66,7 @@ const serializeRelations = (q: RelQuery<any, any>, modelDesc: AnyDesc) => {
 export const serializeRootQuery = <T extends RelQuery<typeof _rootDesc, typeof modelMap>>(
   q: T
 ): Record<string, unknown> => {
-  return {_root: serializeRelations(q, _rootDesc)};
+  return {_root: [serializeRelations(q, _rootDesc)]};
 };
 
 export const serializeInstanceQuery = (

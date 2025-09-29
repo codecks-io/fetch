@@ -6,7 +6,7 @@ test("simple field", () => {
     serializeRootQuery({
       account: {fields: ["name"]},
     })
-  ).toEqual({_root: {account: ["name"]}});
+  ).toEqual({_root: [{account: ["name"]}]});
 });
 
 test("belongs to", () => {
@@ -14,7 +14,7 @@ test("belongs to", () => {
     serializeRootQuery({
       account: {relations: {disabledBy: {fields: ["name"]}}},
     })
-  ).toEqual({_root: {account: [{disabledBy: ["name"]}]}});
+  ).toEqual({_root: [{account: [{disabledBy: ["name"]}]}]});
 });
 
 test("has many", () => {
@@ -22,7 +22,7 @@ test("has many", () => {
     serializeRootQuery({
       account: {relations: {roles: {fields: ["role"]}}},
     })
-  ).toEqual({_root: {account: [{roles: ["role"]}]}});
+  ).toEqual({_root: [{account: [{roles: ["role"]}]}]});
 });
 
 test("has many", () => {
@@ -30,7 +30,7 @@ test("has many", () => {
     serializeRootQuery({
       account: {relations: {roles: {fields: ["role"]}}},
     })
-  ).toEqual({_root: {account: [{roles: ["role"]}]}});
+  ).toEqual({_root: [{account: [{roles: ["role"]}]}]});
 });
 
 test("has many named", () => {
@@ -38,7 +38,7 @@ test("has many named", () => {
     serializeRootQuery({
       account: {relations: {roles: [{fields: ["role"], as: "myRoles"}]}},
     })
-  ).toEqual({_root: {account: [{roles: ["role"]}]}});
+  ).toEqual({_root: [{account: [{roles: ["role"]}]}]});
 });
 
 test("complex", () => {
@@ -55,7 +55,7 @@ test("complex", () => {
       },
     })
   ).toEqual({
-    _root: {account: ["subdomain", {roles: ["role", {user: ["name"]}]}]},
+    _root: [{account: ["subdomain", {roles: ["role", {user: ["name"]}]}]}],
   });
 });
 
@@ -64,7 +64,7 @@ test("has many count", () => {
     serializeRootQuery({
       account: {relations: {roles: {type: "count", as: "roleCount"}}},
     })
-  ).toEqual({_root: {account: ["count(roles)"]}});
+  ).toEqual({_root: [{account: ["count(roles)"]}]});
 });
 
 test("has many first", () => {
@@ -83,8 +83,10 @@ test("has many first", () => {
       },
     })
   ).toEqual({
-    _root: {
-      account: ["name", {'roles({"$first":true,"$order":"-accountId"})': ["role"]}],
-    },
+    _root: [
+      {
+        account: ["name", {'roles({"$first":true,"$order":"-accountId"})': ["role"]}],
+      },
+    ],
   });
 });

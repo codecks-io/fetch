@@ -1,7 +1,13 @@
 import {test, expect} from "vitest";
 import {buildFetchers} from "../src";
+import {beforeAll, afterEach, afterAll} from "vitest";
+import {server} from "./mocks/node";
 
 const myAccountInstance = {"~model": "account", "~key": "1"} as const;
+
+beforeAll(() => server.listen());
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());
 
 const getFetchers = () =>
   buildFetchers({

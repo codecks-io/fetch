@@ -66,7 +66,10 @@ export const buildFetchers = (opts: FetcherOptions = {}): Fetchers => {
   const fetchWithQuery = async (query: Record<string, unknown>) => {
     const response = await configuredFetch("", {
       method: "POST",
-      body: JSON.stringify({query: JSON.stringify(query)}),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({query}),
     }).then(async (r) => {
       const content = await r.json();
       if (r.status !== 200) {

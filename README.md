@@ -7,6 +7,7 @@ import {buildFetchers} from "@codecks/fetch";
 
 const {fetchFromRoot, fetchInstance} = buildFetchers({
   baseUrl: "https://api.codecks.io/",
+  subdomain: "my-org",
 });
 
 const rootResponse = await fetchFromRoot({
