@@ -1,36 +1,13 @@
-import type {ApiResponse, ModelPool} from "./model-pool";
+import type {ApiResponse} from "./model-pool";
 import {modelMap} from "./models";
 import type {AnyDesc, RelationEntry, RelationOpts} from "./models/_desc";
 import {_rootDesc} from "./models/_root";
 import {getRelKey} from "./query-helpers";
-import type {InferModelQuery, InferRelQuery, ModelQuery, RelQuery} from "./query-type";
+import type {InferModelQuery, ModelQuery} from "./query-type";
 
-export const reconcileRootQuery = <T extends RelQuery<typeof _rootDesc, typeof modelMap>>(
-  query: T,
-  response: ApiResponse,
-  pool: ModelPool
-): InferRelQuery<typeof _rootDesc, T, typeof modelMap> => {
-  const result: Record<string, any> = {};
-  const responsePart = response._root;
-  for (const [relName, modelFields] of Object.entries(query)) {
-    const relDesc = _rootDesc.relations[relName as keyof (typeof _rootDesc)["relations"]];
-    const id = responsePart[relName];
-    if (!id) {
-      result[relName] = null;
-      continue;
-    } else {
-      result[relName] = reconcileInstanceQuery(
-        modelFields as any,
-        response,
-        modelMap[relDesc.relName],
-        // TODO: we somehow should ensure that all ids are string!?
-        `${id}`,
-        pool
-      );
-    }
-  }
-  return result as any;
-};
+interface ModelStore {
+  get(model: string, key: string): Record<string, any> | null;
+}
 
 export const reconcileInstanceQuery = <
   M extends AnyDesc,
@@ -40,20 +17,23 @@ export const reconcileInstanceQuery = <
   response: ApiResponse,
   instanceModel: M,
   key: string,
-  pool: ModelPool
+  store: ModelStore,
+  skipMeta = false
 ): InferModelQuery<M, T, typeof modelMap> => {
-  const instance = pool.get(instanceModel.name, key);
+  const instance = store.get(instanceModel.name, key);
   if (!instance) {
     console.warn(`no instance found in pool: [${instanceModel.name}, ${key}]`);
     return null as any;
   }
-  const result: Record<string, any> = {
-    "~model": instanceModel.name,
-    "~key": key,
-  };
+  const result: Record<string, any> = skipMeta
+    ? {}
+    : {
+        "~model": instanceModel.name,
+        "~key": key,
+      };
   instanceModel.keys.map((k) => (result[k] = instance[k]));
-  for (const field of query.fields || []) {
-    result[field as string] = instance[field];
+  for (const field of (query.fields as string[]) || []) {
+    result[field] = instance[field];
   }
   for (const [relName, _relEntries] of Object.entries(query.relations || {})) {
     const relEntryList = Array.isArray(_relEntries) ? _relEntries : [_relEntries];
@@ -74,7 +54,7 @@ export const reconcileInstanceQuery = <
                 response,
                 relModel,
                 `${instance[relName]}`,
-                pool
+                store
               )
             : null;
           break;
@@ -85,7 +65,7 @@ export const reconcileInstanceQuery = <
             response,
             relModel,
             `${instance[relName]}`,
-            pool
+            store
           );
           break;
         case "hasMany":
@@ -94,11 +74,11 @@ export const reconcileInstanceQuery = <
           const val = instance[relKey];
           switch (relEntry.type) {
             case "count": {
-              result[asName] = instance[`count(${relKey})`];
+              result[asName] = instance[`count:${relKey}`];
               break;
             }
             case "exists": {
-              result[asName] = instance[`exists(${relKey})`];
+              result[asName] = instance[`exists:${relKey}`];
               break;
             }
             case "first":
@@ -108,13 +88,13 @@ export const reconcileInstanceQuery = <
                 response,
                 relModel,
                 `${val}`,
-                pool
+                store
               );
               break;
             default: {
               result[`~${asName}`] = val;
               result[asName] = (val as string[]).map((id) =>
-                reconcileInstanceQuery(relEntry as any, response, relModel, `${id}`, pool)
+                reconcileInstanceQuery(relEntry as any, response, relModel, `${id}`, store)
               );
             }
           }

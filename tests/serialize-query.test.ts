@@ -64,7 +64,23 @@ test("has many count", () => {
     serializeRootQuery({
       account: {relations: {roles: {type: "count", as: "roleCount"}}},
     })
-  ).toEqual({_root: [{account: ["count(roles)"]}]});
+  ).toEqual({_root: [{account: ["count:roles"]}]});
+});
+
+test("has many count on root", () => {
+  expect(
+    serializeRootQuery({
+      releases: {
+        type: "count",
+        as: "releaseCount",
+        filter: {
+          createdAt: {op: "gt", value: "2025-01-01"},
+        },
+      },
+    })
+  ).toEqual({
+    _root: ['count:releases({"createdAt":{"op":"gt","value":"2025-01-01"}})'],
+  });
 });
 
 test("has many first", () => {

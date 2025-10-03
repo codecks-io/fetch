@@ -24,6 +24,7 @@ test("base root test", async () => {
   // response.account.
   expect(response).toEqual({
     account: {"~model": "account", "~key": "1", name: "myOrg", id: 1},
+    "~account": 1,
   });
 });
 
@@ -203,6 +204,19 @@ test("hasMany - count", async () => {
     id: 1,
     name: "myOrg",
     roleCount: 1,
+  });
+});
+
+test("hasMany on root", async () => {
+  const {fetchFromRoot} = getFetchers();
+  const response = await fetchFromRoot({
+    releases: {
+      type: "exists",
+      as: "hasReleases",
+    },
+  });
+  expect(response).toEqual({
+    hasReleases: true,
   });
 });
 

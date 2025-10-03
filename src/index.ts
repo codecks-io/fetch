@@ -2,8 +2,8 @@ import {ModelPool, type ApiResponse} from "./model-pool";
 import {modelMap} from "./models";
 import {serializeInstanceQuery, serializeRootQuery} from "./query-helpers";
 import type {InferModelQuery, InferRelQuery, Instance, ModelQuery, RelQuery} from "./query-type";
-import {reconcileInstanceQuery, reconcileRootQuery} from "./reconcile-query";
-import type {_rootDesc} from "./models/_root";
+import {reconcileInstanceQuery} from "./reconcile-query";
+import {_rootDesc} from "./models/_root";
 
 type ModelMap = typeof modelMap;
 
@@ -79,6 +79,7 @@ export const buildFetchers = (opts: FetcherOptions = {}): Fetchers => {
     });
     return response;
   };
+
   const _fetchSingleInstance = async <
     M extends keyof ModelMap,
     const Q extends ModelQuery<ModelMap[M], ModelMap>,
@@ -103,20 +104,16 @@ export const buildFetchers = (opts: FetcherOptions = {}): Fetchers => {
       const response = await fetchWithQuery(serializeRootQuery(q));
       const pool = new ModelPool(modelMap);
       pool.add(response);
-      return reconcileRootQuery(q, response, pool);
+      return reconcileInstanceQuery({relations: q}, response, _rootDesc, "", pool, true) as any;
     },
     fetchFromInstance: _fetchSingleInstance,
-    fetchInstance: async (key, id, q) => {
-      const instance: Instance<typeof key> = {
-        "~model": key,
-        "~key": id,
-      };
-      return _fetchSingleInstance(instance, q);
+    fetchInstance: async (model, id, q) => {
+      return _fetchSingleInstance({"~model": model, "~key": id}, q);
     },
-    fetchInstances: async (key, ids, q) => {
-      const modelDesc = modelMap[key];
-      const instances: Instance<typeof key>[] = ids.map((id) => ({
-        "~model": key,
+    fetchInstances: async (model, ids, q) => {
+      const modelDesc = modelMap[model];
+      const instances: Instance<typeof model>[] = ids.map((id) => ({
+        "~model": model,
         "~key": id,
       }));
       const response = await fetchWithQuery(serializeInstanceQuery(q, instances, modelMap));

@@ -18,8 +18,22 @@ test("real test with public data", async () => {
     account: {
       "~model": "account",
       "~key": "14c3021c-95ad-11e9-b939-5368e19a8f5e",
-      subdomain: "mmensch",
       id: "14c3021c-95ad-11e9-b939-5368e19a8f5e",
+      subdomain: "mmensch",
     },
+    "~account": "14c3021c-95ad-11e9-b939-5368e19a8f5e",
+  });
+});
+
+test("real test with count", async () => {
+  const {fetchFromRoot} = getFetchers();
+  const response = await fetchFromRoot({
+    releases: {
+      type: "exists",
+      as: "hasReleases",
+    },
+  });
+  expect(response).toEqual({
+    hasReleases: true,
   });
 });

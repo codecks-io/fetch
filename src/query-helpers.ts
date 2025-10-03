@@ -37,11 +37,11 @@ const serializeModel = (q: ModelQuery<any, any>, modelDesc: AnyDesc) => {
     rels.forEach((r) => {
       switch (r?.type) {
         case "count": {
-          list.push(`count(${getRelKey(r, k)})`);
+          list.push(`count:${getRelKey(r, k)}`);
           break;
         }
         case "exists": {
-          list.push(`exists(${getRelKey(r, k)})`);
+          list.push(`exists:${getRelKey(r, k)}`);
           break;
         }
         default:
@@ -54,19 +54,10 @@ const serializeModel = (q: ModelQuery<any, any>, modelDesc: AnyDesc) => {
   return list;
 };
 
-const serializeRelations = (q: RelQuery<any, any>, modelDesc: AnyDesc) => {
-  return Object.fromEntries(
-    Object.entries(q).map(([k, v]) => [
-      k,
-      serializeModel(v as ModelQuery<any, any>, modelDesc.relations[k]),
-    ])
-  );
-};
-
 export const serializeRootQuery = <T extends RelQuery<typeof _rootDesc, typeof modelMap>>(
   q: T
 ): Record<string, unknown> => {
-  return {_root: [serializeRelations(q, _rootDesc)]};
+  return {_root: serializeModel({relations: q}, _rootDesc)};
 };
 
 export const serializeInstanceQuery = (

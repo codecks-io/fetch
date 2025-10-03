@@ -37,7 +37,7 @@ const transformData = (desc: AnyDesc, data: Record<string, any>) => {
 };
 
 export class ModelPool {
-  private data: Map<string, any> = new Map();
+  private data: Map<string, Record<string, any>> = new Map();
   private modelMap: Record<string, AnyDesc>;
 
   constructor(modelMap: Record<string, AnyDesc>) {
@@ -71,7 +71,6 @@ export class ModelPool {
 
   public get(model: string, id: string) {
     const instances = this.data.get(model);
-    if (!instances) return null;
-    return instances.get(id) ?? null;
+    return instances?.get(id) ?? null;
   }
 }
