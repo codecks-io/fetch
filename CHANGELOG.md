@@ -1,5 +1,11 @@
 # @codecks/fetch
 
+## 0.0.4
+
+### Patch Changes
+
+- 140b059: rework loader vs fetch abstraction, update exported function names
+
 ## 0.0.3
 
 ### Patch Changes
