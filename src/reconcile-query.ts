@@ -17,20 +17,20 @@ export const reconcileInstanceQuery = <
   response: ApiResponse,
   instanceModel: M,
   key: string,
-  store: ModelStore,
-  skipMeta = false
+  store: ModelStore
 ): InferModelQuery<M, T, typeof modelMap> => {
   const instance = store.get(instanceModel.name, key);
   if (!instance) {
     console.warn(`no instance found in pool: [${instanceModel.name}, ${key}]`);
     return null as any;
   }
-  const result: Record<string, any> = skipMeta
-    ? {}
-    : {
-        "~model": instanceModel.name,
-        "~key": key,
-      };
+  const result: Record<string, any> =
+    instanceModel.name === "_root"
+      ? {}
+      : {
+          "~model": instanceModel.name,
+          "~key": key,
+        };
   instanceModel.keys.map((k) => (result[k] = instance[k]));
   for (const field of (query.fields as string[]) || []) {
     result[field] = instance[field];

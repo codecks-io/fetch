@@ -1,7 +1,8 @@
 import {test, expect} from "vitest";
-import {buildFetchers} from "../src";
+import {setup} from "../src";
 import {beforeAll, afterEach, afterAll} from "vitest";
 import {server} from "./mocks/node";
+import {createSimpleLoader} from "../src/simple-loader";
 
 const myAccountInstance = {"~model": "account", "~key": "1"} as const;
 
@@ -10,9 +11,11 @@ afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
 const getFetchers = () =>
-  buildFetchers({
-    baseUrl: "https://api.example.com/",
-  });
+  setup(
+    createSimpleLoader({
+      baseUrl: "https://api.example.com/",
+    })
+  );
 
 test("base root test", async () => {
   const {fetchFromRoot} = getFetchers();
