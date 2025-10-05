@@ -3,9 +3,9 @@
 ## Usage
 
 ```ts
-import {buildFetchers} from "@codecks/fetch";
+import {buildFetchersWithSimpleLoader} from "@codecks/fetch";
 
-const {fetchFromRoot, fetchInstance} = buildFetchers({
+const {fetchFromRoot, fetchInstance} = buildFetchersWithSimpleLoader({
   baseUrl: "https://api.codecks.io/",
   subdomain: "my-org",
 });

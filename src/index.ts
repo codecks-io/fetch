@@ -1,7 +1,8 @@
 import {modelMap} from "./models";
 import type {InferModelQuery, InferRelQuery, Instance, ModelQuery, RelQuery} from "./query-type";
 import {_rootDesc} from "./models/_root";
-import {createSimpleLoader} from "./simple-loader";
+import type {DataLoader} from "./loader-utils";
+import {createSimpleLoader, type SimpleLoaderOptions} from "./simple-loader";
 
 type ModelMap = typeof modelMap;
 
@@ -29,19 +30,12 @@ type Fetchers = {
   ) => Promise<Record<Id, InferModelQuery<ModelMap[K], Q, ModelMap>>>;
 };
 
-type DataLoader = {
-  fetchModel: <
-    K extends keyof ModelMap,
-    Id extends string,
-    const Q extends ModelQuery<ModelMap[K], ModelMap>,
-  >(
-    model: K,
-    id: Id[],
-    q: Q
-  ) => Promise<Record<Id, InferModelQuery<ModelMap[K], Q, ModelMap>>>;
+export const buildFetchersWithSimpleLoader = (opts: SimpleLoaderOptions) => {
+  const loader = createSimpleLoader(opts);
+  return buildFetchers(loader);
 };
 
-export const setup = (loader: DataLoader = createSimpleLoader()): Fetchers => {
+export const buildFetchers = (loader: DataLoader): Fetchers => {
   return {
     fetchFromRoot: async (q) => {
       const res = await loader.fetchModel("_root", [""], {relations: q});

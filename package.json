@@ -32,8 +32,9 @@
     "check-format": "prettier --check .",
     "dev": "tsdown --watch",
     "test": "vitest",
+    "test:run": "vitest run",
     "typecheck": "tsc --noEmit",
-    "ci": "npm run typecheck && npm run build && npm run check-format && npm run test",
+    "ci": "npm run typecheck && npm run build && npm run check-format && npm run test:run",
     "local-release": "changeset version && changeset publish",
     "prepublishOnly": "npm run ci"
   },

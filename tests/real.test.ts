@@ -1,14 +1,11 @@
 import {test, expect} from "vitest";
-import {setup} from "../src";
-import {createSimpleLoader} from "../src/simple-loader";
+import {buildFetchersWithSimpleLoader} from "../src";
 
 const getFetchers = () =>
-  setup(
-    createSimpleLoader({
-      baseUrl: "https://api.codecks.io/",
-      subdomain: "mmensch",
-    })
-  );
+  buildFetchersWithSimpleLoader({
+    baseUrl: "https://api.codecks.io/",
+    subdomain: "mmensch",
+  });
 
 test("real test with public data", async () => {
   const {fetchFromRoot} = getFetchers();
