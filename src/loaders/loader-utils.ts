@@ -1,5 +1,5 @@
-import type {modelMap} from "./models";
-import type {InferModelQuery, ModelQuery} from "./query-type";
+import type {modelMap} from "../models";
+import type {InferModelQuery, ModelQuery} from "../query-type";
 
 type ModelMap = typeof modelMap;
 
@@ -26,7 +26,11 @@ export type FetchOptions = {
   timeout?: number;
 };
 
-export const configuredFetch = async (opts: FetchOptions, url: string, init: RequestInit = {}) => {
+export const configuredFetch = async <T>(
+  opts: FetchOptions,
+  url: string,
+  init: RequestInit = {}
+): Promise<T> => {
   const fetchImpl: FetchFunction = opts.fetch || globalThis.fetch;
   const headers = new Headers(init.headers);
   if (opts.accessToken) {
@@ -42,5 +46,11 @@ export const configuredFetch = async (opts: FetchOptions, url: string, init: Req
   }
   const fullUrl = opts.baseUrl ? `${opts.baseUrl}${url}` : url;
 
-  return fetchImpl(fullUrl, {...init, headers});
+  return fetchImpl(fullUrl, {...init, headers}).then(async (r) => {
+    const content = await r.json();
+    if (r.status !== 200) {
+      throw new Error(`[${r.status}] ${JSON.stringify(content)}`);
+    }
+    return content as Promise<T>;
+  });
 };

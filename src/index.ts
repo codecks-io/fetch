@@ -1,8 +1,8 @@
 import {modelMap} from "./models";
 import type {InferModelQuery, InferRelQuery, Instance, ModelQuery, RelQuery} from "./query-type";
 import {_rootDesc} from "./models/_root";
-import type {DataLoader} from "./loader-utils";
-import {createSimpleLoader, type SimpleLoaderOptions} from "./simple-loader";
+import type {DataLoader} from "./loaders/loader-utils";
+import {createSimpleLoader, type SimpleLoaderOptions} from "./loaders/simple-loader";
 
 type ModelMap = typeof modelMap;
 
