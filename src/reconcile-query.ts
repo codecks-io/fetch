@@ -73,12 +73,9 @@ export const reconcileInstanceQuery = <
           const relKey = getRelKey(relEntry, relName);
           const val = instance[relKey];
           switch (relEntry.type) {
-            case "count": {
-              result[asName] = instance[`count:${relKey}`];
-              break;
-            }
+            case "count":
             case "exists": {
-              result[asName] = instance[`exists:${relKey}`];
+              result[asName] = instance[relKey];
               break;
             }
             case "first":

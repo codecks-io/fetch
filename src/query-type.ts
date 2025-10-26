@@ -5,8 +5,17 @@ import type {FilterNeverKeys} from "./models/_type-helpers";
 
 type ModelMap = Record<string, AnyDesc>;
 
+export type SerializableRelationQuery =
+  | {asField: true}
+  | {asField: false; fields?: string[]; relations?: Record<string, SerializableRelationQuery>};
+
+export interface SerializableModelQuery {
+  fields?: string[];
+  relations?: Record<string, SerializableRelationQuery>;
+}
+
 export interface ModelQuery<T extends AnyDesc, TMap extends ModelMap> {
-  fields?: (keyof T["fields"])[];
+  fields?: (keyof T["fields"] & string)[];
   relations?: RelQuery<T, TMap>;
 }
 
@@ -49,6 +58,8 @@ type AbstractHasManyQuery =
 type HasManyQueryWithAs<T extends AnyDesc, TMap extends ModelMap> = HasManyQuery<T, TMap> & {
   as: string;
 };
+
+export type SingleHasManyOrModelQuery = ModelQuery<any, any> | HasManyQuery<any, any>;
 
 type HasManyRelQueryEntry<
   T extends AnyDesc,

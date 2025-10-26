@@ -1,7 +1,7 @@
 import {configuredFetch, type DataLoader, type FetchOptions} from "./loader-utils";
 import {ModelPool, type ApiResponse} from "../model-pool";
 import {modelMap} from "../models";
-import {serializeInstanceQuery} from "../query-helpers";
+import {makeModelQuerySerializable, serializeInstanceQuery} from "../query-helpers";
 import type {Instance} from "../query-type";
 import {reconcileInstanceQuery} from "../reconcile-query";
 
@@ -23,7 +23,9 @@ export const createSimpleLoader = (opts: SimpleLoaderOptions = {}): DataLoader =
         "~model": model,
         "~key": id,
       }));
-      const response = await fetchWithQuery(serializeInstanceQuery(q, instances, modelMap));
+      const response = await fetchWithQuery(
+        serializeInstanceQuery(makeModelQuerySerializable(q), instances)
+      );
       const pool = new ModelPool(modelMap);
       pool.add(response);
       return Object.fromEntries(

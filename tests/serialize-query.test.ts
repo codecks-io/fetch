@@ -1,5 +1,5 @@
 import {expect, test} from "vitest";
-import {serializeInstanceQuery} from "../src/query-helpers";
+import {makeModelQuerySerializable, serializeInstanceQuery} from "../src/query-helpers";
 import {modelMap} from "../src/models";
 import type {RelQuery} from "../src/query-type";
 import type {_rootDesc} from "../src/models/_root";
@@ -7,7 +7,9 @@ import type {_rootDesc} from "../src/models/_root";
 const serializeRootQuery = <T extends RelQuery<typeof _rootDesc, typeof modelMap>>(
   q: T
 ): Record<string, unknown> => {
-  return serializeInstanceQuery({relations: q}, [{"~model": "_root", "~key": ""}], modelMap);
+  return serializeInstanceQuery(makeModelQuerySerializable({relations: q}), [
+    {"~model": "_root", "~key": ""},
+  ]);
 };
 
 test("simple field", () => {
