@@ -1,4 +1,5 @@
 import type {_rootDesc} from "../models/_root";
+import {queryToKey} from "../query-helpers";
 import type {ModelQuery} from "../query-type";
 import type {Store} from "./store";
 
@@ -38,7 +39,7 @@ const createStoreQuery = (opts: {
   store: Store;
 }): UserQuery => {
   const {onDispose, updateDataListener, store, q, ids, model} = opts;
-  const listeners = new Set<() => void>();
+  const queryListeners = new Set<() => void>();
   let lastData: {parts: string[]; data: unknown} = {parts: [], data: null};
 
   const reconcileNextResult = (nextData: unknown) => {
@@ -46,11 +47,10 @@ const createStoreQuery = (opts: {
     if (!added.length && !removed.length) {
       lastData = reconciledResult;
       updateDataListener({added, removed}, notify);
-      listeners.forEach((listener) => listener());
+      queryListeners.forEach((listener) => listener());
     }
   };
   const notify = () => {
-    // TODO: this will be called dozens of times, we probably need some sort of debouncing
     loadData();
   };
 
@@ -67,10 +67,10 @@ const createStoreQuery = (opts: {
   let data = loadData();
 
   const subscribe = (listener: () => void): Unsubscribe => {
-    listeners.add(listener);
+    queryListeners.add(listener);
     return () => {
-      listeners.delete(listener);
-      if (listeners.size === 0) onDispose();
+      queryListeners.delete(listener);
+      if (queryListeners.size === 0) onDispose();
       updateDataListener({added: [], removed: lastData.parts}, notify);
     };
   };
@@ -83,17 +83,14 @@ const createStoreQuery = (opts: {
 };
 
 export class UserQueryManager {
-  queryCache = new Map<string, UserQuery>();
-  activeParts = new Map<string, Set<() => void>>();
-  store: Store;
+  private queryCache = new Map<string, UserQuery>();
+  private activeParts = new Map<string, Set<() => void>>();
 
-  constructor(store: Store) {
-    this.store = store;
-  }
+  constructor(private store: Store) {}
 
   getQuery(model: string, ids: string[], q: ModelQuery<any, any>): UserQuery {
     // TODO: create proper key for query
-    const cacheKey = JSON.stringify({model, ids, q});
+    const cacheKey = JSON.stringify({model, ids, q: queryToKey(q as any)});
     let query = this.queryCache.get(cacheKey);
 
     if (!query) {
@@ -107,18 +104,18 @@ export class UserQueryManager {
         },
         updateDataListener: ({added, removed}, notify) => {
           added.forEach((partKey) => {
-            let listeners = this.activeParts.get(partKey);
-            if (!listeners) {
-              listeners = new Set();
-              this.activeParts.set(partKey, listeners);
+            let partListeners = this.activeParts.get(partKey);
+            if (!partListeners) {
+              partListeners = new Set();
+              this.activeParts.set(partKey, partListeners);
             }
-            listeners.add(notify);
+            partListeners.add(notify);
           });
           removed.forEach((partKey) => {
-            const listeners = this.activeParts.get(partKey);
-            if (listeners) {
-              listeners.delete(notify);
-              if (listeners.size === 0) {
+            const partListeners = this.activeParts.get(partKey);
+            if (partListeners) {
+              partListeners.delete(notify);
+              if (partListeners.size === 0) {
                 this.activeParts.delete(partKey);
               }
             }
@@ -129,5 +126,13 @@ export class UserQueryManager {
     }
 
     return query;
+  }
+
+  onInvalidation(partKeys: string[]) {
+    const notifyFns = new Set<() => void>();
+    for (const partKey of partKeys) {
+      this.activeParts.get(partKey)?.forEach((fn) => notifyFns.add(fn));
+    }
+    notifyFns.forEach((fn) => fn());
   }
 }

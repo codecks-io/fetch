@@ -7,9 +7,31 @@ const queryMap: Record<string, any> = {
       1: {name: "myOrg", id: 1},
     },
   },
+  '{"account(1)":["name"]}': {
+    account: {
+      1: {name: "myOrg", id: 1},
+    },
+  },
+  '{"account(1)":["subdomain"]}': {
+    account: {
+      1: {subdomain: "myorg", id: 1},
+    },
+  },
   '{"account(1)":["name","subdomain"]}': {
     account: {
       1: {name: "myOrg", subdomain: "myorg", id: 1},
+    },
+  },
+  '{"account(1)":["name"],"account(2)":["name"]}': {
+    account: {
+      1: {name: "myOrg", id: 1},
+      2: {name: "myOrg2", id: 2},
+    },
+  },
+  '{"account(2)":["subdomain"],"account(3)":["name","subdomain"]}': {
+    account: {
+      2: {subdomain: "myorg2", id: 2},
+      3: {name: "myOrg3", subdomain: "myorg3", id: 3},
     },
   },
   '{"account(1)":["name",{"disabledBy":["name"]}]}': {

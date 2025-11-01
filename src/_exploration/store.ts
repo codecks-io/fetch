@@ -5,9 +5,10 @@ import {ImmediateCache} from "./immediate-cache";
 import type {BaseLoader, LoaderResult, MissingDataRequest} from "./loader-types";
 
 /**
+ *
  * Optimize:
  * ===
- * - UserQueryManager: Query to Query Key
+ * - UserQueryManager: Query to Query Key (normalizeQuery)
  * - UserQueryManager: proper diff within diffResults
  *
  */
@@ -15,6 +16,7 @@ import type {BaseLoader, LoaderResult, MissingDataRequest} from "./loader-types"
 type QueryCheckResult = {
   data: any;
   partKeys: string[];
+  allPresent: boolean;
 };
 
 const calcPartKeys = (model: string, id: string, field: string): string[] => {
@@ -36,7 +38,8 @@ export class Store {
     model: string,
     ids: string[],
     q: ModelQuery<any, any>,
-    acceptDirty?: boolean
+    acceptDirty?: boolean,
+    iteration: number = 0
   ): LoaderResult {
     const desc = this.modelMap[model];
     if (!desc) throw new Error(`Model ${model} not found`);
@@ -45,16 +48,25 @@ export class Store {
     const missingRequests: MissingDataRequest[] = [];
     const resultObj: Record<string, unknown> = {};
     const allPartKeys: string[] = [];
+    let allPresent: boolean = true;
 
     for (const id of ids) {
       const result = this.checkQueryRecursive(desc, model, id, q, missingRequests, acceptDirty);
+      if (!result.allPresent) allPresent = false;
 
       resultObj[id] = result.data;
       allPartKeys.push(...result.partKeys);
     }
 
+    if (!allPresent && iteration > 5) {
+      throw new Error(`Can't seem to load ${JSON.stringify(missingRequests)} after 5 iterations`);
+    }
+
     // If all data is present, return immediately
-    if (missingRequests.length === 0) {
+    if (allPresent) {
+      if (missingRequests.length > 0) {
+        this.loader.loadBatch(missingRequests);
+      }
       return {
         state: "resolved",
         value: {
@@ -67,7 +79,7 @@ export class Store {
     // Otherwise, batch load missing data and return promise
     const promise = this.loader.loadBatch(missingRequests).then(() => {
       // Retry loadData - should be complete now
-      return this.loadData(model, ids, q, acceptDirty);
+      return this.loadData(model, ids, q, acceptDirty, iteration + 1);
     });
 
     return {state: "pending", promise};
@@ -100,15 +112,21 @@ export class Store {
   ): QueryCheckResult {
     const data: any = {};
     const partKeys: string[] = [];
+    let allPresent = true;
 
     if (query.fields) {
       for (const field of query.fields) {
         const cachedValue = this.cache.get(model, id, field);
-        if (!cachedValue || (cachedValue.meta.state === "dirty" && !acceptDirty)) {
+        const needsRequest = !cachedValue || cachedValue.meta.state === "dirty";
+        if (needsRequest) {
           missingRequests.push({type: "field", model, id, field});
-        } else {
+        }
+        const acceptsData = cachedValue && (cachedValue.meta.state === "fresh" || acceptDirty);
+        if (acceptsData) {
           data[field] = cachedValue.value;
           partKeys.push(...cachedValue.partKeys);
+        } else {
+          allPresent = false;
         }
       }
     }
@@ -124,7 +142,8 @@ export class Store {
         for (const relQuery of relationQueryList) {
           const relKey = getRelKey(relQuery, relationName);
           const cachedValue = this.cache.get(model, id, relKey);
-          if (!cachedValue || (cachedValue.meta.state === "dirty" && !acceptDirty)) {
+          const needsRequest = !cachedValue || cachedValue.meta.state === "dirty";
+          if (needsRequest) {
             missingRequests.push({
               type: "relation",
               model,
@@ -132,7 +151,9 @@ export class Store {
               relKey,
               query: makeRelQuerySerializable(relQuery),
             });
-          } else {
+          }
+          const acceptsData = cachedValue && (cachedValue.meta.state === "fresh" || acceptDirty);
+          if (acceptsData) {
             if (!relatedModelDesc) throw new Error(`Model ${relatedModel} not found`);
 
             const fieldName = relQuery.as || relationName;
@@ -150,6 +171,7 @@ export class Store {
               );
               data[fieldName] = relationResults.map((result) => result.data);
               partKeys.push(...relationResults.flatMap((result) => result.partKeys));
+              if (relationResults.some((result) => !result.allPresent)) allPresent = false;
             } else {
               const relationResult = this.checkQueryRecursive(
                 relatedModelDesc,
@@ -161,12 +183,15 @@ export class Store {
               );
               data[fieldName] = relationResult.data;
               partKeys.push(...relationResult.partKeys);
+              if (!relationResult.allPresent) allPresent = false;
             }
+          } else {
+            allPresent = false;
           }
         }
       }
     }
 
-    return {data, partKeys};
+    return {data, partKeys, allPresent};
   }
 }

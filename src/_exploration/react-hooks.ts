@@ -1,13 +1,22 @@
-import type {modelMap} from "../models";
+import {modelMap} from "../models";
 import type {_rootDesc} from "../models/_root";
 import type {InferModelQuery, InferRelQuery, ModelQuery, RelQuery} from "../query-type";
 import {use, useSyncExternalStore} from "react";
 import {Store} from "./store";
 import {UserQueryManager} from "./user-query-manager";
+import {BatchedLoader} from "./loader";
+import {ApiRequester} from "./api-requester";
 
 type ModelMap = typeof modelMap;
 
-const store = new Store();
+const loader = new BatchedLoader({
+  batchTimeoutMs: 0,
+  requester: new ApiRequester({
+    baseUrl: "https://api.example.com/",
+  }),
+});
+
+const store = new Store(modelMap, loader);
 const queryManager = new UserQueryManager(store);
 
 export const useFetch = <

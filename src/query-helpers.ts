@@ -11,6 +11,13 @@ import {_rootDesc} from "./models/_root";
 
 type ModelMap = typeof modelMap;
 
+// TOOD: do better!?
+const normalizeQuery = (q: Record<string, unknown>) => {
+  return JSON.stringify(q);
+};
+
+export const queryToKey = normalizeQuery;
+
 export const getRelKey = <T extends HasManyQuery<any, any>>(r: T, k: string) => {
   const getSuffix = () => {
     if (r.type === "exists") return `exists:`;
@@ -37,7 +44,7 @@ export const getRelKey = <T extends HasManyQuery<any, any>>(r: T, k: string) => 
     if (r.offset) q.$offset = r.offset;
     if (r.orderBy) q.$order = r.orderBy;
   }
-  return `${suffix}${k}(${JSON.stringify(q)})`;
+  return `${suffix}${k}(${normalizeQuery(q)})`;
 };
 
 const processRelations = (rels: RelQuery<any, any>): Record<string, SerializableRelationQuery> => {

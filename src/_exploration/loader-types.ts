@@ -8,7 +8,7 @@ export type OnLoadedFn = (
 
 export interface BaseLoader {
   setOnLoaded(onLoaded: OnLoadedFn): void;
-  loadBatch(requests: MissingDataRequest[]): Promise<void>;
+  loadBatch(requests: MissingDataRequest[]): Promise<unknown>;
 }
 
 type LoaderPayload = {value: unknown; partKeys: string[]};
