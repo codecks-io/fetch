@@ -4,6 +4,7 @@ import type {BaseRequester, MissingDataRequest} from "./loader-types";
 import type {SerializableRelationQuery} from "../query-type";
 import {serializeModel} from "../query-helpers";
 import {ensureMapValue} from "../collection-utils";
+import {ConcurrencyLimiter} from "./utils/concurrency-limiter";
 
 const mergeRelations = (
   r1: SerializableRelationQuery & {asField: false},
@@ -27,12 +28,20 @@ const mergeRelations = (
 
 export class ApiRequester implements BaseRequester {
   private readonly fetchOptions: FetchOptions;
+  private readonly limiter: ConcurrencyLimiter;
 
-  constructor(fetchOptions: FetchOptions) {
+  constructor(fetchOptions: FetchOptions, maxConcurrent = 3) {
     this.fetchOptions = fetchOptions;
+    this.limiter = new ConcurrencyLimiter(maxConcurrent);
   }
 
   async request(
+    requests: MissingDataRequest[]
+  ): Promise<{model: string; key: string; partialInstance: Record<string, unknown>}[]> {
+    return this.limiter.run(() => this._doRequest(requests));
+  }
+
+  private async _doRequest(
     requests: MissingDataRequest[]
   ): Promise<{model: string; key: string; partialInstance: Record<string, unknown>}[]> {
     if (requests.length === 0) return [];
