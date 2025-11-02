@@ -1,5 +1,11 @@
 # @codecks/fetch
 
+## 0.1.3
+
+### Patch Changes
+
+- 4c5752f: ensure proper types for hooks
+
 ## 0.1.2
 
 ### Patch Changes

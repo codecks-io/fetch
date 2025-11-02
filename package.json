@@ -1,6 +1,6 @@
 {
   "name": "@codecks/fetch",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Quickly create deeply nested queries for the Codecks API with advanced TypeScript support",
   "type": "module",
   "license": "MIT",
