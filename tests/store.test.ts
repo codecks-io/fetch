@@ -4,7 +4,6 @@ import {server} from "./mocks/node";
 import {Store} from "../src/_exploration/store";
 import {BatchedLoader} from "../src/_exploration/loader";
 import {ApiRequester} from "../src/_exploration/api-requester";
-import {modelMap} from "../src/models";
 import type {BaseLoader, MissingDataRequest} from "../src/_exploration/loader-types";
 
 beforeAll(() => server.listen());
@@ -42,7 +41,7 @@ const getStore = () => {
     }),
   });
   const trackingLoader = new TrackingLoader(batchedLoader);
-  const store = new Store(modelMap, trackingLoader);
+  const store = new Store(trackingLoader);
   return {store, loader: trackingLoader};
 };
 

@@ -4,7 +4,9 @@ import {use, useSyncExternalStore} from "react";
 import type {Store} from "./store";
 import {UserQueryManager} from "./user-query-manager";
 
-export const createHooks = <ModelMap extends Record<string, any>>(store: Store) => {
+export const createHooks = (store: Store) => {
+  type ModelMap = typeof store.modelMap;
+
   const queryManager = new UserQueryManager(store);
 
   const useQueryManager = (model: string, ids: string[], q: ModelQuery<any, any>) => {

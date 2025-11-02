@@ -3,6 +3,7 @@ import {getRelKey, makeRelQuerySerializable} from "../query-helpers";
 import type {ModelQuery} from "../query-type";
 import {ImmediateCache} from "./immediate-cache";
 import type {BaseLoader, LoaderResult, MissingDataRequest} from "./loader-types";
+import {modelMap} from "../models";
 
 /**
  *
@@ -25,12 +26,9 @@ const calcPartKeys = (model: string, id: string, field: string): string[] => {
 
 export class Store {
   cache = new ImmediateCache();
-  modelMap: Record<string, AnyDesc>;
-  loader: BaseLoader;
+  modelMap: Record<string, AnyDesc> = modelMap;
 
-  constructor(modelMap: Record<string, AnyDesc>, loader: BaseLoader) {
-    this.modelMap = modelMap;
-    this.loader = loader;
+  constructor(private loader: BaseLoader) {
     loader.setOnLoaded((model, key, res) => this.onLoaded(model, key, res));
   }
 
