@@ -24,16 +24,18 @@ const calcPartKeys = (model: string, id: string, field: string): string[] => {
   return [`${model}:${id}:${field}`];
 };
 
+type ModelMap = typeof modelMap;
+
 export class Store {
   cache = new ImmediateCache();
-  modelMap: Record<string, AnyDesc> = modelMap;
+  modelMap = modelMap;
 
   constructor(private loader: BaseLoader) {
     loader.setOnLoaded((model, key, res) => this.onLoaded(model, key, res));
   }
 
   loadData(
-    model: string,
+    model: keyof ModelMap,
     ids: string[],
     q: ModelQuery<any, any>,
     acceptDirty?: boolean,
@@ -132,7 +134,7 @@ export class Store {
     if (query.relations) {
       for (const [relationName, rawRelationQuery] of Object.entries(query.relations)) {
         if (!rawRelationQuery) continue;
-        const relatedModel = desc.relations[relationName].relName;
+        const relatedModel = desc.relations[relationName].relName as keyof ModelMap;
         const relatedModelDesc = this.modelMap[relatedModel];
         const relationQueryList = Array.isArray(rawRelationQuery)
           ? rawRelationQuery

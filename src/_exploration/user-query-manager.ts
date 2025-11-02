@@ -55,7 +55,7 @@ const createStoreQuery = (opts: {
   };
 
   const loadData = (): QueryResult<any> => {
-    const res = store.loadData(model, ids, q);
+    const res = store.loadData(model as any, ids, q);
     if (res.state === "pending") {
       res.promise.then(reconcileNextResult);
     } else {
