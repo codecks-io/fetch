@@ -21,6 +21,10 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": "./dist/index.js",
+    "./_exploration/store": "./dist/_exploration/store.js",
+    "./_exploration/loader": "./dist/_exploration/loader.js",
+    "./_exploration/api-requester": "./dist/_exploration/api-requester.js",
+    "./_exploration/react": "./dist/_exploration/create-hooks.js",
     "./package.json": "./package.json"
   },
   "publishConfig": {
