@@ -1,5 +1,11 @@
 # @codecks/fetch
 
+## 0.1.0
+
+### Minor Changes
+
+- 2a50b24: Add exploration for data store and react hooks
+
 ## 0.0.4
 
 ### Patch Changes
