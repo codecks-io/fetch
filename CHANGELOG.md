@@ -1,5 +1,11 @@
 # @codecks/fetch
 
+## 0.1.2
+
+### Patch Changes
+
+- af7e2f0: Embed modelmap within store
+
 ## 0.1.1
 
 ### Patch Changes
