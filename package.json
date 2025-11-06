@@ -4,13 +4,13 @@
   "description": "Quickly create deeply nested queries for the Codecks API with advanced TypeScript support",
   "type": "module",
   "license": "MIT",
-  "homepage": "https://github.com/codecks-io/cdx-fetch#readme",
+  "homepage": "https://github.com/codecks-io/fetch#readme",
   "bugs": {
-    "url": "https://github.com/codecks-io/cdx-fetch/issues"
+    "url": "https://github.com/codecks-io/fetch/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/codecks-io/cdx-fetch.git"
+    "url": "git+https://github.com/codecks-io/fetch.git"
   },
   "author": "Daniel Berndt <daniel@codecks.io>",
   "files": [
