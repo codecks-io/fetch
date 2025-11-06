@@ -51,9 +51,13 @@ test("Store caching - loads data then only requests missing fields", async () =>
   // First load: Request account 1 with name field
   const result1 = await store.loadData("account", ["1"], {fields: ["name"]});
 
+  expect(result1.state).toBe("pending");
   if (result1.state === "pending") {
+    // The promise now resolves to LoaderPayload directly, not LoaderResult
     const finalResult = await result1.promise;
-    expect(finalResult.state).toBe("resolved");
+    expect(finalResult.value).toEqual({
+      "1": {name: "myOrg"},
+    });
   }
 
   // Verify the first request was made
@@ -73,9 +77,15 @@ test("Store caching - loads data then only requests missing fields", async () =>
   // Second load: Request account 1 with name (cached) and subdomain (new)
   const result2 = await store.loadData("account", ["1"], {fields: ["name", "subdomain"]});
 
+  expect(result2.state).toBe("pending");
   if (result2.state === "pending") {
     const finalResult = await result2.promise;
-    expect(finalResult.state).toBe("resolved");
+    expect(finalResult.value).toEqual({
+      "1": {
+        name: "myOrg",
+        subdomain: "myorg",
+      },
+    });
   }
 
   // Verify only the missing field (subdomain) was requested
@@ -109,7 +119,7 @@ test("Store caching - returns resolved immediately when all data is cached", asy
   expect(loader.loadedRequests).toHaveLength(0);
 
   if (result2.state === "resolved") {
-    expect(result2.value.value).toEqual({
+    expect(result2.payload.value).toEqual({
       "1": {
         name: "myOrg",
         subdomain: "myorg",

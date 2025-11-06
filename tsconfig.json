@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
     "target": "esnext",
-    "lib": ["es2023"],
+    "lib": ["es2023", "dom"],
+    "jsx": "react",
     "moduleDetection": "force",
     "module": "preserve",
     "moduleResolution": "bundler",

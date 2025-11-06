@@ -13,8 +13,8 @@ export interface BaseLoader {
 
 type LoaderPayload = {value: unknown; partKeys: string[]};
 export type LoaderResult =
-  | {state: "resolved"; value: LoaderPayload}
-  | {state: "pending"; promise: Promise<LoaderResult>};
+  | {state: "resolved"; payload: LoaderPayload}
+  | {state: "pending"; promise: Promise<LoaderPayload>};
 
 export type MissingDataRequest =
   | {

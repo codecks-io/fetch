@@ -10,7 +10,7 @@ import {modelMap} from "../models";
  * Optimize:
  * ===
  * - UserQueryManager: Query to Query Key (normalizeQuery)
- * - UserQueryManager: proper diff within diffResults
+ * - UserQueryManager: proper diff within diffResults (check https://github.com/TanStack/query/blob/v5.90.3/packages/query-core/src/utils.ts#L257)
  *
  */
 
@@ -69,7 +69,7 @@ export class Store {
       }
       return {
         state: "resolved",
-        value: {
+        payload: {
           value: resultObj,
           partKeys: allPartKeys,
         },
@@ -79,7 +79,8 @@ export class Store {
     // Otherwise, batch load missing data and return promise
     const promise = this.loader.loadBatch(missingRequests).then(() => {
       // Retry loadData - should be complete now
-      return this.loadData(model, ids, q, acceptDirty, iteration + 1);
+      const res = this.loadData(model, ids, q, acceptDirty, iteration + 1);
+      return res.state === "pending" ? res.promise : res.payload;
     });
 
     return {state: "pending", promise};

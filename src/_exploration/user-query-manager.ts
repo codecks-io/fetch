@@ -2,9 +2,12 @@ import type {_rootDesc} from "../models/_root";
 import {queryToKey} from "../query-helpers";
 import type {ModelQuery} from "../query-type";
 import type {Store} from "./store";
+import type {LoaderResult} from "./loader-types";
 
 type Unsubscribe = () => void;
-type QueryResult<T> =
+
+// Result returned to the user - wraps only the actual user data
+type UserQueryResult<T> =
   | {
       state: "pending";
       promise: Promise<T>;
@@ -16,17 +19,38 @@ type QueryResult<T> =
 
 export interface UserQuery {
   subscribe: (listener: () => void) => Unsubscribe;
-  get: () => QueryResult<any>;
+  get: () => UserQueryResult<any>;
 }
 
-const diffResults = (prevResult: unknown, prevParts: string[], nextResult: unknown) => {
-  // reconciles the result trees,
-  // TODO: turn result into data parts
-  const nextParts: string[] = [];
+// Internal tracking structure for user data + associated part keys
+type TrackedData = {
+  partKeys: string[];
+  value: unknown;
+};
+
+// Reconciles previous and next query results, computing which part keys were added/removed
+// Takes the store's LoaderPayload {value, partKeys} and extracts parts for tracking
+const diffResults = (
+  prevTrackedData: TrackedData,
+  nextStorePayload: {value: unknown; partKeys: string[]}
+): {added: string[]; removed: string[]; nextTrackedData: TrackedData} => {
+  // TODO: turn result into data parts by doing proper tree diffing
+  const nextPartKeys = nextStorePayload.partKeys;
+
+  // Compute added and removed part keys
+  const prevSet = new Set(prevTrackedData.partKeys);
+  const nextSet = new Set(nextPartKeys);
+
+  const added = nextPartKeys.filter((key) => !prevSet.has(key));
+  const removed = prevTrackedData.partKeys.filter((key) => !nextSet.has(key));
+
   return {
-    added: nextParts,
-    removed: prevParts,
-    reconciledResult: {parts: nextParts, data: nextResult},
+    added,
+    removed,
+    nextTrackedData: {
+      partKeys: nextPartKeys,
+      value: nextStorePayload.value,
+    },
   };
 };
 
@@ -40,43 +64,66 @@ const createStoreQuery = (opts: {
 }): UserQuery => {
   const {onDispose, updateDataListener, store, q, ids, model} = opts;
   const queryListeners = new Set<() => void>();
-  let lastData: {parts: string[]; data: unknown} = {parts: [], data: null};
 
-  const reconcileNextResult = (nextData: unknown) => {
-    const {added, removed, reconciledResult} = diffResults(lastData.data, lastData.parts, nextData);
-    if (!added.length && !removed.length) {
-      lastData = reconciledResult;
+  // Track the data internally with its associated part keys
+  let trackedData: TrackedData = {partKeys: [], value: null};
+
+  // Process new result from store, update tracked data, and notify listeners
+  const reconcileNextResult = (storePayload: {value: unknown; partKeys: string[]}) => {
+    const {added, removed, nextTrackedData} = diffResults(trackedData, storePayload);
+
+    // Only update if parts actually changed
+    if (added.length || removed.length) {
+      trackedData = nextTrackedData;
       updateDataListener({added, removed}, notify);
       queryListeners.forEach((listener) => listener());
     }
   };
+
   const notify = () => {
     loadData();
   };
 
-  const loadData = (): QueryResult<any> => {
-    const res = store.loadData(model as any, ids, q);
-    if (res.state === "pending") {
-      res.promise.then(reconcileNextResult);
+  // Current data snapshot for get() - wraps only the user data, not the partKeys
+  let userQueryResult: UserQueryResult<any>;
+
+  const loadData = () => {
+    const storeResult: LoaderResult = store.loadData(model as any, ids, q);
+
+    if (storeResult.state === "pending") {
+      // Store is loading - unwrap the promise to extract just the user data
+      userQueryResult = {
+        state: "pending",
+        promise: storeResult.promise.then((storePayload) => {
+          reconcileNextResult(storePayload);
+          return storePayload.value; // Return only the user data, not partKeys
+        }),
+      };
     } else {
-      reconcileNextResult(res.value);
+      const storePayload = storeResult.payload;
+      // Store has data - unwrap to extract just the user data
+      reconcileNextResult(storePayload);
+      userQueryResult = {
+        state: "resolved",
+        value: storePayload.value, // Extract user data from {value, partKeys}
+      };
     }
-    return res;
   };
 
-  let data = loadData();
+  // Initial load
+  loadData();
 
   const subscribe = (listener: () => void): Unsubscribe => {
     queryListeners.add(listener);
     return () => {
       queryListeners.delete(listener);
       if (queryListeners.size === 0) onDispose();
-      updateDataListener({added: [], removed: lastData.parts}, notify);
+      updateDataListener({added: [], removed: trackedData.partKeys}, notify);
     };
   };
 
-  const get = (): QueryResult<any> => {
-    return data;
+  const get = (): UserQueryResult<any> => {
+    return userQueryResult;
   };
 
   return {subscribe, get};
