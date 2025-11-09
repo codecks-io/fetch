@@ -56,7 +56,7 @@ test("Store caching - loads data then only requests missing fields", async () =>
     // The promise now resolves to LoaderPayload directly, not LoaderResult
     const finalResult = await result1.promise;
     expect(finalResult.value).toEqual({
-      "1": {name: "myOrg"},
+      "1": {"~model": "account", "~key": "1", name: "myOrg"},
     });
   }
 
@@ -82,6 +82,8 @@ test("Store caching - loads data then only requests missing fields", async () =>
     const finalResult = await result2.promise;
     expect(finalResult.value).toEqual({
       "1": {
+        "~model": "account",
+        "~key": "1",
         name: "myOrg",
         subdomain: "myorg",
       },
@@ -121,6 +123,8 @@ test("Store caching - returns resolved immediately when all data is cached", asy
   if (result2.state === "resolved") {
     expect(result2.payload.value).toEqual({
       "1": {
+        "~model": "account",
+        "~key": "1",
         name: "myOrg",
         subdomain: "myorg",
       },

@@ -111,7 +111,7 @@ export class Store {
     missingRequests: MissingDataRequest[],
     acceptDirty?: boolean
   ): QueryCheckResult {
-    const data: any = {};
+    const data: any = model === "_root" ? {} : {"~model": model, "~key": id};
     const partKeys: string[] = [];
     let allPresent = true;
 
@@ -159,17 +159,21 @@ export class Store {
 
             const fieldName = relQuery.as || relationName;
 
-            if (Array.isArray(cachedValue.value)) {
+            if (relQuery.type === "count" || relQuery.type === "exists") {
+              data[fieldName] = cachedValue.value;
+              partKeys.push(...cachedValue.partKeys);
+            } else if (Array.isArray(cachedValue.value)) {
               const relationResults = cachedValue.value.map((key) =>
                 this.checkQueryRecursive(
                   relatedModelDesc,
                   relatedModel,
-                  key,
+                  `${key}`,
                   relQuery,
                   missingRequests,
                   acceptDirty
                 )
               );
+              data[`~${fieldName}`] = cachedValue.value.map((v) => `${v}`);
               data[fieldName] = relationResults.map((result) => result.data);
               partKeys.push(...relationResults.flatMap((result) => result.partKeys));
               if (relationResults.some((result) => !result.allPresent)) allPresent = false;
@@ -177,11 +181,12 @@ export class Store {
               const relationResult = this.checkQueryRecursive(
                 relatedModelDesc,
                 relatedModel,
-                cachedValue.value,
+                `${cachedValue.value}`,
                 relQuery,
                 missingRequests,
                 acceptDirty
               );
+              data[`~${fieldName}`] = cachedValue.value != null ? `${cachedValue.value}` : null;
               data[fieldName] = relationResult.data;
               partKeys.push(...relationResult.partKeys);
               if (!relationResult.allPresent) allPresent = false;

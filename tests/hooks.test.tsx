@@ -50,7 +50,7 @@ test("useFetch returns unwrapped single item (not wrapped with value/partKeys)",
   );
   expect(screen.queryByTestId("loading")).not.toBeInTheDocument();
   expect(screen.getByTestId("output").textContent).toBe(
-    JSON.stringify({name: "myOrg", subdomain: "myorg"})
+    JSON.stringify({"~model": "account", "~key": "1", name: "myOrg", subdomain: "myorg"})
   );
 });
 
@@ -77,5 +77,39 @@ test("useFetchFromRoot returns unwrapped relation data (not wrapped with value/p
   );
 
   expect(screen.queryByTestId("loading")).not.toBeInTheDocument();
-  expect(screen.getByTestId("output").textContent).toBe(JSON.stringify({account: {name: "myOrg"}}));
+  expect(screen.getByTestId("output").textContent).toBe(
+    JSON.stringify({"~account": "1", account: {"~model": "account", "~key": "1", name: "myOrg"}})
+  );
+});
+
+test("useFetch with hasMany count returns unwrapped count value", async () => {
+  const store = getStore();
+  const {useFetch} = createHooks(store);
+
+  // Pre-load the data so it's available immediately
+  const result = store.loadData("account", ["1"], {
+    fields: ["name"],
+    relations: {roles: {type: "count", as: "roleCount"}},
+  });
+  if (result.state === "pending") await result.promise;
+
+  function TestComponent() {
+    const account = useFetch("account", "1", {
+      fields: ["name"],
+      relations: {roles: {type: "count", as: "roleCount"}},
+    });
+
+    return <div data-testid="output">{JSON.stringify(account)}</div>;
+  }
+
+  render(
+    <Suspense fallback={<div data-testid="loading">Loading...</div>}>
+      <TestComponent />
+    </Suspense>
+  );
+
+  expect(screen.queryByTestId("loading")).not.toBeInTheDocument();
+  expect(screen.getByTestId("output").textContent).toBe(
+    JSON.stringify({"~model": "account", "~key": "1", name: "myOrg", roleCount: 1})
+  );
 });

@@ -24,7 +24,7 @@ test("base root test", async () => {
   // response.account.
   expect(response).toEqual({
     account: {"~model": "account", "~key": "1", name: "myOrg", id: 1},
-    "~account": 1,
+    "~account": "1",
   });
 });
 
@@ -54,6 +54,7 @@ test("belongsTo", async () => {
     id: 1,
     name: "myOrg",
     disabledById: 2,
+    "~disabledBy": "2",
     disabledBy: {
       "~model": "user",
       "~key": "2",
@@ -75,6 +76,7 @@ test("belongsToIsNull", async () => {
     id: 2,
     name: "myOrg2",
     disabledById: null,
+    "~disabledBy": null,
     disabledBy: null,
   });
 });

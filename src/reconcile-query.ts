@@ -48,6 +48,7 @@ export const reconcileInstanceQuery = <
       switch (opts.type) {
         case "belongsTo":
           result[opts.fk] = instance[relName];
+          result[`~${relName}`] = instance[relName] != null ? `${instance[relName]}` : null;
           result[relName] = opts.fk
             ? reconcileInstanceQuery(
                 relEntry as any,
@@ -59,7 +60,7 @@ export const reconcileInstanceQuery = <
             : null;
           break;
         case "hasOne":
-          result[`~${relName}`] = instance[relName];
+          result[`~${relName}`] = instance[relName] != null ? `${instance[relName]}` : null;
           result[relName] = reconcileInstanceQuery(
             relEntry as any,
             response,
@@ -79,7 +80,7 @@ export const reconcileInstanceQuery = <
               break;
             }
             case "first":
-              result[`~${asName}`] = val;
+              result[`~${asName}`] = val != null ? `${val}` : null;
               result[asName] = reconcileInstanceQuery(
                 relEntry as any,
                 response,
@@ -89,7 +90,7 @@ export const reconcileInstanceQuery = <
               );
               break;
             default: {
-              result[`~${asName}`] = val;
+              result[`~${asName}`] = (val as any[]).map((v: any) => `${v}`);
               result[asName] = (val as string[]).map((id) =>
                 reconcileInstanceQuery(relEntry as any, response, relModel, `${id}`, store)
               );
