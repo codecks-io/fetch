@@ -1,5 +1,11 @@
 # @codecks/fetch
 
+## 0.1.5
+
+### Patch Changes
+
+- eaa6372: fix count/exists queries for hooks, add meta-data, ensure keys are always strings
+
 ## 0.1.4
 
 ### Patch Changes
