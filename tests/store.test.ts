@@ -53,9 +53,9 @@ test("Store caching - loads data then only requests missing fields", async () =>
 
   expect(result1.state).toBe("pending");
   if (result1.state === "pending") {
-    // The promise now resolves to LoaderPayload directly, not LoaderResult
+    // The promise now resolves to the value directly (no wrapper)
     const finalResult = await result1.promise;
-    expect(finalResult.value).toEqual({
+    expect(finalResult).toEqual({
       "1": {"~model": "account", "~key": "1", name: "myOrg"},
     });
   }
@@ -80,7 +80,7 @@ test("Store caching - loads data then only requests missing fields", async () =>
   expect(result2.state).toBe("pending");
   if (result2.state === "pending") {
     const finalResult = await result2.promise;
-    expect(finalResult.value).toEqual({
+    expect(finalResult).toEqual({
       "1": {
         "~model": "account",
         "~key": "1",
@@ -121,7 +121,7 @@ test("Store caching - returns resolved immediately when all data is cached", asy
   expect(loader.loadedRequests).toHaveLength(0);
 
   if (result2.state === "resolved") {
-    expect(result2.payload.value).toEqual({
+    expect(result2.payload).toEqual({
       "1": {
         "~model": "account",
         "~key": "1",

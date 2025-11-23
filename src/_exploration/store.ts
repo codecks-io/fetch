@@ -11,15 +11,15 @@ import {modelMap} from "../models";
  * ===
  * - UserQueryManager: Query to Query Key (normalizeQuery)
  * - UserQueryManager: proper diff within diffResults (check https://github.com/TanStack/query/blob/v5.90.3/packages/query-core/src/utils.ts#L257)
- *
+ * - cache when setting data for a field, do a deepEqual before overwriting jsonb data
  */
 
 type QueryCheckResult = {
   data: any;
-  partKeys: string[];
   allPresent: boolean;
 };
 
+// TODO: create proper part keys according to VISION.md
 const calcPartKeys = (model: string, id: string, field: string): string[] => {
   return [`${model}:${id}:${field}`];
 };
@@ -32,6 +32,15 @@ export class Store {
 
   constructor(private loader: BaseLoader) {
     loader.setOnLoaded((model, key, res) => this.onLoaded(model, key, res));
+  }
+
+  subscribeToField(fieldKey: string, notifyFn: () => void): () => void {
+    return this.cache.subscribe(fieldKey, notifyFn);
+  }
+
+  invalidate(partKeyPatterns: string[]): void {
+    // TODO: check if fields are currently parts of active queries. If so, we need to ask the loader for fresh data
+    this.cache.setMetaByPartKeys(partKeyPatterns, {state: "dirty"});
   }
 
   loadData(
@@ -47,7 +56,6 @@ export class Store {
     // Collect all missing data requests across all ids
     const missingRequests: MissingDataRequest[] = [];
     const resultObj: Record<string, unknown> = {};
-    const allPartKeys: string[] = [];
     let allPresent: boolean = true;
 
     for (const id of ids) {
@@ -55,7 +63,6 @@ export class Store {
       if (!result.allPresent) allPresent = false;
 
       resultObj[id] = result.data;
-      allPartKeys.push(...result.partKeys);
     }
 
     if (!allPresent && iteration > 5) {
@@ -69,10 +76,7 @@ export class Store {
       }
       return {
         state: "resolved",
-        payload: {
-          value: resultObj,
-          partKeys: allPartKeys,
-        },
+        payload: resultObj,
       };
     }
 
@@ -112,7 +116,6 @@ export class Store {
     acceptDirty?: boolean
   ): QueryCheckResult {
     const data: any = model === "_root" ? {} : {"~model": model, "~key": id};
-    const partKeys: string[] = [];
     let allPresent = true;
 
     if (query.fields) {
@@ -125,7 +128,6 @@ export class Store {
         const acceptsData = cachedValue && (cachedValue.meta.state === "fresh" || acceptDirty);
         if (acceptsData) {
           data[field] = cachedValue.value;
-          partKeys.push(...cachedValue.partKeys);
         } else {
           allPresent = false;
         }
@@ -161,7 +163,6 @@ export class Store {
 
             if (relQuery.type === "count" || relQuery.type === "exists") {
               data[fieldName] = cachedValue.value;
-              partKeys.push(...cachedValue.partKeys);
             } else if (Array.isArray(cachedValue.value)) {
               const relationResults = cachedValue.value.map((key) =>
                 this.checkQueryRecursive(
@@ -175,7 +176,6 @@ export class Store {
               );
               data[`~${fieldName}`] = cachedValue.value.map((v) => `${v}`);
               data[fieldName] = relationResults.map((result) => result.data);
-              partKeys.push(...relationResults.flatMap((result) => result.partKeys));
               if (relationResults.some((result) => !result.allPresent)) allPresent = false;
             } else {
               const relationResult = this.checkQueryRecursive(
@@ -188,7 +188,6 @@ export class Store {
               );
               data[`~${fieldName}`] = cachedValue.value != null ? `${cachedValue.value}` : null;
               data[fieldName] = relationResult.data;
-              partKeys.push(...relationResult.partKeys);
               if (!relationResult.allPresent) allPresent = false;
             }
           } else {
@@ -198,6 +197,6 @@ export class Store {
       }
     }
 
-    return {data, partKeys, allPresent};
+    return {data, allPresent};
   }
 }

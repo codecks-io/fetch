@@ -12,7 +12,7 @@ export const createHooks = (store: Store) => {
   const useQueryManager = (model: string, ids: string[], q: ModelQuery<any, any>) => {
     // queryObj needs to be stable across renders if the query parts stay the same
     const queryObj = queryManager.getQuery(model, ids, q);
-    const val = useSyncExternalStore(queryObj.subscribe, queryObj.get);
+    const val = useSyncExternalStore(queryObj.subscribe, queryObj.getSnapshot);
     if (val.state === "pending") return use(val.promise);
     return val.value;
   };

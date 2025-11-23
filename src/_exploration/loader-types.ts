@@ -11,10 +11,9 @@ export interface BaseLoader {
   loadBatch(requests: MissingDataRequest[]): Promise<unknown>;
 }
 
-type LoaderPayload = {value: unknown; partKeys: string[]};
 export type LoaderResult =
-  | {state: "resolved"; payload: LoaderPayload}
-  | {state: "pending"; promise: Promise<LoaderPayload>};
+  | {state: "resolved"; payload: unknown}
+  | {state: "pending"; promise: Promise<unknown>};
 
 export type MissingDataRequest =
   | {
