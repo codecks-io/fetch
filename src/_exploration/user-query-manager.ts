@@ -122,7 +122,7 @@ export class UserQuery {
 
   private loadData() {
     const {store, model, ids, q} = this.opts;
-    const storeResult: LoaderResult = store.loadData(model as any, ids, q);
+    const storeResult: LoaderResult = store.loadData(model as any, ids, q, true);
 
     if (storeResult.state === "pending") {
       // Store is loading - unwrap the promise to extract just the user data

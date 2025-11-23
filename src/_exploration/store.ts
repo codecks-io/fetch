@@ -1,7 +1,7 @@
 import type {AnyDesc} from "../models/_desc";
 import {getRelKey, makeRelQuerySerializable} from "../query-helpers";
 import type {ModelQuery} from "../query-type";
-import {ImmediateCache} from "./immediate-cache";
+import {ImmediateCache, OptimisticUpdater} from "./immediate-cache";
 import type {BaseLoader, LoaderResult, MissingDataRequest} from "./loader-types";
 import {modelMap} from "../models";
 
@@ -39,8 +39,12 @@ export class Store {
   }
 
   invalidate(partKeyPatterns: string[]): void {
-    // TODO: check if fields are currently parts of active queries. If so, we need to ask the loader for fresh data
-    this.cache.setMetaByPartKeys(partKeyPatterns, {state: "dirty"});
+    // Mark fields as dirty and get which ones have active subscriptions
+    const subscribedFieldRequests = this.cache.setMetaByPartKeys(partKeyPatterns, {state: "dirty"});
+    if (subscribedFieldRequests.length === 0) return;
+    // Trigger background reload - fire and forget
+    // When data loads, onLoaded() will update cache and notify subscribers
+    void this.loader.loadBatch(subscribedFieldRequests);
   }
 
   loadData(
@@ -72,7 +76,7 @@ export class Store {
     // If all data is present, return immediately
     if (allPresent) {
       if (missingRequests.length > 0) {
-        this.loader.loadBatch(missingRequests);
+        void this.loader.loadBatch(missingRequests);
       }
       return {
         state: "resolved",
@@ -100,7 +104,8 @@ export class Store {
         },
       ])
     );
-    this.cache.set(model, key, withPartKeys, {state: "fresh"});
+    const fieldSubs = this.cache.set(model, key, withPartKeys, {state: "fresh"});
+    new Set(fieldSubs).forEach((fn) => fn());
   }
 
   /**
@@ -198,5 +203,57 @@ export class Store {
     }
 
     return {data, allPresent};
+  }
+
+  /**
+   * Execute a mutation with optimistic updates
+   *
+   * @example
+   * ```typescript
+   * await store.mutate(
+   *   () => api.updateCard('123', {title: 'New Title'}),
+   *   {
+   *     onMutate: (layer) => {
+   *       layer.setField('Card', '123', 'title', 'New Title');
+   *     },
+   *     onSuccess: () => {
+   *       // Optional: invalidate related queries
+   *       store.invalidate(['Card:123:title']);
+   *     }
+   *   }
+   * );
+   * ```
+   */
+  mutate<T>(
+    mutationFn: () => Promise<T>,
+    options: {
+      onMutate?: (updater: OptimisticUpdater) => void;
+      onSuccess?: (data: T) => void;
+      onError?: (error: unknown) => void;
+    } = {}
+  ): Promise<T> {
+    const promise = mutationFn();
+
+    // Create optimistic layer and apply updates (auto-removed when promise settles)
+    if (options.onMutate) {
+      try {
+        this.cache.createOptimisticLayer(promise, options.onMutate);
+      } catch (error) {
+        console.error("Error in onMutate:", error);
+      }
+    }
+
+    // Handle success/error
+    promise
+      .then((data) => {
+        options.onSuccess?.(data);
+        return data;
+      })
+      .catch((error) => {
+        options.onError?.(error);
+        throw error;
+      });
+
+    return promise;
   }
 }
