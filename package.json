@@ -14,7 +14,8 @@
   },
   "author": "Daniel Berndt <daniel@codecks.io>",
   "files": [
-    "dist"
+    "dist",
+    "schema"
   ],
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -31,7 +32,7 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsdown",
+    "build": "tsdown && vite-node scripts/generate-schema-docs.ts",
     "format": "prettier --write .",
     "check-format": "prettier --check .",
     "dev": "tsdown --watch",

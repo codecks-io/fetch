@@ -9,42 +9,45 @@ export const id = <T extends string>() => {
   return {type: "id"} as TypedField<"id", T, {}>;
 };
 
+const withOpts = <T>(type: string, opts: BaseOpts): T =>
+  (opts.optional ? {type, optional: true} : {type}) as T;
+
 export const string = <const Opts extends BaseOpts>(opts: Opts) => {
-  return {type: "string"} as TypedField<"string", string, Opts>;
+  return withOpts<TypedField<"string", string, Opts>>("string", opts);
 };
 
 export const int = <const Opts extends BaseOpts>(opts: Opts) => {
-  return {type: "int"} as TypedField<"int", number, Opts>;
+  return withOpts<TypedField<"int", number, Opts>>("int", opts);
 };
 
 export const bigint = <const Opts extends BaseOpts>(opts: Opts) => {
-  return {type: "bigint"} as TypedField<"bigint", bigint, Opts>;
+  return withOpts<TypedField<"bigint", bigint, Opts>>("bigint", opts);
 };
 
 export const bool = <const Opts extends BaseOpts>(opts: Opts) => {
-  return {type: "bool"} as TypedField<"bool", boolean, Opts>;
+  return withOpts<TypedField<"bool", boolean, Opts>>("bool", opts);
 };
 
 export const date = <const Opts extends BaseOpts>(opts: Opts) => {
-  return {type: "date"} as TypedField<"date", Date, Opts>;
+  return withOpts<TypedField<"date", Date, Opts>>("date", opts);
 };
 
 export const day = <const Opts extends BaseOpts>(opts: Opts) => {
-  return {type: "day"} as TypedField<"day", {day: number; month: number; year: number}, Opts>;
+  return withOpts<TypedField<"day", {day: number; month: number; year: number}, Opts>>("day", opts);
 };
 
 export const object = <const Opts extends BaseOpts = {}>(opts: Opts) => {
-  return {type: "obj"} as TypedField<"obj", any, Opts>;
+  return withOpts<TypedField<"obj", any, Opts>>("obj", opts);
 };
 
 export const array = <const Opts extends BaseOpts = {}>(opts: Opts) => {
-  return {type: "array"} as TypedField<"array", any[], Opts>;
+  return withOpts<TypedField<"array", any[], Opts>>("array", opts);
 };
 
 export const belongsTo = <const Opts extends BaseOpts>(opts: Opts) => {
   return {
     type: <TId extends Nominal<any, any>>(): TypedField<"belongsTo", TId, Opts> => {
-      return {type: "belongsTo"} as TypedField<"belongsTo", TId, Opts>;
+      return withOpts<TypedField<"belongsTo", TId, Opts>>("belongsTo", opts);
     },
   };
 };

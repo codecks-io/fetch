@@ -1,5 +1,6 @@
 node_modules
 dist
+schema
 *.log
 .DS_Store
 .claude/**/*.local.json
