@@ -71,6 +71,11 @@ const queryMap: Record<string, any> = {
       1: {name: "myOrg", id: 1, createdAt: "2015-01-01T00:00:00.000Z"},
     },
   },
+  '{"account(1)":["disabledAt"]}': {
+    account: {
+      1: {id: 1, disabledAt: null},
+    },
+  },
   '{\"account(1)\":[\"name\",\"count:roles\"]}': {
     account: {
       1: {name: "myOrg", id: 1, "count:roles": 1},

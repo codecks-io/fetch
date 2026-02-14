@@ -193,6 +193,19 @@ test("transform fields", async () => {
   });
 });
 
+test("null date fields remain null", async () => {
+  const {fetchFromInstance} = getFetchers();
+  const response = await fetchFromInstance(myAccountInstance, {
+    fields: ["disabledAt"],
+  });
+  expect(response).toEqual({
+    "~model": "account",
+    "~key": "1",
+    id: 1,
+    disabledAt: null,
+  });
+});
+
 test("hasMany - count", async () => {
   const {fetchFromInstance} = getFetchers();
   const response = await fetchFromInstance(myAccountInstance, {

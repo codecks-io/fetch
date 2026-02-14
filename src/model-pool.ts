@@ -19,7 +19,7 @@ const dateStrToDay = (dateAsStr: string) => {
 };
 
 const parseField = (v: any, field: FieldEntry | null) => {
-  if (!field) return v;
+  if (!field || v == null) return v;
   switch (field.type) {
     case "date":
       return new Date(v);
