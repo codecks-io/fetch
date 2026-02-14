@@ -51,6 +51,6 @@ export const configuredFetch = async <T>(
     if (r.status !== 200) {
       throw new Error(`[${r.status}] ${JSON.stringify(content)}`);
     }
-    return content as Promise<T>;
+    return content as T;
   });
 };

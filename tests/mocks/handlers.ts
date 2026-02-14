@@ -81,6 +81,16 @@ const queryMap: Record<string, any> = {
       "exists:releases": true,
     },
   },
+  '{"_root":[{"releases({\\"$limit\\":5,\\"$order\\":\\"-createdAt\\"})":["title"]}]}': {
+    _root: {
+      'releases({"$limit":5,"$order":"-createdAt"})': ["1", "2", "3"],
+    },
+    release: {
+      1: {title: "Release v1.0", id: 1, createdAt: "2025-11-01T00:00:00.000Z"},
+      2: {title: "Release v0.9", id: 2, createdAt: "2025-10-15T00:00:00.000Z"},
+      3: {title: "Release v0.8", id: 3, createdAt: "2025-10-01T00:00:00.000Z"},
+    },
+  },
   '{"account(1)":["name",{"roles({\\"$first\\":true,\\"$order\\":\\"-accountId\\"})":["role"]}]}': {
     account: {
       1: {

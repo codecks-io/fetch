@@ -49,15 +49,16 @@ export const reconcileInstanceQuery = <
         case "belongsTo":
           result[opts.fk] = instance[relName];
           result[`~${relName}`] = instance[relName] != null ? `${instance[relName]}` : null;
-          result[relName] = opts.fk
-            ? reconcileInstanceQuery(
-                relEntry as any,
-                response,
-                relModel,
-                `${instance[relName]}`,
-                store
-              )
-            : null;
+          result[relName] =
+            instance[relName] != null
+              ? reconcileInstanceQuery(
+                  relEntry as any,
+                  response,
+                  relModel,
+                  `${instance[relName]}`,
+                  store
+                )
+              : null;
           break;
         case "hasOne":
           result[`~${relName}`] = instance[relName] != null ? `${instance[relName]}` : null;

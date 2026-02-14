@@ -25,7 +25,7 @@ test("real test with public data", async () => {
   });
 });
 
-test("real test with count", async () => {
+test("real test with exists", async () => {
   const {fetchFromRoot} = getFetchers();
   const response = await fetchFromRoot({
     releases: {

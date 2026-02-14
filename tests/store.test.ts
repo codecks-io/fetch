@@ -131,3 +131,48 @@ test("Store caching - returns resolved immediately when all data is cached", asy
     });
   }
 });
+
+test.only("Store - fetch relation with query params (limit, orderBy)", async () => {
+  const {store, loader} = getStore();
+
+  // Load releases from root with limit and orderBy
+  const result = await store.loadData("_root", [""], {
+    relations: {
+      releases: {
+        limit: 5,
+        orderBy: "-createdAt" as any,
+        fields: ["title"],
+      },
+    },
+  });
+
+  expect(result.state).toBe("pending");
+  if (result.state === "pending") {
+    const finalResult = await result.promise;
+    expect(finalResult).toEqual({
+      "": {
+        "~releases": ["1", "2", "3"],
+        releases: [
+          {"~model": "release", "~key": "1", title: "Release v1.0"},
+          {"~model": "release", "~key": "2", title: "Release v0.9"},
+          {"~model": "release", "~key": "3", title: "Release v0.8"},
+        ],
+      },
+    });
+  }
+
+  // Verify the request was made with proper query params
+  expect(loader.loadedRequests).toEqual([
+    [
+      {
+        type: "relation",
+        model: "_root",
+        id: "",
+        relKey: 'releases({"$limit":5,"$order":"-createdAt"})',
+        contents: {asField: false, fields: ["title"], relations: undefined},
+      },
+    ],
+  ]);
+
+  store.invalidate([`_root::releases({"$limit":5,"$order":"-createdAt"})`]);
+});

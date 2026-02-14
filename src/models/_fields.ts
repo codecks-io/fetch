@@ -56,6 +56,6 @@ export type FieldEntry = TypedField<string, any, any>;
 export type InferSimpleFieldEntry<T extends FieldEntry> =
   T extends TypedField<any, infer X, infer Opts>
     ? Opts extends {optional: true}
-      ? X | null | "yes"
+      ? X | null
       : X
     : never;

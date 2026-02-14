@@ -169,7 +169,7 @@ type InferHasMany<
   QM extends HasManyQuery<M, TMap>,
 > = QM extends {type: "count"}
   ? number
-  : QM extends {type: "exist"}
+  : QM extends {type: "exists"}
     ? boolean
     : QM extends {type: "first"}
       ? InferModelQuery<M, EnsureModelQuery<QM>, TMap> | null
