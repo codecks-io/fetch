@@ -34,7 +34,7 @@ test("ApiRequester - relation request", async () => {
       model: "account",
       id: "1",
       relKey: "disabledBy",
-      query: makeRelQuerySerializable({fields: ["name"]}),
+      contents: makeRelQuerySerializable({fields: ["name"]}),
     },
   ];
 
@@ -51,7 +51,7 @@ test("ApiRequester - hasMany relation", async () => {
       model: "account",
       id: "1",
       relKey: "roles",
-      query: makeRelQuerySerializable({fields: ["role"]}),
+      contents: makeRelQuerySerializable({fields: ["role"]}),
     },
   ];
 
@@ -78,7 +78,7 @@ test("ApiRequester - hasMany with orderBy (first)", async () => {
       model: "account",
       id: "1",
       relKey: getRelKey(q, "roles"),
-      query: makeRelQuerySerializable(q),
+      contents: makeRelQuerySerializable(q),
     },
   ];
 
@@ -95,7 +95,7 @@ test("ApiRequester - multiple hasMany relation", async () => {
       model: "account",
       id: "1",
       relKey: "roles",
-      query: makeRelQuerySerializable({
+      contents: makeRelQuerySerializable({
         relations: {
           user: {fields: ["name"]},
         },
@@ -106,7 +106,7 @@ test("ApiRequester - multiple hasMany relation", async () => {
       model: "account",
       id: "1",
       relKey: "roles",
-      query: makeRelQuerySerializable({
+      contents: makeRelQuerySerializable({
         relations: {
           user: {fields: ["fullName"]},
         },
@@ -127,14 +127,14 @@ test("ApiRequester - multiple belongsTo", async () => {
       model: "account",
       id: "1",
       relKey: "disabledBy",
-      query: makeRelQuerySerializable({fields: ["name"]}),
+      contents: makeRelQuerySerializable({fields: ["name"]}),
     },
     {
       type: "relation",
       model: "account",
       id: "1",
       relKey: "disabledBy",
-      query: makeRelQuerySerializable({fields: ["fullName"]}),
+      contents: makeRelQuerySerializable({fields: ["fullName"]}),
     },
   ];
 

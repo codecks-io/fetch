@@ -1,4 +1,4 @@
-import {queryToKey} from "../query-helpers";
+import {serializeModel} from "../query-helpers";
 import type {BaseLoader, MissingDataRequest, OnLoadedFn, BaseRequester} from "./loader-types";
 
 const notYetLoaded = () => {
@@ -8,7 +8,20 @@ const notYetLoaded = () => {
 type DataRequestWithKey = {key: string; request: MissingDataRequest};
 
 const augmentRequest = (req: MissingDataRequest): DataRequestWithKey => {
-  const key = `${req.model}:${req.id}:${req.type === "field" ? req.field : `${req.relKey}:${queryToKey(req.query)}`}`;
+  const getFieldKey = () => {
+    if (req.type === "field") {
+      return req.field; // "title"
+    } else {
+      if (req.contents.asField) {
+        return req.relKey; // "counts:releases(...)"
+      } else {
+        // { asField: false, fields: [ 'title' ], relations: {...} }
+        // to '["title", {...}]'
+        return JSON.stringify(serializeModel(req.contents));
+      }
+    }
+  };
+  const key = `${req.model}:${req.id}:${getFieldKey()}`;
   return {key, request: req};
 };
 

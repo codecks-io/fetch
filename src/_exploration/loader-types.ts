@@ -28,7 +28,7 @@ export type MissingDataRequest =
       id: string;
       // name: string;
       relKey: string;
-      query: SerializableRelationQuery;
+      contents: SerializableRelationQuery;
     };
 
 export interface BaseRequester {

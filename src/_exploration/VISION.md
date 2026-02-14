@@ -178,6 +178,8 @@ Full optimistic update system for immediate UI feedback during mutations.
 
 ## Gaps: Plan vs Reality
 
+- Next step: invalidating relations. `MissingDataRequest` with type `relation`
+
 ### ⚠️ Partially Implemented
 
 #### 1. Invalidation API
@@ -185,7 +187,7 @@ Full optimistic update system for immediate UI feedback during mutations.
 **What exists:**
 
 - ✅ **Public API**: `store.invalidate(partKeyPatterns: string[])` method
-- ✅ **Core mechanism**: `ImmediateCache.setMetaByPartKeys()`
+- ✅ **Core mechanism**: `ImmediateCache.markDirty()`
 - ✅ **Reactive propagation**: `UserQueryManager.onInvalidation()`
 - ✅ **Background reload**: Automatically reloads subscribed fields
 - ✅ **Efficient lookup**: Uses `partKeyToFields` reverse map for O(1) invalidation
@@ -253,169 +255,6 @@ The plan specified rich invalidation patterns, but only exact matching is curren
 **Impact:** No offline capabilities, all data lost on refresh
 
 **Priority:** Low - nice to have, not critical
-
----
-
-## Recently Completed
-
-### ✅ Priority 1: Optimistic Update System (COMPLETE)
-
-**Status:** Fully implemented and integrated
-
-**What was delivered:**
-
-1. ✅ **Optimistic layer architecture**
-   - Stack of mutation layers via `OptimisticManager`
-   - Each layer stores field updates
-   - Layers checked before cache in read path
-2. ✅ **`OptimisticManager` and `OptimisticLayer` classes**
-   - `addLayer(mutationId)`: Creates new optimistic layer
-   - `removeLayer(mutationId)`: Discards optimistic changes
-   - Flat view for O(1) lookups
-3. ✅ **Store integration**
-   - `Store.mutate()` high-level API
-   - `ImmediateCache.createOptimisticLayer()` for promise lifecycle management
-   - Auto-commit on success (marks dirty), auto-rollback on failure
-4. ✅ **Promise lifecycle management**
-   - Optimistic layers automatically cleanup when promise settles
-   - Subscriber notifications on add and remove
-
-**Files created/modified:**
-
-- New: `src/_exploration/optimistic-manager.ts`
-- Modified: `src/_exploration/immediate-cache.ts`
-- Modified: `src/_exploration/store.ts`
-
-**Minor gaps remaining:**
-
-- Relation update helpers (add/remove items from arrays)
-- Reverse lookups for automatic relation invalidation on delete
-- Documented conflict resolution strategy for parallel mutations
-
-### ✅ Priority 3: Integrate Tree Diffing (COMPLETE)
-
-**Status:** Fully integrated
-
-**What was delivered:**
-
-1. ✅ **Integrated `deepUpdateTree` into `UserQueryManager.reconcileNextResult()`**
-2. ✅ **Actual data change detection** instead of part-key-only comparison
-3. ✅ **Structural sharing** for unchanged subtrees
-4. ✅ **Automatic subscription management** for added/removed instances
-5. ✅ **Early bailout optimization** when no changes detected
-
-**Files modified:**
-
-- Modified: `src/_exploration/user-query-manager.ts`
-
----
-
-## Next Steps
-
-### Priority 1: Wildcard Pattern Matching for Invalidation
-
-**Goal:** Support wildcard invalidation patterns for more flexible cache invalidation
-
-**Current state:** Basic invalidation works with exact part-key matching, but wildcards are not supported
-
-**Tasks:**
-
-1. Implement pattern matching for wildcard keys
-   - `field:cards.*.title` matches `field:cards.123.title`
-   - `instance:card.*` matches all card instances
-   - Consider using glob-style matching or regex
-2. Update `calcPartKeys()` to generate wildcard keys
-   - When setting `"Card:123:title"`, also generate `"Card:*:title"` and `"Card:123:*"`
-   - Store wildcard keys in cache for efficient matching
-3. Update `ImmediateCache.setMetaByPartKeys()` to match patterns
-   - Iterate through stored keys and test against patterns
-   - Optimize with index or trie structure if needed
-4. Add helper functions for common patterns
-   - `invalidateField(model: string, id: string | "*", field: string | "*")`
-   - `invalidateInstance(model: string, id: string | "*")`
-   - `invalidateRelation(relationName: string)`
-
-**Files to modify:**
-
-- Modify: `src/_exploration/store.ts` (calcPartKeys, helper functions)
-- Modify: `src/_exploration/immediate-cache.ts` (pattern matching in setMetaByPartKeys)
-
-### Priority 2: Optimistic Relation Update Helpers
-
-**Goal:** Provide convenient methods for updating relations optimistically
-
-**Current state:** `OptimisticLayer.setField()` only supports field updates
-
-**Tasks:**
-
-1. Add relation manipulation methods to `OptimisticLayer`
-   - `addToRelation(model, id, relationField, itemToAdd)`: Append item to relation array
-   - `removeFromRelation(model, id, relationField, itemToRemove)`: Remove item from relation array
-   - `setRelation(model, id, relationField, newArray)`: Replace entire relation
-2. Update optimistic layer read logic to handle arrays
-   - Merge relation changes with base cache data
-   - Preserve insertion order for additions
-3. Consider re-evaluation of filtered relations
-   - When item updated, check if it still matches relation filters
-   - Auto-add/remove from relations based on filter criteria
-4. Document usage patterns
-   - How to optimistically add items to lists
-   - How to optimistically delete items from all relations
-
-**Files to modify:**
-
-- Modify: `src/_exploration/optimistic-manager.ts`
-- Modify: `src/_exploration/immediate-cache.ts` (integration)
-
-### Priority 3: Improve Query Normalization
-
-**Goal:** Ensure consistent query cache keys
-
-**Tasks:**
-
-1. Replace `JSON.stringify()` with proper normalization
-2. Sort object keys deterministically
-3. Normalize query structure (e.g., field order shouldn't matter)
-4. Consider query fingerprinting/hashing
-
-**Files to modify:**
-
-- Modify: `src/_exploration/user-query-manager.ts`
-
-### Priority 4: Cache Eviction
-
-**Goal:** Prevent unbounded memory growth
-
-**Tasks:**
-
-1. Implement LRU eviction policy
-   - Track access time for each cache entry
-   - Evict least recently used when limit reached
-2. Add configurable memory limits
-3. Implement TTL for cache entries
-4. Add manual cache clearing API
-5. Consider weak references for automatic GC
-
-**Files to modify:**
-
-- Modify: `src/_exploration/immediate-cache.ts`
-
-### Future: Multi-tier Loader
-
-**Goal:** Add offline support and persistence
-
-**Tasks:**
-
-1. Design loader plugin architecture
-2. Implement IndexedDB loader tier
-3. Add loader priority/fallback system
-4. Implement offline queue for mutations
-5. Add sync mechanism for offline → online transition
-
-**Files to create:**
-
-- New: `src/_exploration/indexed-db-loader.ts`
-- Modify: `src/_exploration/loader.ts`
 
 ---
 

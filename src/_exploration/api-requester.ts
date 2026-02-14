@@ -61,11 +61,15 @@ export class ApiRequester implements BaseRequester {
       if (req.type === "field") {
         instanceData.fields.add(req.field);
       } else if (req.type === "relation") {
-        const existing = instanceData.relations.get(req.relKey);
-        if (existing && !existing.asField && !req.query.asField) {
-          instanceData.relations.set(req.relKey, mergeRelations(existing, req.query));
+        if (req.contents.asField) {
+          instanceData.fields.add(req.relKey);
         } else {
-          instanceData.relations.set(req.relKey, req.query);
+          const existing = instanceData.relations.get(req.relKey);
+          if (existing) {
+            instanceData.relations.set(req.relKey, mergeRelations(existing, req.contents));
+          } else {
+            instanceData.relations.set(req.relKey, req.contents);
+          }
         }
       }
     }

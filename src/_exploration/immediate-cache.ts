@@ -14,6 +14,7 @@ type FieldLocation = {
   id: string;
   field: string;
   fieldKey: string;
+  type: "field" | "relation";
   cache: FieldCache;
 };
 
@@ -81,7 +82,10 @@ export class ImmediateCache {
   set(
     model: string,
     key: string,
-    partialInstance: Record<string, {value: unknown; partKeys: string[]}>,
+    partialInstance: Record<
+      string,
+      {value: unknown; partKeys: string[]; type: "field" | "relation"}
+    >,
     meta: FieldMeta
   ): FieldSub[] {
     const instanceKey = this.getInstanceKey(model, key);
@@ -111,6 +115,7 @@ export class ImmediateCache {
           field,
           fieldKey,
           cache: fieldEntry,
+          type: f.type,
         };
         const maybeFields = this.partKeyToFields.get(partKey);
         if (!maybeFields) {
@@ -129,21 +134,32 @@ export class ImmediateCache {
     return subs;
   }
 
-  setMetaByPartKeys(partKeys: string[], meta: FieldMeta): MissingDataRequest[] {
+  markDirty(partKeys: string[]): MissingDataRequest[] {
     const subscribedFields: MissingDataRequest[] = [];
     for (const partKey of partKeys) {
       const locations = this.partKeyToFields.get(partKey);
+      console.log(locations);
       if (!locations) continue;
       for (const location of locations) {
-        location.cache.meta = meta;
+        location.cache.meta = {state: "dirty"};
 
         if (this.fieldSubscriptions.has(location.fieldKey)) {
-          subscribedFields.push({
-            type: "field",
-            model: location.model,
-            id: location.id,
-            field: location.field,
-          });
+          if (location.type === "field") {
+            subscribedFields.push({
+              type: "field",
+              model: location.model,
+              id: location.id,
+              field: location.field,
+            });
+          } else {
+            subscribedFields.push({
+              type: "relation",
+              model: location.model,
+              id: location.id,
+              relKey: location.fieldKey,
+              contents: {asField: false, fields: []},
+            });
+          }
         }
       }
     }

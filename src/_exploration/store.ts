@@ -1,6 +1,6 @@
 import type {AnyDesc} from "../models/_desc";
 import {getRelKey, makeRelQuerySerializable} from "../query-helpers";
-import type {ModelQuery} from "../query-type";
+import type {HasManyQuery, ModelQuery} from "../query-type";
 import {ImmediateCache, OptimisticUpdater} from "./immediate-cache";
 import type {BaseLoader, LoaderResult, MissingDataRequest} from "./loader-types";
 import {modelMap} from "../models";
@@ -19,6 +19,19 @@ type QueryCheckResult = {
   allPresent: boolean;
 };
 
+type QueryDep = {
+  keys: string[];
+};
+
+const getQueryDep = (_q: HasManyQuery<any, any>): QueryDep => {
+  // TODO: iterate through filters and order and create partKeys
+  // e.g.
+  // - cards({status: archived}) should get ['cards:*:archived'] as part key
+  // - cards({$order:"-createdAt"}) should get ['cards:*:createdAt']
+  // - cards({deck: {isDeleted: false}}) should get ['cards:*:deck', 'deck:*:isDeleted']
+  return {keys: []};
+};
+
 // TODO: create proper part keys according to VISION.md
 const calcPartKeys = (model: string, id: string, field: string): string[] => {
   return [`${model}:${id}:${field}`];
@@ -30,6 +43,8 @@ export class Store {
   cache = new ImmediateCache();
   modelMap = modelMap;
 
+  requestedRelationKeys = new Map<string, QueryDep>(); // keys don't contain id, e.g. '_root:releases({"$limit":5,"$order":"-createdAt"})'
+
   constructor(private loader: BaseLoader) {
     loader.setOnLoaded((model, key, res) => this.onLoaded(model, key, res));
   }
@@ -40,7 +55,7 @@ export class Store {
 
   invalidate(partKeyPatterns: string[]): void {
     // Mark fields as dirty and get which ones have active subscriptions
-    const subscribedFieldRequests = this.cache.setMetaByPartKeys(partKeyPatterns, {state: "dirty"});
+    const subscribedFieldRequests = this.cache.markDirty(partKeyPatterns);
     if (subscribedFieldRequests.length === 0) return;
     // Trigger background reload - fire and forget
     // When data loads, onLoaded() will update cache and notify subscribers
@@ -96,13 +111,20 @@ export class Store {
 
   onLoaded(model: string, key: string, partialInstance: Record<string, unknown>) {
     const withPartKeys = Object.fromEntries(
-      Object.entries(partialInstance).map(([field, value]) => [
-        field,
-        {
-          value,
-          partKeys: calcPartKeys(model, key, field),
-        },
-      ])
+      Object.entries(partialInstance).map(([field, value]) => {
+        const relDeps = this.requestedRelationKeys.get(`${model}:${field}`);
+        console.log(`${model}:${field}`, relDeps);
+        return [
+          field,
+          {
+            value,
+            partKeys: relDeps
+              ? [...relDeps.keys, ...calcPartKeys(model, key, field)]
+              : calcPartKeys(model, key, field),
+            type: relDeps ? ("relation" as const) : ("field" as const),
+          },
+        ];
+      })
     );
     const fieldSubs = this.cache.set(model, key, withPartKeys, {state: "fresh"});
     new Set(fieldSubs).forEach((fn) => fn());
@@ -149,15 +171,17 @@ export class Store {
           : [rawRelationQuery];
         for (const relQuery of relationQueryList) {
           const relKey = getRelKey(relQuery, relationName);
+          this.requestedRelationKeys.set(`${model}:${relKey}`, getQueryDep(relQuery));
           const cachedValue = this.cache.get(model, id, relKey);
           const needsRequest = !cachedValue || cachedValue.meta.state === "dirty";
           if (needsRequest) {
+            const contents = makeRelQuerySerializable(relQuery);
             missingRequests.push({
               type: "relation",
               model,
               id,
-              relKey,
-              query: makeRelQuerySerializable(relQuery),
+              relKey, // e.g. releases({"$limit":5,"$order":"-createdAt"})
+              contents, // e.g { asField: false, fields: [ 'title' ], relations: undefined }
             });
           }
           const acceptsData = cachedValue && (cachedValue.meta.state === "fresh" || acceptDirty);
