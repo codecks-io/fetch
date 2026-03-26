@@ -23,14 +23,14 @@ const {fetchFromRoot, fetchInstance, fetchInstances, fetchFromInstance} =
 
 ### Configuration options
 
-| Option        | Type                          | Description                    |
-| ------------- | ----------------------------- | ------------------------------ |
-| `baseUrl`     | `string`                      | API base URL                   |
-| `subdomain`   | `string`                      | Sets the `X-Account` header    |
-| `accessToken` | `string`                      | Sets the `X-Auth-Token` header |
-| `headers`     | `Record<string, string>`      | Additional request headers     |
-| `timeout`     | `number`                      | Request timeout in ms          |
-| `fetch`       | `typeof fetch`                | Custom fetch implementation    |
+| Option        | Type                     | Description                    |
+| ------------- | ------------------------ | ------------------------------ |
+| `baseUrl`     | `string`                 | API base URL                   |
+| `subdomain`   | `string`                 | Sets the `X-Account` header    |
+| `accessToken` | `string`                 | Sets the `X-Auth-Token` header |
+| `headers`     | `Record<string, string>` | Additional request headers     |
+| `timeout`     | `number`                 | Request timeout in ms          |
+| `fetch`       | `typeof fetch`           | Custom fetch implementation    |
 
 ## Fetching data
 
@@ -188,14 +188,18 @@ Filters are available on all hasMany variants.
 ### Simple equality
 
 ```ts
-filter: {status: "open"}
+filter: {
+  status: "done";
+}
 // shorthand for {status: {op: "eq", value: "open"}}
 ```
 
 ### Null checks
 
 ```ts
-filter: {assigneeId: null}
+filter: {
+  assigneeId: null;
+}
 ```
 
 ### Comparison operators
@@ -213,7 +217,7 @@ Available operators: `eq`, `neq`, `lt`, `lte`, `gt`, `gte`.
 
 ```ts
 filter: {
-  status: {op: "in", value: ["open", "started"]},
+  derivedStatus: {op: "in", value: ["review", "blocked"]},
 }
 ```
 
