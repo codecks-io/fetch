@@ -75,7 +75,9 @@ function generateModelDoc(modelName: string, desc: ModelDesc): string {
       lines.push("### belongsTo");
       lines.push("");
       for (const [name, rel] of belongsTo) {
-        lines.push(`- \`${name}\` → [${rel.relName}](${rel.relName}.md) (via \`${rel.options.fk}\`)`);
+        lines.push(
+          `- \`${name}\` → [${rel.relName}](${rel.relName}.md) (via \`${rel.options.fk}\`)`
+        );
       }
       lines.push("");
     }
@@ -128,7 +130,9 @@ function generateOverview(): string {
     const fieldCount = Object.keys(d.fields).length;
     const relCount = Object.keys(d.relations).length;
     const keys = d.keys.length > 0 ? ` (key: ${d.keys.join(", ")})` : "";
-    lines.push(`- [${name}](models/${name}.md)${keys} — ${fieldCount} fields, ${relCount} relations`);
+    lines.push(
+      `- [${name}](models/${name}.md)${keys} — ${fieldCount} fields, ${relCount} relations`
+    );
   }
   lines.push("");
 
