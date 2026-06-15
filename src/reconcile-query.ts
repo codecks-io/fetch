@@ -91,8 +91,12 @@ export const reconcileInstanceQuery = <
               );
               break;
             default: {
-              result[`~${asName}`] = (val as any[]).map((v: any) => `${v}`);
-              result[asName] = (val as string[]).map((id) =>
+              // The API omits/nulls a hasMany array when the relation has no rows
+              // (e.g. a self-referential `childCards` on a card with no children).
+              // Treat an absent array as empty rather than mapping over null.
+              const ids = (val as string[] | null | undefined) ?? [];
+              result[`~${asName}`] = ids.map((v: any) => `${v}`);
+              result[asName] = ids.map((id) =>
                 reconcileInstanceQuery(relEntry as any, response, relModel, `${id}`, store)
               );
             }

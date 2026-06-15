@@ -114,6 +114,25 @@ test("hasMany", async () => {
   });
 });
 
+test("hasManyNull", async () => {
+  // The API returns null (rather than an empty array) for a hasMany with no rows
+  // — e.g. a self-referential `childCards` on a card with no children. Reconcile
+  // should yield an empty array, not throw on `null.map`.
+  const {fetchFromInstance} = getFetchers();
+  const response = await fetchFromInstance(
+    {"~model": "account", "~key": "3"},
+    {fields: ["name"], relations: {roles: {fields: ["role"]}}}
+  );
+  expect(response).toEqual({
+    "~model": "account",
+    "~key": "3",
+    id: 3,
+    name: "myOrg3",
+    "~roles": [],
+    roles: [],
+  });
+});
+
 test("hasManyNamed", async () => {
   const {fetchFromInstance} = getFetchers();
   const response = await fetchFromInstance(myAccountInstance, {
