@@ -1,5 +1,11 @@
 # @codecks/fetch
 
+## 0.1.6
+
+### Patch Changes
+
+- add optimistic updates, separate cache-invalidation partKeys from field-level query subscriptions, differentiate fields from relations in exploration, fix parsing of null dates
+
 ## 0.1.5
 
 ### Patch Changes
