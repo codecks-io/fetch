@@ -40,8 +40,8 @@ export const workflowItemDesc = makeModel({
     assignee: relation("user", {type: "belongsTo", fk: "assigneeId"}),
     creator: relation("user", {type: "belongsTo", fk: "creatorId"}),
     diffs: relation("workflowItemHistory", {type: "hasMany"}),
-    inDeps: relation("workflowItem", {type: "hasMany"}),
-    outDeps: relation("workflowItem", {type: "hasMany"}),
+    inDeps: relation("workflowItem", {type: "hasMany", fkAsArray: true}),
+    outDeps: relation("workflowItem", {type: "hasMany", fkAsArray: true}),
   },
   keys: ["itemId"],
 });

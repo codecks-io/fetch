@@ -19,14 +19,23 @@ export interface ModelQuery<T extends AnyDesc, TMap extends ModelMap> {
   relations?: RelQuery<T, TMap>;
 }
 
-interface SimpleHasManyQuery<T extends AnyDesc, TMap extends ModelMap> extends ModelQuery<T, TMap> {
+interface BaseHasManyQuery<T extends AnyDesc, TMap extends ModelMap> extends ModelQuery<T, TMap> {
   type?: "query";
-  orderBy?: Order<T>;
-  limit?: number;
-  offset?: number;
   filter?: Filter<T, TMap>;
   as?: string;
 }
+
+/**
+ * A `limit`/`offset` "subset" requires an `orderBy` server-side (otherwise the
+ * API rejects the query with "needs an order ... to be able to use subset"), and
+ * `offset` is only meaningful together with `limit`. The union below makes the
+ * omission a compile error instead of a runtime 500.
+ */
+type SimpleHasManyQuery<T extends AnyDesc, TMap extends ModelMap> = BaseHasManyQuery<T, TMap> &
+  (
+    | {orderBy?: Order<T>; limit?: never; offset?: never}
+    | {orderBy: Order<T>; limit: number; offset?: number}
+  );
 
 interface CountOrExistQuery<T extends AnyDesc, TMap extends ModelMap> {
   type: "count" | "exists";
@@ -48,6 +57,35 @@ export type HasManyQuery<T extends AnyDesc, TMap extends ModelMap> =
   | CountOrExistQuery<T, TMap>
   | FirstOrLastQuery<T, TMap>;
 
+/**
+ * `fkAsArray` hasMany relations (e.g. card `childCards`/`inDeps`/`outDeps`/
+ * `cardReferences`/`attachments`, workflowItem `inDeps`/`outDeps`) are stored as
+ * a plain id array column server-side. They support only plain selection
+ * (`fields` + nested `relations`) and the `count`/`exists` aggregates — any
+ * relQuery modifier (`filter`, `orderBy`, `limit`, `offset`, `type: "first"`) is
+ * rejected at runtime ("doesn't support relQueries"). The types mirror that.
+ */
+interface FkAsArrayQuery<T extends AnyDesc, TMap extends ModelMap> extends ModelQuery<T, TMap> {
+  type?: "query";
+  as?: string;
+  orderBy?: never;
+  limit?: never;
+  offset?: never;
+  filter?: never;
+}
+
+interface FkAsArrayCountOrExistQuery {
+  type: "count" | "exists";
+  as: string;
+  fields?: never;
+  relations?: never;
+  filter?: never;
+}
+
+export type FkAsArrayHasManyQuery<T extends AnyDesc, TMap extends ModelMap> =
+  | FkAsArrayQuery<T, TMap>
+  | FkAsArrayCountOrExistQuery;
+
 type AbstractHasManyQuery =
   | (ModelQuery<any, any> & {
       type?: "query" | "first";
@@ -59,15 +97,26 @@ type HasManyQueryWithAs<T extends AnyDesc, TMap extends ModelMap> = HasManyQuery
   as: string;
 };
 
+type FkAsArrayHasManyQueryWithAs<T extends AnyDesc, TMap extends ModelMap> = FkAsArrayHasManyQuery<
+  T,
+  TMap
+> & {
+  as: string;
+};
+
 export type SingleHasManyOrModelQuery = ModelQuery<any, any> | HasManyQuery<any, any>;
 
 type HasManyRelQueryEntry<
   T extends AnyDesc,
   TMap extends ModelMap,
   K extends keyof ExtractHasMany<T, TMap>,
-> =
-  | HasManyQuery<TMap[T["relations"][K]["relName"]], TMap>
-  | HasManyQueryWithAs<TMap[T["relations"][K]["relName"]], TMap>[];
+> = ExtractHasMany<T, TMap>[K] extends {fkAsArray: true}
+  ?
+      | FkAsArrayHasManyQuery<ExtractHasMany<T, TMap>[K]["model"], TMap>
+      | FkAsArrayHasManyQueryWithAs<ExtractHasMany<T, TMap>[K]["model"], TMap>[]
+  :
+      | HasManyQuery<ExtractHasMany<T, TMap>[K]["model"], TMap>
+      | HasManyQueryWithAs<ExtractHasMany<T, TMap>[K]["model"], TMap>[];
 
 type RelQueryEntry<
   T extends AnyDesc,
@@ -105,11 +154,10 @@ type EnrichBelongsTo<M extends AnyDesc, TMap extends ModelMap> = FilterNeverKeys
 }>;
 
 type ExtractHasMany<M extends AnyDesc, TMap extends ModelMap> = FilterNeverKeys<{
-  [K in keyof M["relations"]]: M["relations"][K] extends RelationEntry<
-    infer RelName,
-    {type: "hasMany"}
-  >
-    ? {model: TMap[RelName]}
+  [K in keyof M["relations"]]: M["relations"][K] extends RelationEntry<infer RelName, infer Opts>
+    ? Opts extends {type: "hasMany"}
+      ? {model: TMap[RelName]; fkAsArray: Opts extends {fkAsArray: true} ? true : false}
+      : never
     : never;
 }>;
 

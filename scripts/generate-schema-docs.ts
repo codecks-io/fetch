@@ -23,7 +23,7 @@ function describeFieldType(type: string): string {
 }
 
 type FieldEntry = {type: string; optional?: boolean};
-type RelationEntry = {relName: string; options: {type: string; fk?: string}};
+type RelationEntry = {relName: string; options: {type: string; fk?: string; fkAsArray?: boolean}};
 type ModelDesc = {
   name: string;
   keys: string[];
@@ -95,7 +95,10 @@ function generateModelDoc(modelName: string, desc: ModelDesc): string {
       lines.push("### hasMany");
       lines.push("");
       for (const [name, rel] of hasMany) {
-        lines.push(`- \`${name}\` → [${rel.relName}](${rel.relName}.md)`);
+        const fkAsArray = rel.options.fkAsArray
+          ? " — `fkAsArray` (plain selection + `count`/`exists` only; no `filter`/`orderBy`/`limit`/`offset`/`first`)"
+          : "";
+        lines.push(`- \`${name}\` → [${rel.relName}](${rel.relName}.md)${fkAsArray}`);
       }
       lines.push("");
     }
@@ -292,8 +295,37 @@ Pass an array of queries with \`as\` aliases:
 
 ## Pagination (hasMany only)
 
+A subset (\`limit\`/\`offset\`) requires an \`orderBy\` — the API rejects a subset
+without an order. \`offset\` is only meaningful together with \`limit\`. The types
+enforce this, so \`limit\` on its own is a compile error.
+
 \`\`\`ts
-{cards: {fields: ["title"], limit: 10, offset: 20}}
+{cards: {fields: ["title"], orderBy: "-createdAt", limit: 10, offset: 20}}
+\`\`\`
+
+## \`fkAsArray\` relations (limited capabilities)
+
+A handful of hasMany relations are stored server-side as a plain id-array column
+rather than a joined table. These are flagged as \`fkAsArray\` on their model
+pages and currently are:
+
+- \`card\`: \`childCards\`, \`inDeps\`, \`outDeps\`, \`cardReferences\`, \`attachments\`
+- \`workflowItem\`: \`inDeps\`, \`outDeps\`
+
+They support **only** plain selection (\`fields\` + nested \`relations\`) and the
+\`count\`/\`exists\` aggregates. \`filter\`, \`orderBy\`, \`limit\`, \`offset\`, and
+\`type: "first"\` are not supported (the API rejects them), and the types reflect
+that.
+
+\`\`\`ts
+{childCards: {fields: ["cardId"]}}      // OK → array
+{childCards: {type: "count", as: "n"}}  // OK → number
+{childCards: {type: "exists", as: "hasChildren"}} // OK → boolean
+
+// compile errors:
+{childCards: {fields: ["cardId"], orderBy: "accountSeq"}}
+{childCards: {fields: ["cardId"], limit: 50, orderBy: "accountSeq"}}
+{childCards: {fields: ["cardId"], filter: {status: "started"}}}
 \`\`\`
 `;
 }

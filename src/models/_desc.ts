@@ -26,7 +26,7 @@ export type BelongsToOpts<TFk extends string> = {
   type: "belongsTo";
   fk: TFk;
 };
-type HasManyOpts = {type: "hasMany"};
+type HasManyOpts = {type: "hasMany"; fkAsArray?: boolean};
 type HasOneOpts = {type: "hasOne"};
 
 export type RelationOpts = BelongsToOpts<any> | HasManyOpts | HasOneOpts;
