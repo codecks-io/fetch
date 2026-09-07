@@ -102,6 +102,21 @@ export class ApiRequester implements BaseRequester {
         });
       } else {
         for (const [id, data] of Object.entries(instances as Record<string, any>)) {
+          if (data == null) {
+            // The API names an id but answers `null` for it when the token may not read
+            // that record. Cache everything that was asked for as null, so the store
+            // counts the record as resolved instead of requesting it on every pass.
+            const requested = dataByModel.get(modelName)?.get(id);
+            if (!requested) continue;
+            results.push({
+              model: modelName,
+              key: id,
+              partialInstance: Object.fromEntries(
+                [...requested.fields, ...requested.relations.keys()].map((key) => [key, null])
+              ),
+            });
+            continue;
+          }
           results.push({
             model: modelName,
             key: id,

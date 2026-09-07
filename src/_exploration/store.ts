@@ -206,6 +206,12 @@ export class Store {
               data[`~${fieldName}`] = cachedValue.value.map((v) => `${v}`);
               data[fieldName] = relationResults.map((result) => result.data);
               if (relationResults.some((result) => !result.allPresent)) allPresent = false;
+            } else if (cachedValue.value == null) {
+              // No row, or a record the token may not read. Recursing on the string
+              // "null" would request an id the API can never answer, and the query
+              // would never count as complete.
+              data[`~${fieldName}`] = null;
+              data[fieldName] = null;
             } else {
               const relationResult = this.checkQueryRecursive(
                 relatedModelDesc,

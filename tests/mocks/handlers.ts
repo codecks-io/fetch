@@ -71,6 +71,29 @@ const queryMap: Record<string, any> = {
       3: {name: "myOrg3", id: 3, roles: null},
     },
   },
+  // The API names an id but sends `null` for the record when the token may not read it.
+  '{"account(4)":["name",{"disabledBy":["name"]}]}': {
+    account: {
+      4: {name: "myOrg4", id: 4, disabledBy: 9},
+    },
+    user: {
+      9: null,
+    },
+  },
+  '{"account(5)":["name",{"roles":["role"]}]}': {
+    account: {
+      5: {name: "myOrg5", id: 5, roles: ["[5,1]", "[5,2]"]},
+    },
+    accountRole: {
+      "[5,1]": {
+        accountId: 5,
+        userId: 1,
+        role: "admin",
+        "~model": "accountRole",
+      },
+      "[5,2]": null,
+    },
+  },
   '{"account(1)":["createdAt"]}': {
     account: {
       1: {name: "myOrg", id: 1, createdAt: "2015-01-01T00:00:00.000Z"},

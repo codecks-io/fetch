@@ -63,6 +63,11 @@ export class ModelPool {
         this.addModelInstance(modelName, ROOT_ID, payload);
       } else {
         Object.entries(payload).forEach(([id, payload]) => {
+          // The API names an id but answers `null` for it when the token may not read
+          // that record — it was deleted, or it sits in a project the token does not
+          // cover. Keeping it out of the pool lets it reconcile to `null` like any
+          // other id the pool does not hold.
+          if (payload == null) return;
           this.addModelInstance(modelName, id, payload);
         });
       }
