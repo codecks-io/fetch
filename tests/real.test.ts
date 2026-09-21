@@ -1,13 +1,12 @@
 import {test, expect} from "vitest";
-import {buildLegacyFetchers} from "../src";
+import {buildFetchers} from "../src";
 
-const getFetchers = () =>
-  buildLegacyFetchers({
-    baseUrl: "https://api.codecks.io/",
-    subdomain: "mmensch",
-  });
+// The API rejects anonymous POSTs from scripts, so these need an API token of the mmensch org.
+const token = process.env.CODECKS_TEST_TOKEN;
 
-test("real test with public data", async () => {
+const getFetchers = () => buildFetchers({token: token!});
+
+test.skipIf(!token)("real test with public data", async () => {
   const {fetchFromRoot} = getFetchers();
   const response = await fetchFromRoot({
     account: {
@@ -25,7 +24,7 @@ test("real test with public data", async () => {
   });
 });
 
-test("real test with exists", async () => {
+test.skipIf(!token)("real test with exists", async () => {
   const {fetchFromRoot} = getFetchers();
   const response = await fetchFromRoot({
     releases: {
