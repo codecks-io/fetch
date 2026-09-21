@@ -4,5 +4,7 @@
   "initialVersions": {
     "@codecks/fetch": "0.1.8"
   },
-  "changesets": []
+  "changesets": [
+    "bearer-api-tokens"
+  ]
 }
