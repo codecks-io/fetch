@@ -1,8 +1,8 @@
 import {test, expect} from "vitest";
-import {buildFetchersWithSimpleLoader} from "../src";
+import {buildLegacyFetchers} from "../src";
 
 const getFetchers = () =>
-  buildFetchersWithSimpleLoader({
+  buildLegacyFetchers({
     baseUrl: "https://api.codecks.io/",
     subdomain: "mmensch",
   });

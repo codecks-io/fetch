@@ -148,8 +148,8 @@ function generateQuerySyntax(): string {
 ## Basic Query
 
 \`\`\`ts
-const {fetchFromRoot, fetchInstance} = buildFetchersWithSimpleLoader({
-  token: "your-api-token",
+const {fetchFromRoot, fetchInstance} = buildFetchers({
+  token: "cdxat_…",
 });
 
 // Fetch from root entry points

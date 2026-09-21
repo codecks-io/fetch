@@ -1,4 +1,9 @@
-import {configuredFetch, type FetchOptions} from "../loaders/loader-utils";
+import {
+  bearerTransport,
+  configuredFetch,
+  type FetchOptions,
+  type TransportOptions,
+} from "../loaders/loader-utils";
 import type {ApiResponse} from "../model-pool";
 import type {BaseRequester, MissingDataRequest} from "./loader-types";
 import type {SerializableRelationQuery} from "../query-type";
@@ -27,11 +32,11 @@ const mergeRelations = (
 };
 
 export class ApiRequester implements BaseRequester {
-  private readonly fetchOptions: FetchOptions;
+  private readonly fetchOptions: TransportOptions;
   private readonly limiter: ConcurrencyLimiter;
 
   constructor(fetchOptions: FetchOptions, maxConcurrent = 3) {
-    this.fetchOptions = fetchOptions;
+    this.fetchOptions = bearerTransport(fetchOptions);
     this.limiter = new ConcurrencyLimiter(maxConcurrent);
   }
 

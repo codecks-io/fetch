@@ -23,6 +23,7 @@ function getStore() {
     batchTimeoutMs: 0,
     requester: new ApiRequester({
       baseUrl: "https://api.example.com/",
+      token: "cdxat_test",
     }),
   });
   const store = new Store(batchedLoader);

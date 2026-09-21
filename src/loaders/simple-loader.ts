@@ -1,13 +1,11 @@
-import {configuredFetch, type DataLoader, type FetchOptions} from "./loader-utils";
+import {configuredFetch, type DataLoader, type TransportOptions} from "./loader-utils";
 import {ModelPool, type ApiResponse} from "../model-pool";
 import {modelMap} from "../models";
 import {makeModelQuerySerializable, serializeInstanceQuery} from "../query-helpers";
 import type {Instance} from "../query-type";
 import {reconcileInstanceQuery} from "../reconcile-query";
 
-export type SimpleLoaderOptions = FetchOptions;
-
-export const createSimpleLoader = (opts: SimpleLoaderOptions = {}): DataLoader => {
+export const createSimpleLoader = (opts: TransportOptions): DataLoader => {
   const fetchWithQuery = async (query: Record<string, unknown>) => {
     return configuredFetch<ApiResponse>(opts, "", {
       method: "POST",

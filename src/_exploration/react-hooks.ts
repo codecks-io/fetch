@@ -7,6 +7,7 @@ const loader = new BatchedLoader({
   batchTimeoutMs: 0,
   requester: new ApiRequester({
     baseUrl: "https://api.example.com/",
+    token: "cdxat_example",
   }),
 });
 

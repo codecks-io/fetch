@@ -1,5 +1,6 @@
 import {test, expect, vi} from "vitest";
-import {buildFetchersWithSimpleLoader} from "../src";
+import {http, HttpResponse} from "msw";
+import {buildFetchers, buildLegacyFetchers, CodecksApiError} from "../src";
 import {beforeAll, afterEach, afterAll} from "vitest";
 import {server} from "./mocks/node";
 
@@ -10,8 +11,9 @@ afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
 const getFetchers = () =>
-  buildFetchersWithSimpleLoader({
+  buildFetchers({
     baseUrl: "https://api.example.com/",
+    token: "cdxat_id_secret",
   });
 
 test("base root test", async () => {
@@ -335,4 +337,71 @@ test("hasMany - first", async () => {
       role: "admin",
     },
   });
+});
+
+const captureHeaders = () => {
+  const seen: Headers[] = [];
+  server.use(
+    http.post("https://api.example.com/", ({request}) => {
+      seen.push(request.headers);
+      return HttpResponse.json({_root: {}});
+    })
+  );
+  return seen;
+};
+
+// The API only accepts `cdxat_`/`cdxut_` tokens as Bearer, and ignores them in `X-Auth-Token`.
+test("buildFetchers sends the token as a bearer header", async () => {
+  const seen = captureHeaders();
+  await getFetchers().fetchFromRoot({});
+  expect(seen[0].get("authorization")).toBe("Bearer cdxat_id_secret");
+  expect(seen[0].has("x-auth-token")).toBe(false);
+});
+
+// A legacy token sent as Bearer would be answered as if logged out, not with an error.
+test("buildFetchers rejects a legacy token", () => {
+  expect(() => buildFetchers({token: "3f2a9c"})).toThrow(/buildLegacyFetchers/);
+});
+
+test("buildLegacyFetchers sends X-Auth-Token and X-Account", async () => {
+  const seen = captureHeaders();
+  await buildLegacyFetchers({
+    baseUrl: "https://api.example.com/",
+    accessToken: "3f2a9c",
+    subdomain: "myorg",
+  }).fetchFromRoot({});
+  expect(seen[0].get("x-auth-token")).toBe("3f2a9c");
+  expect(seen[0].get("x-account")).toBe("myorg");
+  expect(seen[0].has("authorization")).toBe(false);
+});
+
+test("error responses become a CodecksApiError", async () => {
+  server.use(
+    http.post("https://api.example.com/", () =>
+      HttpResponse.json(
+        {
+          error: "unknown_field",
+          message: "'account' has no field 'nme'",
+          path: "_root.account.nme",
+          statusCode: 400,
+        },
+        {status: 400}
+      )
+    )
+  );
+  const err = await getFetchers()
+    .fetchFromRoot({account: {fields: ["name"]}})
+    .catch((e) => e);
+  expect(err).toBeInstanceOf(CodecksApiError);
+  expect(err).toMatchObject({status: 400, code: "unknown_field", path: "_root.account.nme"});
+});
+
+test("a non-JSON error body still becomes a CodecksApiError", async () => {
+  server.use(
+    http.post("https://api.example.com/", () => new HttpResponse("Bad Gateway", {status: 502}))
+  );
+  const err = await getFetchers()
+    .fetchFromRoot({account: {fields: ["name"]}})
+    .catch((e) => e);
+  expect(err).toMatchObject({status: 502, code: null, body: "Bad Gateway"});
 });

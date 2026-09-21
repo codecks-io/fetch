@@ -11,26 +11,51 @@ npm install @codecks/fetch
 ## Getting started
 
 ```ts
-import {buildFetchersWithSimpleLoader} from "@codecks/fetch";
+import {buildFetchers} from "@codecks/fetch";
 
-const {fetchFromRoot, fetchInstance, fetchInstances, fetchFromInstance} =
-  buildFetchersWithSimpleLoader({
-    baseUrl: "https://api.codecks.io/",
-    subdomain: "my-org",
-    accessToken: "your-token",
-  });
+const {fetchFromRoot, fetchInstance, fetchInstances, fetchFromInstance} = buildFetchers({
+  token: "cdxat_…",
+});
 ```
+
+`token` is an organization token (`cdxat_…`) or a personal token (`cdxut_…`). Create one under
+**Organization Settings → Integrations → API Tokens** or **Your Profile → API Tokens**. It is sent
+as `Authorization: Bearer <token>` and already names its organization, so no subdomain is needed.
 
 ### Configuration options
 
-| Option        | Type                     | Description                    |
-| ------------- | ------------------------ | ------------------------------ |
-| `baseUrl`     | `string`                 | API base URL                   |
-| `subdomain`   | `string`                 | Sets the `X-Account` header    |
-| `accessToken` | `string`                 | Sets the `X-Auth-Token` header |
-| `headers`     | `Record<string, string>` | Additional request headers     |
-| `timeout`     | `number`                 | Request timeout in ms          |
-| `fetch`       | `typeof fetch`           | Custom fetch implementation    |
+| Option    | Type                     | Description                                          |
+| --------- | ------------------------ | ---------------------------------------------------- |
+| `token`   | `string`                 | API token, `cdxat_…` or `cdxut_…` (required)         |
+| `baseUrl` | `string`                 | API base URL, defaults to `https://api.codecks.io/`  |
+| `headers` | `Record<string, string>` | Additional request headers                           |
+| `timeout` | `number`                 | Request timeout in ms; the request aborts after that |
+| `fetch`   | `typeof fetch`           | Custom fetch implementation                          |
+
+### Errors
+
+A non-2xx answer throws a `CodecksApiError`:
+
+```ts
+import {CodecksApiError} from "@codecks/fetch";
+
+try {
+  await fetchFromRoot({account: {fields: ["name"]}});
+} catch (e) {
+  if (e instanceof CodecksApiError) {
+    e.status; // 400, 401, 403, 429, …
+    e.code; // "invalid_token", "token_expired", "missing_scope", "unknown_field", …
+    e.path; // "_root.account.cards.titel" for a query error
+    e.body; // the full response body, e.g. `hint` or `requiredScope`
+  }
+}
+```
+
+### Legacy tokens
+
+`buildLegacyFetchers({accessToken, subdomain, baseUrl, …})` sends the old `X-Auth-Token` and
+`X-Account` headers. The API stops accepting `X-Auth-Token` on **2026-12-31**; move to an API token
+before then.
 
 ## Fetching data
 
@@ -324,9 +349,9 @@ Point your LLM's project instructions (e.g. `CLAUDE.md`) at `schema/overview.md`
 For advanced use cases (batching, caching, custom transports), you can provide your own `DataLoader`:
 
 ```ts
-import {buildFetchers} from "@codecks/fetch";
+import {buildFetchersFromLoader} from "@codecks/fetch";
 
-const {fetchFromRoot} = buildFetchers({
+const {fetchFromRoot} = buildFetchersFromLoader({
   fetchModel: async (model, ids, query) => {
     // your custom loading logic
     return recordOfResults;

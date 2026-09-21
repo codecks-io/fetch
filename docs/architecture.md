@@ -42,7 +42,7 @@
 
 ```
 src/
-├── index.ts                  Entry point. Exports buildFetchers / buildFetchersWithSimpleLoader
+├── index.ts                  Entry point. Exports buildFetchers / buildLegacyFetchers / buildFetchersFromLoader
 ├── query-type.ts             Query DSL types + response inference
 ├── query-helpers.ts          Serializes a typed query into the API wire format
 ├── reconcile-query.ts        Reconstructs typed results from a flat API response
@@ -148,13 +148,13 @@ The built-in `SimpleLoader` (created via `createSimpleLoader(opts)`) implements 
 3. Feeding the response into a `ModelPool`
 4. Reconciling each requested instance against the pool
 
-Configuration options: `accessToken`, `subdomain`, `baseUrl`, custom `fetch`, `headers`, `timeout`.
+Configuration options: `token`, `baseUrl`, custom `fetch`, `headers`, `timeout`. The token is sent as `Authorization: Bearer`; `buildLegacyFetchers` takes `accessToken` and `subdomain` instead and sends `X-Auth-Token` / `X-Account`. A non-2xx answer throws `CodecksApiError`.
 
-Custom loaders (e.g. with batching or caching) can be plugged in by passing any `DataLoader` to `buildFetchers`.
+Custom loaders (e.g. with batching or caching) can be plugged in by passing any `DataLoader` to `buildFetchersFromLoader`.
 
 ### Public API (`src/index.ts`)
 
-`buildFetchers(loader)` returns four methods:
+`buildFetchersFromLoader(loader)` returns four methods:
 
 | Method                               | Purpose                                                |
 | ------------------------------------ | ------------------------------------------------------ |
@@ -163,7 +163,7 @@ Custom loaders (e.g. with batching or caching) can be plugged in by passing any 
 | `fetchFromInstance(instance, query)` | Fetch from an already-known `Instance` reference       |
 | `fetchInstances(model, ids, query)`  | Fetch multiple instances, returns `Record<Id, Result>` |
 
-`buildFetchersWithSimpleLoader(opts)` is a shortcut that creates a `SimpleLoader` and passes it to `buildFetchers`.
+`buildFetchers(opts)` and `buildLegacyFetchers(opts)` are shortcuts that create a `SimpleLoader` and pass it to `buildFetchersFromLoader`.
 
 ### Query processing pipeline
 

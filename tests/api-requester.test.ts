@@ -6,6 +6,7 @@ import {getRelKey, makeRelQuerySerializable} from "../src/query-helpers";
 const testRequest = async (requests: MissingDataRequest[]) => {
   let body = null;
   const requester = new ApiRequester({
+    token: "cdxat_test",
     fetch: async (path, opts) => {
       body = JSON.parse(opts?.body as string).query;
       return {status: 200, json: async () => ({})} as Response;

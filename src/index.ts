@@ -1,8 +1,17 @@
 import type {modelMap} from "./models";
 import type {InferModelQuery, InferRelQuery, Instance, ModelQuery, RelQuery} from "./query-type";
 import type {_rootDesc} from "./models/_root";
-import type {DataLoader} from "./loaders/loader-utils";
-import {createSimpleLoader, type SimpleLoaderOptions} from "./loaders/simple-loader";
+import {
+  bearerTransport,
+  legacyTransport,
+  type DataLoader,
+  type FetchOptions,
+  type LegacyFetchOptions,
+} from "./loaders/loader-utils";
+import {createSimpleLoader} from "./loaders/simple-loader";
+
+export {CodecksApiError} from "./loaders/loader-utils";
+export type {DataLoader, FetchOptions, LegacyFetchOptions} from "./loaders/loader-utils";
 
 type ModelMap = typeof modelMap;
 
@@ -30,12 +39,14 @@ type Fetchers = {
   ) => Promise<Record<Id, InferModelQuery<ModelMap[K], Q, ModelMap>>>;
 };
 
-export const buildFetchersWithSimpleLoader = (opts: SimpleLoaderOptions) => {
-  const loader = createSimpleLoader(opts);
-  return buildFetchers(loader);
-};
+export const buildFetchers = (opts: FetchOptions): Fetchers =>
+  buildFetchersFromLoader(createSimpleLoader(bearerTransport(opts)));
 
-export const buildFetchers = (loader: DataLoader): Fetchers => {
+/** @deprecated `X-Auth-Token` stops working on 2026-12-31. Use `buildFetchers` with an API token. */
+export const buildLegacyFetchers = (opts: LegacyFetchOptions): Fetchers =>
+  buildFetchersFromLoader(createSimpleLoader(legacyTransport(opts)));
+
+export const buildFetchersFromLoader = (loader: DataLoader): Fetchers => {
   return {
     fetchFromRoot: async (q) => {
       const res = await loader.fetchModel("_root", [""], {relations: q});

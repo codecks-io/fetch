@@ -1,0 +1,8 @@
+{
+  "mode": "pre",
+  "tag": "rc",
+  "initialVersions": {
+    "@codecks/fetch": "0.1.8"
+  },
+  "changesets": []
+}

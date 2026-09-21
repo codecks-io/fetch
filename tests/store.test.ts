@@ -38,6 +38,7 @@ const getStore = () => {
     batchTimeoutMs: 0,
     requester: new ApiRequester({
       baseUrl: "https://api.example.com/",
+      token: "cdxat_test",
     }),
   });
   const trackingLoader = new TrackingLoader(batchedLoader);

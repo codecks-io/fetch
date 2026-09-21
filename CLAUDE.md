@@ -18,7 +18,7 @@ npm run ci             # typecheck + build + check-format + test:run
 
 ```
 src/
-├── index.ts                 Entry point: buildFetchers / buildFetchersWithSimpleLoader
+├── index.ts                 Entry point: buildFetchers / buildLegacyFetchers / buildFetchersFromLoader
 ├── query-type.ts            Query DSL types + response type inference
 ├── query-helpers.ts         Serializes typed queries into API wire format
 ├── reconcile-query.ts       Reconstructs typed results from flat API response
