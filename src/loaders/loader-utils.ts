@@ -79,7 +79,10 @@ export class CodecksApiError extends Error {
   constructor(status: number, body: unknown) {
     const obj = typeof body === "object" && body !== null ? (body as Record<string, unknown>) : {};
     const str = (v: unknown) => (typeof v === "string" ? v : null);
-    const code = str(obj.error);
+    // Auth failures answer `{error: "Unauthorized", message: "token_expired"}`, so the code is
+    // whichever of the two is a snake_case identifier.
+    const isCode = (v: string | null): v is string => v !== null && /^[a-z][a-z0-9_]*$/.test(v);
+    const code = [str(obj.error), str(obj.message)].find(isCode) ?? null;
     super(`[${status}] ${str(obj.message) ?? code ?? (str(body) || "request failed")}`);
     this.name = "CodecksApiError";
     this.status = status;

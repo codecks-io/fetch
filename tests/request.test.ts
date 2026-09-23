@@ -396,6 +396,22 @@ test("error responses become a CodecksApiError", async () => {
   expect(err).toMatchObject({status: 400, code: "unknown_field", path: "_root.account.nme"});
 });
 
+// The API puts the reason for a refused token in `message`, not `error`.
+test("a refused token's reason becomes the code", async () => {
+  server.use(
+    http.post("https://api.example.com/", () =>
+      HttpResponse.json(
+        {error: "Unauthorized", message: "token_expired", statusCode: 401},
+        {status: 401}
+      )
+    )
+  );
+  const err = await getFetchers()
+    .fetchFromRoot({account: {fields: ["name"]}})
+    .catch((e) => e);
+  expect(err).toMatchObject({status: 401, code: "token_expired"});
+});
+
 test("a non-JSON error body still becomes a CodecksApiError", async () => {
   server.use(
     http.post("https://api.example.com/", () => new HttpResponse("Bad Gateway", {status: 502}))
