@@ -1,5 +1,11 @@
 # @codecks/fetch
 
+## 1.0.1
+
+### Patch Changes
+
+- af098af: `CodecksApiError.code` holds the reason for a refused token, e.g. `token_expired` or `invalid_token`, instead of `Unauthorized`.
+
 ## 1.0.0
 
 ### Major Changes
