@@ -7,6 +7,7 @@ export type {MilestoneId} from "./Milestone";
 export type {ProjectId} from "./Project";
 export type {ProjectTagId} from "./ProjectTag";
 export type {QueueEntryId} from "./QueueEntry";
+export type {ReleaseId} from "./Release";
 export type {ResolvableId} from "./Resolvable";
 export type {ResolvableEntryId} from "./ResolvableEntry";
 export type {ResolvableEntryReactionId} from "./ResolvableEntryReaction";

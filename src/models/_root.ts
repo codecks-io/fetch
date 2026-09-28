@@ -6,6 +6,7 @@ export const _rootDesc = makeModel({
   relations: {
     account: relation("account", {type: "hasOne"}),
     loggedInUser: relation("user", {type: "hasOne"}),
+    releases: relation("release", {type: "hasMany"}),
   },
   keys: [],
 });

@@ -129,7 +129,7 @@ nothing in `src/` imports it.
 
 All descriptors are re-exported through `modelMap` in `src/models/index.ts`, which is the single registry the rest of the system relies on.
 
-A special `_root` model has no fields or keys and only exposes the top-level relations `account` and `loggedInUser`. It serves as the entry point for `fetchFromRoot`.
+A special `_root` model has no fields or keys and only exposes the top-level relations `account`, `loggedInUser` and `releases`. It serves as the entry point for `fetchFromRoot`.
 
 #### Nominal IDs
 
@@ -184,12 +184,12 @@ Custom loaders (e.g. with batching or caching) can be plugged in by passing any 
 
 `buildFetchersFromLoader(loader)` returns four methods:
 
-| Method                               | Purpose                                                |
-| ------------------------------------ | ------------------------------------------------------ |
-| `fetchFromRoot(relQuery)`            | Query top-level relations (account, loggedInUser, ...) |
-| `fetchInstance(model, id, query)`    | Fetch a single instance by model name + id             |
-| `fetchFromInstance(instance, query)` | Fetch from an already-known `Instance` reference       |
-| `fetchInstances(model, ids, query)`  | Fetch multiple instances, returns `Record<Id, Result>` |
+| Method                               | Purpose                                                     |
+| ------------------------------------ | ----------------------------------------------------------- |
+| `fetchFromRoot(relQuery)`            | Query top-level relations (account, loggedInUser, releases) |
+| `fetchInstance(model, id, query)`    | Fetch a single instance by model name + id                  |
+| `fetchFromInstance(instance, query)` | Fetch from an already-known `Instance` reference            |
+| `fetchInstances(model, ids, query)`  | Fetch multiple instances, returns `Record<Id, Result>`      |
 
 `buildFetchers(opts)` and `buildLegacyFetchers(opts)` are shortcuts that create a `SimpleLoader` and pass it to `buildFetchersFromLoader`.
 

@@ -61,7 +61,7 @@ before then.
 
 ### `fetchFromRoot` — query top-level relations
 
-Use this to query the entry points `account` and `loggedInUser`.
+Use this to query the entry points `account`, `loggedInUser` and `releases`.
 
 ```ts
 const result = await fetchFromRoot({

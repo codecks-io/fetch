@@ -31,3 +31,13 @@ test.skipIf(!token)("real test with exists", async () => {
   });
   expect(response.account.hasProjects).toBe(true);
 });
+
+test.skipIf(!token)("real test with the latest release", async () => {
+  const {fetchFromRoot} = getFetchers();
+  const {releases} = await fetchFromRoot({
+    releases: {fields: ["title", "version", "createdAt"], orderBy: "-createdAt", limit: 1},
+  });
+  expect(releases).toHaveLength(1);
+  expect(releases[0]).toMatchObject({"~model": "release", title: expect.any(String)});
+  expect(releases[0].createdAt).toBeInstanceOf(Date);
+});

@@ -5,8 +5,8 @@
 The models are generated from the Codecks API reference, so they only contain what the API documents, typed the way the API documents them.
 
 - Undocumented models, fields and relations are gone from the types and from `schema/*.md`, e.g.
-  `account.seats`, `account.roles` and the `_root` relations other than `account` and
-  `loggedInUser`. The API still answers them, but they can change without notice.
+  `account.seats`, `account.roles` and the `_root` relations other than `account`,
+  `loggedInUser` and `releases`. The API still answers them, but they can change without notice.
 - Fields and relations the API marks `preview` carry `@experimental`; deprecated ones carry
   `@deprecated` with their removal date, so editors strike them through on a query's result.
   `schema/*.md` shows the same markers.

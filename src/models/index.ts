@@ -12,6 +12,7 @@ import {milestoneProjectDesc} from "./MilestoneProject";
 import {projectDesc} from "./Project";
 import {projectTagDesc} from "./ProjectTag";
 import {queueEntryDesc} from "./QueueEntry";
+import {releaseDesc} from "./Release";
 import {resolvableDesc} from "./Resolvable";
 import {resolvableEntryDesc} from "./ResolvableEntry";
 import {resolvableEntryReactionDesc} from "./ResolvableEntryReaction";
@@ -40,6 +41,7 @@ export const modelMap = {
   project: projectDesc,
   projectTag: projectTagDesc,
   queueEntry: queueEntryDesc,
+  release: releaseDesc,
   resolvable: resolvableDesc,
   resolvableEntry: resolvableEntryDesc,
   /** @experimental `preview` in the Codecks API: may change in any release. */
