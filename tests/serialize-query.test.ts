@@ -23,74 +23,73 @@ test("simple field", () => {
 test("belongs to", () => {
   expect(
     serializeRootQuery({
-      account: {relations: {disabledBy: {fields: ["name"]}}},
+      loggedInUser: {fields: ["name"]},
+      account: {relations: {cards: {relations: {deck: {fields: ["title"]}}}}},
     })
-  ).toEqual({_root: [{account: [{disabledBy: ["name"]}]}]});
+  ).toEqual({_root: [{loggedInUser: ["name"], account: [{cards: [{deck: ["title"]}]}]}]});
 });
 
 test("has many", () => {
   expect(
     serializeRootQuery({
-      account: {relations: {roles: {fields: ["role"]}}},
+      account: {relations: {projects: {fields: ["name"]}}},
     })
-  ).toEqual({_root: [{account: [{roles: ["role"]}]}]});
-});
-
-test("has many", () => {
-  expect(
-    serializeRootQuery({
-      account: {relations: {roles: {fields: ["role"]}}},
-    })
-  ).toEqual({_root: [{account: [{roles: ["role"]}]}]});
+  ).toEqual({_root: [{account: [{projects: ["name"]}]}]});
 });
 
 test("has many named", () => {
   expect(
     serializeRootQuery({
-      account: {relations: {roles: [{fields: ["role"], as: "myRoles"}]}},
+      account: {relations: {projects: [{fields: ["name"], as: "myProjects"}]}},
     })
-  ).toEqual({_root: [{account: [{roles: ["role"]}]}]});
+  ).toEqual({_root: [{account: [{projects: ["name"]}]}]});
 });
 
 test("complex", () => {
   expect(
     serializeRootQuery({
       account: {
-        fields: ["subdomain"],
+        fields: ["name"],
         relations: {
-          roles: {
-            fields: ["role"],
-            relations: {user: {fields: ["name"]}},
+          cards: {
+            fields: ["title"],
+            relations: {assignee: {fields: ["name"]}},
           },
         },
       },
     })
   ).toEqual({
-    _root: [{account: ["subdomain", {roles: ["role", {user: ["name"]}]}]}],
+    _root: [{account: ["name", {cards: ["title", {assignee: ["name"]}]}]}],
   });
 });
 
 test("has many count", () => {
   expect(
     serializeRootQuery({
-      account: {relations: {roles: {type: "count", as: "roleCount"}}},
+      account: {relations: {projects: {type: "count", as: "projectCount"}}},
     })
-  ).toEqual({_root: [{account: ["count:roles"]}]});
+  ).toEqual({_root: [{account: ["count:projects"]}]});
 });
 
-test("has many count on root", () => {
+test("has many count with a filter", () => {
   expect(
     serializeRootQuery({
-      releases: {
-        type: "count",
-        as: "releaseCount",
-        filter: {
-          createdAt: {op: "gt", value: "2025-01-01"},
+      account: {
+        relations: {
+          cards: {
+            type: "count",
+            as: "cardCount",
+            filter: {
+              createdAt: {op: "gt", value: new Date("2025-01-01T00:00:00.000Z")},
+            },
+          },
         },
       },
     })
   ).toEqual({
-    _root: ['count:releases({"createdAt":{"op":"gt","value":"2025-01-01"}})'],
+    _root: [
+      {account: ['count:cards({"createdAt":{"op":"gt","value":"2025-01-01T00:00:00.000Z"}})']},
+    ],
   });
 });
 
@@ -100,11 +99,11 @@ test("has many first", () => {
       account: {
         fields: ["name"],
         relations: {
-          roles: {
+          projects: {
             type: "first",
-            as: "firstRole",
-            orderBy: "-accountId",
-            fields: ["role"],
+            as: "newestProject",
+            orderBy: "-createdAt",
+            fields: ["name"],
           },
         },
       },
@@ -112,7 +111,7 @@ test("has many first", () => {
   ).toEqual({
     _root: [
       {
-        account: ["name", {'roles({"$first":true,"$order":"-accountId"})': ["role"]}],
+        account: ["name", {'projects({"$first":true,"$order":"-createdAt"})': ["name"]}],
       },
     ],
   });

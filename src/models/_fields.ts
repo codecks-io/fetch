@@ -1,3 +1,4 @@
+import type {TierOpts} from "./_desc";
 import type {Nominal} from "./_type-helpers";
 
 export type TypedField<K extends string, X, Opts extends BaseOpts> = {
@@ -9,8 +10,7 @@ export const id = <T extends string>() => {
   return {type: "id"} as TypedField<"id", T, {}>;
 };
 
-const withOpts = <T>(type: string, opts: BaseOpts): T =>
-  (opts.optional ? {type, optional: true} : {type}) as T;
+const withOpts = <T>(type: string, opts: BaseOpts): T => ({type, ...opts}) as T;
 
 export const string = <const Opts extends BaseOpts>(opts: Opts) => {
   return withOpts<TypedField<"string", string, Opts>>("string", opts);
@@ -18,10 +18,6 @@ export const string = <const Opts extends BaseOpts>(opts: Opts) => {
 
 export const int = <const Opts extends BaseOpts>(opts: Opts) => {
   return withOpts<TypedField<"int", number, Opts>>("int", opts);
-};
-
-export const bigint = <const Opts extends BaseOpts>(opts: Opts) => {
-  return withOpts<TypedField<"bigint", bigint, Opts>>("bigint", opts);
 };
 
 export const bool = <const Opts extends BaseOpts>(opts: Opts) => {
@@ -36,13 +32,10 @@ export const day = <const Opts extends BaseOpts>(opts: Opts) => {
   return withOpts<TypedField<"day", {day: number; month: number; year: number}, Opts>>("day", opts);
 };
 
-export const object = <const Opts extends BaseOpts = {}>(opts: Opts) => {
-  return withOpts<TypedField<"obj", any, Opts>>("obj", opts);
-};
-
-export const array = <const Opts extends BaseOpts = {}>(opts: Opts) => {
-  return withOpts<TypedField<"array", any[], Opts>>("array", opts);
-};
+/** A field whose type the reference's schema gives: an enum, a json value, a list of ids, ... */
+export const typed = <const Opts extends BaseOpts>(opts: Opts) => ({
+  type: <T>() => withOpts<TypedField<"typed", T, Opts>>("typed", opts),
+});
 
 export const belongsTo = <const Opts extends BaseOpts>(opts: Opts) => {
   return {
@@ -52,7 +45,7 @@ export const belongsTo = <const Opts extends BaseOpts>(opts: Opts) => {
   };
 };
 
-type BaseOpts = {optional?: boolean};
+type BaseOpts = {optional?: boolean} & TierOpts;
 
 export type FieldEntry = TypedField<string, any, any>;
 

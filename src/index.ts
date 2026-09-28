@@ -12,6 +12,8 @@ import {createSimpleLoader} from "./loaders/simple-loader";
 
 export {CodecksApiError} from "./loaders/loader-utils";
 export type {DataLoader, FetchOptions, LegacyFetchOptions} from "./loaders/loader-utils";
+export type * from "./models/definitions";
+export type * from "./models/ids";
 
 type ModelMap = typeof modelMap;
 

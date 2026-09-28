@@ -33,6 +33,7 @@
   },
   "scripts": {
     "build": "tsdown && vite-node scripts/generate-schema-docs.ts",
+    "generate:models": "vite-node scripts/generate-models.ts",
     "format": "prettier --write .",
     "check-format": "prettier --check .",
     "dev": "tsdown --watch",

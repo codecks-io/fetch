@@ -27,12 +27,7 @@ test.skipIf(!token)("real test with public data", async () => {
 test.skipIf(!token)("real test with exists", async () => {
   const {fetchFromRoot} = getFetchers();
   const response = await fetchFromRoot({
-    releases: {
-      type: "exists",
-      as: "hasReleases",
-    },
+    account: {relations: {projects: {type: "exists", as: "hasProjects"}}},
   });
-  expect(response).toEqual({
-    hasReleases: true,
-  });
+  expect(response.account.hasProjects).toBe(true);
 });

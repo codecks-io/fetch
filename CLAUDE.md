@@ -12,7 +12,17 @@ npm run typecheck      # tsc --noEmit
 npm run format         # Prettier write
 npm run check-format   # Prettier check
 npm run ci             # typecheck + build + check-format + test:run
+npm run generate:models -- ../../codecks/shared/api-reference.json && npm run format
 ```
+
+`src/models/` is generated from the codecks repo's `shared/api-reference.json`, which lists only
+the `stable` and `preview` parts of the API and types every field with a JTD schema. Generated: the
+model files, `index.ts`, `_root.ts`, `definitions.ts` (the reference's named types), `ids.ts`
+(re-exports every `*Id` type) and `_types.json` (rendered type strings for
+`scripts/generate-schema-docs.ts`; not imported by `src/`). Don't edit those by hand. The
+hand-written helpers are `_desc.ts`, `_fields.ts` and `_type-helpers.ts`. The generator logic
+(`renderSchema`, `generate`) is in `scripts/models-from-reference.ts`, the CLI in
+`scripts/generate-models.ts`.
 
 ## Source Layout
 
@@ -28,9 +38,12 @@ src/
 │   ├── _desc.ts             makeModel() + ModelDesc type
 │   ├── _fields.ts           Field type constructors (id, string, int, date, belongsTo, ...)
 │   ├── _type-helpers.ts     Nominal<string, Tag> type utility
-│   ├── _root.ts             Virtual root model (entry point for root queries)
-│   ├── index.ts             modelMap registry: name → descriptor
-│   └── *.ts                 ~90 model descriptors (Account, Card, User, ...)
+│   ├── _root.ts             Virtual root model (entry point for root queries), generated
+│   ├── index.ts             modelMap registry: name → descriptor, generated
+│   ├── definitions.ts       Named types from the reference (Priority, Checkbox, ...), generated
+│   ├── ids.ts               Re-exports every *Id type, generated
+│   ├── _types.json          Rendered type strings for the schema docs, generated
+│   └── *.ts                 generated model descriptors (Account, Card, User, ...)
 ├── loaders/
 │   ├── loader-utils.ts      DataLoader interface + configuredFetch helper
 │   └── simple-loader.ts     Default loader implementation
@@ -55,7 +68,7 @@ docs/architecture.md         Full architecture walkthrough
 
 **Query DSL**: Queries describe fields and relations to fetch. `InferModelQuery` recursively infers the exact return type from the query literal. Key fields (`~model`, `~key`) are always included.
 
-**Models**: Declared with `makeModel()`. Each has fields (built with `f.id()`, `f.string()`, `f.belongsTo()`, etc.), relations (`belongsTo`, `hasMany`, `hasOne`), and keys. IDs use `Nominal<string, Tag>` types for type safety.
+**Models**: Declared with `makeModel()`. Each has fields (built with `f.id()`, `f.string()`, `f.belongsTo()`, etc.), relations (`belongsTo`, `hasMany`, `hasOne`), and keys. IDs use `Nominal<string, Tag>` types for type safety. Enums, json values and arrays use `f.typed(opts).type<T>()` with the type rendered from the schema; enums are open unions (`"a" | "b" | (string & {})`). Nested timestamps/days inside json stay strings; only top-level `date`/`day` fields are parsed.
 
 **hasMany variants**: `type: "query"` (default, returns array), `"count"` (number), `"exists"` (boolean), `"first"` (single or null). Non-default variants require an `as` alias.
 

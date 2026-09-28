@@ -34,113 +34,93 @@ const queryMap: Record<string, any> = {
       3: {name: "myOrg3", subdomain: "myorg3", id: 3},
     },
   },
-  '{"account(1)":["name",{"disabledBy":["name"]}]}': {
-    account: {
-      1: {name: "myOrg", id: 1, disabledBy: 2},
+  '{"deck(1)":["title",{"milestone":["name"]}]}': {
+    deck: {
+      1: {title: "Backlog", id: 1, milestone: 2},
     },
-    user: {
-      2: {id: 2, name: "daniel"},
-    },
-  },
-  '{"account(2)":["name",{"disabledBy":["name"]}]}': {
-    account: {
-      2: {name: "myOrg2", id: 2, disabledBy: null},
+    milestone: {
+      2: {id: 2, name: "Alpha"},
     },
   },
-  '{"account(1)":["name",{"roles":["role"]}]}': {
-    account: {
-      1: {name: "myOrg", id: 1, roles: ["[1,1]", "[1,2]"]},
-    },
-    accountRole: {
-      "[1,1]": {
-        accountId: 1,
-        userId: 1,
-        role: "admin",
-        "~model": "accountRole",
-      },
-      "[1,2]": {
-        accountId: 1,
-        userId: 2,
-        role: "member",
-        "~model": "accountRole",
-      },
+  '{"deck(2)":["title",{"milestone":["name"]}]}': {
+    deck: {
+      2: {title: "Ideas", id: 2, milestone: null},
     },
   },
-  '{"account(3)":["name",{"roles":["role"]}]}': {
+  '{"account(1)":["name",{"projects":["name"]}]}': {
     account: {
-      3: {name: "myOrg3", id: 3, roles: null},
+      1: {name: "myOrg", id: 1, projects: ["11", "12"]},
+    },
+    project: {
+      11: {id: 11, name: "Game"},
+      12: {id: 12, name: "Website"},
+    },
+  },
+  '{"account(3)":["name",{"projects":["name"]}]}': {
+    account: {
+      3: {name: "myOrg3", id: 3, projects: null},
     },
   },
   // The API names an id but sends `null` for the record when the token may not read it.
-  '{"account(4)":["name",{"disabledBy":["name"]}]}': {
-    account: {
-      4: {name: "myOrg4", id: 4, disabledBy: 9},
+  '{"deck(4)":["title",{"milestone":["name"]}]}': {
+    deck: {
+      4: {title: "Secret", id: 4, milestone: 9},
     },
-    user: {
+    milestone: {
       9: null,
     },
   },
-  '{"account(5)":["name",{"roles":["role"]}]}': {
+  '{"account(5)":["name",{"projects":["name"]}]}': {
     account: {
-      5: {name: "myOrg5", id: 5, roles: ["[5,1]", "[5,2]"]},
+      5: {name: "myOrg5", id: 5, projects: ["51", "52"]},
     },
-    accountRole: {
-      "[5,1]": {
-        accountId: 5,
-        userId: 1,
-        role: "admin",
-        "~model": "accountRole",
+    project: {
+      51: {id: 51, name: "Game"},
+      52: null,
+    },
+  },
+  '{"project(1)":["createdAt"]}': {
+    project: {
+      1: {id: 1, createdAt: "2015-01-01T00:00:00.000Z"},
+    },
+  },
+  '{"sprint(1)":["completedAt"]}': {
+    sprint: {
+      1: {id: 1, completedAt: null},
+    },
+  },
+  '{"account(1)":["name","count:projects"]}': {
+    account: {
+      1: {name: "myOrg", id: 1, "count:projects": 2},
+    },
+  },
+  '{"account(1)":["exists:cards"]}': {
+    account: {
+      1: {id: 1, "exists:cards": true},
+    },
+  },
+  '{"account(1)":[{"projects({\\"$limit\\":5,\\"$order\\":\\"-createdAt\\"})":["name"]}]}': {
+    account: {
+      1: {id: 1, 'projects({"$limit":5,"$order":"-createdAt"})': ["11", "12"]},
+    },
+    project: {
+      11: {id: 11, name: "Game", createdAt: "2025-11-01T00:00:00.000Z"},
+      12: {id: 12, name: "Website", createdAt: "2025-10-15T00:00:00.000Z"},
+    },
+  },
+  '{"account(1)":["name",{"projects({\\"$first\\":true,\\"$order\\":\\"-createdAt\\"})":["name"]}]}':
+    {
+      account: {
+        1: {
+          name: "myOrg",
+          id: 1,
+          'projects({"$first":true,"$order":"-createdAt"})': "11",
+        },
       },
-      "[5,2]": null,
-    },
-  },
-  '{"account(1)":["createdAt"]}': {
-    account: {
-      1: {name: "myOrg", id: 1, createdAt: "2015-01-01T00:00:00.000Z"},
-    },
-  },
-  '{"account(1)":["disabledAt"]}': {
-    account: {
-      1: {id: 1, disabledAt: null},
-    },
-  },
-  '{\"account(1)\":[\"name\",\"count:roles\"]}': {
-    account: {
-      1: {name: "myOrg", id: 1, "count:roles": 1},
-    },
-  },
-  '{\"_root\":[\"exists:releases\"]}': {
-    _root: {
-      "exists:releases": true,
-    },
-  },
-  '{"_root":[{"releases({\\"$limit\\":5,\\"$order\\":\\"-createdAt\\"})":["title"]}]}': {
-    _root: {
-      'releases({"$limit":5,"$order":"-createdAt"})': ["1", "2", "3"],
-    },
-    release: {
-      1: {title: "Release v1.0", id: 1, createdAt: "2025-11-01T00:00:00.000Z"},
-      2: {title: "Release v0.9", id: 2, createdAt: "2025-10-15T00:00:00.000Z"},
-      3: {title: "Release v0.8", id: 3, createdAt: "2025-10-01T00:00:00.000Z"},
-    },
-  },
-  '{"account(1)":["name",{"roles({\\"$first\\":true,\\"$order\\":\\"-accountId\\"})":["role"]}]}': {
-    account: {
-      1: {
-        name: "myOrg",
-        id: 1,
-        'roles({"$first":true,"$order":"-accountId"})': "[1,1]",
-      },
-    },
-    accountRole: {
-      "[1,1]": {
-        accountId: 1,
-        userId: 1,
-        role: "admin",
-        "~model": "accountRole",
+      project: {
+        11: {id: 11, name: "Game"},
       },
     },
-  },
 };
 
 export const handlers = [

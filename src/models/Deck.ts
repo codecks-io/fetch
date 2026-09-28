@@ -1,58 +1,67 @@
 import {makeModel, relation} from "./_desc";
 import * as f from "./_fields";
 import type {Nominal} from "./_type-helpers";
-import {type ProjectId} from "./Project";
-import {type AccountId} from "./Account";
-import {type MilestoneId} from "./Milestone";
-import {type UserId} from "./User";
-import {type FileId} from "./File";
-import {type ProjectTagId} from "./ProjectTag";
+import type {DefaultCard} from "./definitions";
+import type {AccountId} from "./Account";
+import type {FileId} from "./File";
+import type {MilestoneId} from "./Milestone";
+import type {ProjectId} from "./Project";
+import type {ProjectTagId} from "./ProjectTag";
+import type {UserId} from "./User";
 
 export type DeckId = Nominal<string, "deck">;
 export const deckDesc = makeModel({
   name: "deck",
   fields: {
-    id: f.id<DeckId>(),
-    content: f.string({}),
-    description: f.string({}),
-    title: f.string({}),
-    sortValue: f.string({}),
-    preferredOrder: f.string({optional: true}),
-    coverColor: f.string({optional: true}),
-    isDeleted: f.string({}),
-    accountSeq: f.int({}),
-    spaceId: f.int({optional: true}),
-    defaultCard: f.object({}),
-    isOnboardingDeck: f.bool({}),
-    handSyncEnabled: f.string({}),
-    stickyDefaultProjectTag: f.string({}),
-    manualOrderLabels: f.string({}),
-    workflowItemOrderLabels: f.string({}),
-    createdAt: f.date({}),
-    stats: f.object({}),
-    hasGuardians: f.string({}),
-    allowedCardTypes: f.string({}),
-    projectId: f.belongsTo({}).type<ProjectId>(),
     accountId: f.belongsTo({}).type<AccountId>(),
-    milestoneId: f.belongsTo({optional: true}).type<MilestoneId>(),
+    accountSeq: f.int({}),
+    /** @experimental `preview` in the Codecks API: may change in any release. */
+    coverColor: f.string({optional: true, stability: "preview"}),
+    /** @experimental `preview` in the Codecks API: may change in any release. */
+    coverFileId: f.belongsTo({optional: true, stability: "preview"}).type<FileId>(),
+    createdAt: f.date({}),
     creatorId: f.belongsTo({}).type<UserId>(),
-    coverFileId: f.belongsTo({optional: true}).type<FileId>(),
-    descriptionCoverFileId: f.belongsTo({optional: true}).type<FileId>(),
+    deckType: f.typed({}).type<"task" | "hero" | "doc" | "mixed" | (string & {})>(),
+    /** @experimental `preview` in the Codecks API: may change in any release. */
+    defaultCard: f.typed({stability: "preview"}).type<DefaultCard>(),
     defaultProjectTagId: f.belongsTo({optional: true}).type<ProjectTagId>(),
+    description: f.string({}),
+    /** @experimental `preview` in the Codecks API: may change in any release. */
+    handSyncEnabled: f.bool({stability: "preview"}),
+    /** @experimental `preview` in the Codecks API: may change in any release. */
+    hasGuardians: f.bool({stability: "preview"}),
+    id: f.id<DeckId>(),
+    isDeleted: f.bool({}),
+    /** @experimental `preview` in the Codecks API: may change in any release. */
+    manualOrderLabels: f.typed({stability: "preview"}).type<(string | null)[]>(),
+    milestoneId: f.belongsTo({optional: true}).type<MilestoneId>(),
+    projectId: f.belongsTo({}).type<ProjectId>(),
+    /** @experimental `preview` in the Codecks API: may change in any release. */
+    sortValue: f.string({stability: "preview"}),
+    /** @experimental `preview` in the Codecks API: may change in any release. */
+    spaceId: f.int({optional: true, stability: "preview"}),
+    title: f.string({}),
   },
   relations: {
-    project: relation("project", {type: "belongsTo", fk: "projectId"}),
     account: relation("account", {type: "belongsTo", fk: "accountId"}),
-    milestone: relation("milestone", {type: "belongsTo", fk: "milestoneId"}),
-    creator: relation("user", {type: "belongsTo", fk: "creatorId"}),
-    coverFile: relation("file", {type: "belongsTo", fk: "coverFileId"}),
-    descriptionCoverFile: relation("file", {type: "belongsTo", fk: "descriptionCoverFileId"}),
-    defaultProjectTag: relation("projectTag", {type: "belongsTo", fk: "defaultProjectTagId"}),
     cards: relation("card", {type: "hasMany"}),
-    workflowItems: relation("workflowItem", {type: "hasMany"}),
-    cardOrderInDecks: relation("cardOrderInDeck", {type: "hasMany"}),
-    activities: relation("activity", {type: "hasMany"}),
-    guardians: relation("deckGuardian", {type: "hasMany"}),
+    /** @experimental `preview` in the Codecks API: may change in any release. */
+    coverFile: relation("file", {
+      type: "belongsTo",
+      fk: "coverFileId",
+      optional: true,
+      stability: "preview",
+    }),
+    creator: relation("user", {type: "belongsTo", fk: "creatorId"}),
+    defaultProjectTag: relation("projectTag", {
+      type: "belongsTo",
+      fk: "defaultProjectTagId",
+      optional: true,
+    }),
+    milestone: relation("milestone", {type: "belongsTo", fk: "milestoneId", optional: true}),
+    project: relation("project", {type: "belongsTo", fk: "projectId"}),
+    /** @experimental `preview` in the Codecks API: may change in any release. */
+    workflowItems: relation("workflowItem", {type: "hasMany", stability: "preview"}),
   },
   keys: ["id"],
 });

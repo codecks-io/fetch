@@ -90,14 +90,14 @@ test("useFetch with hasMany count returns unwrapped count value", async () => {
   // Pre-load the data so it's available immediately
   const result = store.loadData("account", ["1"], {
     fields: ["name"],
-    relations: {roles: {type: "count", as: "roleCount"}},
+    relations: {projects: {type: "count", as: "projectCount"}},
   });
   if (result.state === "pending") await result.promise;
 
   function TestComponent() {
     const account = useFetch("account", "1", {
       fields: ["name"],
-      relations: {roles: {type: "count", as: "roleCount"}},
+      relations: {projects: {type: "count", as: "projectCount"}},
     });
 
     return <div data-testid="output">{JSON.stringify(account)}</div>;
@@ -111,6 +111,6 @@ test("useFetch with hasMany count returns unwrapped count value", async () => {
 
   expect(screen.queryByTestId("loading")).not.toBeInTheDocument();
   expect(screen.getByTestId("output").textContent).toBe(
-    JSON.stringify({"~model": "account", "~key": "1", name: "myOrg", roleCount: 1})
+    JSON.stringify({"~model": "account", "~key": "1", name: "myOrg", projectCount: 2})
   );
 });

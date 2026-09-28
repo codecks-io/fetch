@@ -57,7 +57,7 @@ export const reconcileInstanceQuery = <
 
       switch (opts.type) {
         case "belongsTo":
-          result[opts.fk] = instance[relName];
+          if (opts.fk) result[opts.fk] = instance[relName];
           result[`~${relName}`] = instance[relName] != null ? `${instance[relName]}` : null;
           result[relName] =
             instance[relName] != null

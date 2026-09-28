@@ -1,40 +1,130 @@
 import {modelMap} from "../src/models/index";
 import {_rootDesc} from "../src/models/_root";
-import {writeFileSync, mkdirSync, rmSync} from "fs";
+import {readFileSync, writeFileSync, mkdirSync, rmSync} from "fs";
 import {join} from "path";
 
-const SCHEMA_DIR = join(import.meta.dirname, "..", "schema");
+const ROOT_DIR = join(import.meta.dirname, "..");
+const SCHEMA_DIR = join(ROOT_DIR, "schema");
 
-const FIELD_TYPE_MAP: Record<string, string> = {
-  id: "string",
-  string: "string",
-  int: "number",
-  bigint: "bigint",
-  bool: "boolean",
-  date: "Date (ISO string)",
-  day: "{year, month, day}",
-  obj: "object",
-  array: "array",
-  belongsTo: "string (foreign key ID)",
+/**
+ * Written by `generate-models.ts` next to the descriptors: the TS type of every field (without the
+ * top-level `| null`, that's the descriptor's `optional`) and of every definition.
+ */
+const TYPES: {fields: Record<string, string>; definitions: Record<string, string>} = JSON.parse(
+  readFileSync(join(ROOT_DIR, "src", "models", "_types.json"), "utf8")
+);
+
+/** `date` and `day` fields are parsed at runtime, so the docs describe the parsed value. */
+const PARSED_TYPES: Record<string, {type: string; note: string}> = {
+  date: {type: "Date", note: " (sent as an ISO timestamp)"},
+  day: {type: "{year: number; month: number; day: number}", note: " (sent as `YYYY-MM-DD`)"},
 };
 
-function describeFieldType(type: string): string {
-  return FIELD_TYPE_MAP[type] ?? type;
+/** `UserId` → `user`, for every documented model. */
+const ID_TYPE_TO_MODEL = new Map(
+  Object.keys(modelMap)
+    .filter((name) => name !== "_root")
+    .map((name) => [`${name[0].toUpperCase()}${name.slice(1)}Id`, name])
+);
+
+type DocDir = "models" | "root";
+
+/** Link to a definition's entry in types.md or an id type's model page, if `name` is either. */
+function typeLink(name: string, dir: DocDir, selfModel?: string): string | null {
+  if (name in TYPES.definitions) {
+    return `[\`${name}\`](${dir === "models" ? "../types.md" : "types.md"}#${name.toLowerCase()})`;
+  }
+  const model = ID_TYPE_TO_MODEL.get(name);
+  if (model && model !== selfModel) {
+    return `[\`${name}\`](${dir === "models" ? "" : "models/"}${model}.md)`;
+  }
+  return null;
 }
 
-type FieldEntry = {type: string; optional?: boolean};
-type RelationEntry = {relName: string; options: {type: string; fk?: string; fkAsArray?: boolean}};
+/**
+ * Renders a TS type as markdown. A simple type (`Priority`, `UserId[]`, `CardId | null`) links its
+ * names inline. An object type stays one code span, followed by links to the names it uses.
+ */
+function linkType(type: string, dir: DocDir, selfModel?: string): string {
+  const parts = type.split(/\b([A-Z]\w*)\b/);
+  if (type.includes("{")) {
+    const links = [...new Set(parts.filter((_, i) => i % 2 === 1))]
+      .map((name) => typeLink(name, dir, selfModel))
+      .filter((link) => link !== null);
+    return `\`${type}\`${links.length ? ` (uses ${links.join(", ")})` : ""}`;
+  }
+  const out: string[] = [];
+  let code = "";
+  for (const part of parts) {
+    const link = typeLink(part, dir, selfModel);
+    if (link === null) {
+      code += part;
+      continue;
+    }
+    if (code) out.push(`\`${code}\``);
+    code = "";
+    out.push(link);
+  }
+  if (code) out.push(`\`${code}\``);
+  return out.join("");
+}
+
+function describeFieldType(modelName: string, fieldName: string, field: FieldEntry): string {
+  const type = TYPES.fields[`${modelName}.${fieldName}`];
+  if (type === undefined) {
+    throw new Error(
+      `No type for '${modelName}.${fieldName}' in src/models/_types.json. Run the model generator.`
+    );
+  }
+  const parsed = PARSED_TYPES[field.type];
+  const shown = `${parsed?.type ?? type}${field.optional ? " | null" : ""}`;
+  return `${linkType(shown, "models", modelName)}${parsed?.note ?? ""}`;
+}
+
+type TierOpts = {
+  stability?: "stable" | "preview";
+  deprecated?: {since: string; removeAfter: string; use?: string};
+};
+type FieldEntry = {type: string; optional?: boolean} & TierOpts;
+type RelationEntry = {
+  relName: string;
+  options: {type: string; fk?: string; fkAsArray?: boolean; optional?: boolean} & TierOpts;
+};
 type ModelDesc = {
   name: string;
   keys: string[];
   fields: Record<string, FieldEntry>;
   relations: Record<string, RelationEntry>;
-};
+} & TierOpts;
+
+const PREVIEW_NOTE =
+  "may change in any release. Each change is listed in the [API changelog](https://manual.codecks.io/api-changelog/).";
+
+/** Appended to a field, relation or model line, e.g. ` — **preview**`. */
+function describeTier(tier: TierOpts): string {
+  const parts: string[] = [];
+  if (tier.stability === "preview") parts.push("**preview**");
+  if (tier.deprecated) {
+    const {since, removeAfter, use} = tier.deprecated;
+    parts.push(
+      `**deprecated** since ${since}, removed after ${removeAfter}${use ? `, use \`${use}\`` : ""}`
+    );
+  }
+  return parts.length ? ` — ${parts.join(", ")}` : "";
+}
 
 function generateModelDoc(modelName: string, desc: ModelDesc): string {
   const lines: string[] = [];
   lines.push(`# ${modelName}`);
   lines.push("");
+  if (desc.stability === "preview") {
+    lines.push(`**preview**: this model ${PREVIEW_NOTE}`);
+    lines.push("");
+  }
+  if (desc.deprecated) {
+    lines.push(`This model is${describeTier({deprecated: desc.deprecated}).slice(2)}.`);
+    lines.push("");
+  }
   if (desc.keys.length > 0) {
     lines.push(`Key: \`${desc.keys.join("`, `")}\``);
     lines.push("");
@@ -46,17 +136,15 @@ function generateModelDoc(modelName: string, desc: ModelDesc): string {
     lines.push("## Fields");
     lines.push("");
     for (const [name, field] of fieldEntries) {
-      const opt = (field as any).optional ? ", optional" : "";
+      const type = describeFieldType(desc.name, name, field);
+      let fkOf = "";
       if (field.type === "belongsTo") {
-        // Find the matching relation to show the target model
-        const rel = Object.values(desc.relations).find(
-          (r) => r.options.type === "belongsTo" && r.options.fk === name
+        const rel = Object.entries(desc.relations).find(
+          ([, r]) => r.options.type === "belongsTo" && r.options.fk === name
         );
-        const target = rel ? ` → ${rel.relName}` : "";
-        lines.push(`- \`${name}\`: ${describeFieldType(field.type)}${target}${opt}`);
-      } else {
-        lines.push(`- \`${name}\`: ${describeFieldType(field.type)}${opt}`);
+        fkOf = rel ? `, foreign key of \`${rel[0]}\`` : ", foreign key";
       }
+      lines.push(`- \`${name}\`: ${type}${fkOf}${describeTier(field)}`);
     }
     lines.push("");
   }
@@ -75,8 +163,11 @@ function generateModelDoc(modelName: string, desc: ModelDesc): string {
       lines.push("### belongsTo");
       lines.push("");
       for (const [name, rel] of belongsTo) {
+        // Without an fk the API returns the relation under its own name; there's no id field.
+        const via = rel.options.fk ? ` (via \`${rel.options.fk}\`)` : "";
+        const opt = rel.options.optional ? ", optional" : "";
         lines.push(
-          `- \`${name}\` → [${rel.relName}](${rel.relName}.md) (via \`${rel.options.fk}\`)`
+          `- \`${name}\` → [${rel.relName}](${rel.relName}.md)${via}${opt}${describeTier(rel.options)}`
         );
       }
       lines.push("");
@@ -86,7 +177,9 @@ function generateModelDoc(modelName: string, desc: ModelDesc): string {
       lines.push("### hasOne");
       lines.push("");
       for (const [name, rel] of hasOne) {
-        lines.push(`- \`${name}\` → [${rel.relName}](${rel.relName}.md)`);
+        lines.push(
+          `- \`${name}\` → [${rel.relName}](${rel.relName}.md)${describeTier(rel.options)}`
+        );
       }
       lines.push("");
     }
@@ -98,7 +191,9 @@ function generateModelDoc(modelName: string, desc: ModelDesc): string {
         const fkAsArray = rel.options.fkAsArray
           ? " — `fkAsArray` (plain selection + `count`/`exists` only; no `filter`/`orderBy`/`limit`/`offset`/`first`)"
           : "";
-        lines.push(`- \`${name}\` → [${rel.relName}](${rel.relName}.md)${fkAsArray}`);
+        lines.push(
+          `- \`${name}\` → [${rel.relName}](${rel.relName}.md)${fkAsArray}${describeTier(rel.options)}`
+        );
       }
       lines.push("");
     }
@@ -111,6 +206,20 @@ function generateOverview(): string {
   const lines: string[] = [];
   lines.push("# @codecks/fetch Schema Overview");
   lines.push("");
+  lines.push("## Stability");
+  lines.push("");
+  lines.push(
+    "These files list what the Codecks API documents. Anything else the API answers is internal and can change without notice."
+  );
+  lines.push("");
+  lines.push(
+    "- **stable** (unmarked): changes only after a deprecation and 6 months' notice, see [Stability](https://manual.codecks.io/api/#stability)."
+  );
+  lines.push(`- **preview**: ${PREVIEW_NOTE} The TypeScript types mark these \`@experimental\`.`);
+  lines.push(
+    "- **deprecated**: still answered until the date given, then removed. The TypeScript types mark these `@deprecated`."
+  );
+  lines.push("");
 
   // Root entry points
   lines.push("## Root Entry Points");
@@ -119,8 +228,26 @@ function generateOverview(): string {
   lines.push("");
   for (const [name, rel] of Object.entries(_rootDesc.relations)) {
     const r = rel as RelationEntry;
-    lines.push(`- \`${name}\` (${r.options.type}) → [${r.relName}](models/${r.relName}.md)`);
+    lines.push(
+      `- \`${name}\` (${r.options.type}) → [${r.relName}](models/${r.relName}.md)${describeTier(r.options)}`
+    );
   }
+  lines.push("");
+
+  lines.push("## Types");
+  lines.push("");
+  lines.push(
+    `Model pages give each field's TypeScript type. Named types (enums, json shapes) are listed in [types.md](types.md) and exported from the package: ${Object.keys(
+      TYPES.definitions
+    )
+      .sort()
+      .map((name) => linkType(name, "root"))
+      .join(", ")}.`
+  );
+  lines.push("");
+  lines.push(
+    'Enums are open unions like `"a" | "b" | (string & {})`: the API may add values, so handle unknown ones.'
+  );
   lines.push("");
 
   // Model index
@@ -134,11 +261,52 @@ function generateOverview(): string {
     const relCount = Object.keys(d.relations).length;
     const keys = d.keys.length > 0 ? ` (key: ${d.keys.join(", ")})` : "";
     lines.push(
-      `- [${name}](models/${name}.md)${keys} — ${fieldCount} fields, ${relCount} relations`
+      `- [${name}](models/${name}.md)${keys} — ${fieldCount} fields, ${relCount} relations${describeTier(d)}`
     );
   }
   lines.push("");
 
+  return lines.join("\n");
+}
+
+function generateTypes(): string {
+  const lines: string[] = [];
+  lines.push("# Types");
+  lines.push("");
+  lines.push(
+    "Named types used by the [models](overview.md#all-models). Each is exported from `@codecks/fetch`."
+  );
+  lines.push("");
+  lines.push(
+    "Enums are open unions: `(string & {})` keeps autocompletion for the listed values but admits new ones the API may add."
+  );
+  lines.push("");
+  for (const name of Object.keys(TYPES.definitions).sort()) {
+    const type = TYPES.definitions[name];
+    lines.push(`## ${name}`);
+    lines.push("");
+    lines.push("```ts");
+    lines.push(`type ${name} = ${type};`);
+    lines.push("```");
+    lines.push("");
+    const refs = [...new Set(type.match(/\b[A-Z]\w*\b/g) ?? [])].filter(
+      (ref) => ref in TYPES.definitions || ID_TYPE_TO_MODEL.has(ref)
+    );
+    if (refs.length > 0) {
+      lines.push(`Uses ${refs.map((ref) => linkType(ref, "root")).join(", ")}.`);
+      lines.push("");
+    }
+    const usedBy = Object.entries(TYPES.fields)
+      .filter(([, fieldType]) => new RegExp(`\\b${name}\\b`).test(fieldType))
+      .map(([key]) => {
+        const [model] = key.split(".");
+        return `[\`${key}\`](models/${model}.md)`;
+      });
+    if (usedBy.length > 0) {
+      lines.push(`Used by ${usedBy.join(", ")}.`);
+      lines.push("");
+    }
+  }
   return lines.join("\n");
 }
 
@@ -276,7 +444,7 @@ Pass an array of queries with \`as\` aliases:
     fields: ["title"],
     filter: {
       assignee: {name: "Alice"},           // cards where assignee.name = "Alice"
-      "!deck": {isDeleted: "true"},        // negated: cards NOT in deleted decks
+      "!milestone": {name: "Alpha"},       // negated: cards NOT in the "Alpha" milestone
     },
   },
 }
@@ -339,6 +507,9 @@ mkdirSync(join(SCHEMA_DIR, "models"), {recursive: true});
 // Write overview
 writeFileSync(join(SCHEMA_DIR, "overview.md"), generateOverview());
 
+// Write named types
+writeFileSync(join(SCHEMA_DIR, "types.md"), generateTypes());
+
 // Write query syntax
 writeFileSync(join(SCHEMA_DIR, "query-syntax.md"), generateQuerySyntax());
 
@@ -350,5 +521,5 @@ for (const [name, desc] of models) {
 }
 
 console.log(
-  `Generated schema docs: overview.md, query-syntax.md, ${models.length} model files in schema/models/`
+  `Generated schema docs: overview.md, types.md, query-syntax.md, ${models.length} model files in schema/models/`
 );

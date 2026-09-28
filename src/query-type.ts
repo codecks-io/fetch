@@ -1,6 +1,5 @@
 import type {Filter, Order} from "./has-many-filter-type";
 import type {InferFieldType, AnyDesc, RelationEntry, BelongsToOpts} from "./models/_desc";
-import type {TypedField} from "./models/_fields";
 import type {FilterNeverKeys} from "./models/_type-helpers";
 
 type ModelMap = Record<string, AnyDesc>;
@@ -141,13 +140,10 @@ type EnsureHasManyQuery<T> = T extends AbstractHasManyQuery ? T : never;
 
 type EnrichBelongsTo<M extends AnyDesc, TMap extends ModelMap> = FilterNeverKeys<{
   [K in keyof M["relations"]]: M["relations"][K] extends RelationEntry<any, infer Opts>
-    ? Opts extends BelongsToOpts<infer TFk>
+    ? Opts extends BelongsToOpts<any>
       ? {
           model: TMap[M["relations"][K]["relName"]];
-          fk: TFk;
-          field: M["fields"][TFk] extends TypedField<"belongsTo", infer FieldType, infer FieldOpts>
-            ? {type: FieldType} & FieldOpts
-            : never;
+          optional: Opts extends {optional: true} ? true : false;
         }
       : never
     : never;
@@ -182,7 +178,13 @@ export type InferModelQuery<
   Q extends ModelQuery<M, TMap>,
   TMap extends ModelMap,
 > = (Q["fields"] extends (keyof M["fields"])[]
-  ? {[K in Q["fields"][number]]: InferFieldType<M["fields"][K]>}
+  ? // mapped over the model's fields so a result's property keeps their `@experimental` and
+    // `@deprecated` docs
+    {
+      [K in keyof M["fields"] as K extends Q["fields"][number] ? K : never]: InferFieldType<
+        M["fields"][K]
+      >;
+    }
   : {}) &
   (Q["relations"] extends RelQuery<M, TMap> ? InferRelQuery<M, Q["relations"], TMap> : {}) & {
     // add id fields
@@ -231,7 +233,7 @@ type InferRelEntry<
 > = K extends keyof EnrichBelongsTo<M, TMap>
   ? IsOptional<
       InferModelQuery<EnrichBelongsTo<M, TMap>[K]["model"], EnsureModelQuery<Q[K]>, TMap>,
-      EnrichBelongsTo<M, TMap>[K]["field"]["optional"]
+      EnrichBelongsTo<M, TMap>[K]["optional"]
     >
   : K extends keyof ExtractHasMany<M, TMap>
     ? InferHasMany<ExtractHasMany<M, TMap>[K]["model"], TMap, EnsureHasManyQuery<Q[K]>>

@@ -34,7 +34,7 @@
                              │
                              ▼
                       ┌─────────────┐
-                      │   Models    │  ~90 model descriptors
+                      │   Models    │  generated model descriptors
                       └─────────────┘
 ```
 
@@ -52,11 +52,14 @@ src/
 │
 ├── models/
 │   ├── _desc.ts              makeModel / relation helpers & ModelDesc type
-│   ├── _fields.ts            Field type constructors (id, string, int, date, ...)
+│   ├── _fields.ts            Field type constructors (id, string, int, date, typed, ...)
 │   ├── _type-helpers.ts      Nominal type + TS utilities
-│   ├── _root.ts              Virtual root model (entry point for root queries)
-│   ├── index.ts              modelMap – registry mapping name → descriptor
-│   └── *.ts                  ~90 concrete model descriptors (Account, Card, User, ...)
+│   ├── _root.ts              Virtual root model (entry point for root queries), generated
+│   ├── index.ts              modelMap – registry mapping name → descriptor, generated
+│   ├── definitions.ts        Named types from the reference (Priority, Checkbox, ...), generated
+│   ├── ids.ts                Re-exports every *Id type, generated
+│   ├── _types.json           Rendered type strings for the schema docs, generated
+│   └── *.ts                  concrete model descriptors, generated (Account, Card, User, ...)
 │
 └── loaders/
     ├── loader-utils.ts       DataLoader interface + configuredFetch helper
@@ -70,7 +73,8 @@ src/
 Each model is declared with `makeModel()` and produces a `ModelDesc` containing:
 
 - **name** – unique string identifier (e.g. `"card"`)
-- **fields** – field descriptors built with `f.id()`, `f.string()`, `f.date()`, `f.belongsTo()`, etc.
+- **fields** – field descriptors built with `f.id()`, `f.string()`, `f.date()`, `f.belongsTo()`,
+  `f.typed()`, etc.
 - **relations** – named relations built with `relation(targetModel, opts)`.
   Three kinds: `belongsTo` (with a foreign key field), `hasMany`, `hasOne`.
 - **keys** – array of field names that uniquely identify an instance (usually `["id"]` or `["cardId"]`)
@@ -85,23 +89,47 @@ export const cardDesc = makeModel({
   fields: {
     cardId: f.id<CardId>(),
     title: f.string({}),
-    status: f.string({}),
+    status: f.typed({}).type<"not_started" | "started" | "snoozing" | "done" | (string & {})>(),
+    priority: f.typed({optional: true}).type<Priority>(),
     assigneeId: f.belongsTo({optional: true}).type<UserId>(),
     // ...
   },
   relations: {
-    assignee: relation("user", {type: "belongsTo", fk: "assigneeId"}),
-    childCards: relation("card", {type: "hasMany"}),
-    totalTimeTrackingSums: relation("timeTrackingSum", {type: "hasOne"}),
+    assignee: relation("user", {type: "belongsTo", fk: "assigneeId", optional: true}),
+    childCards: relation("card", {type: "hasMany", fkAsArray: true}),
     // ...
   },
   keys: ["cardId"],
 });
 ```
 
+#### Generation
+
+`src/models/` is generated from the codecks repo's `shared/api-reference.json`
+(`npm run generate:models -- <path>`); don't edit it by hand, except `_desc.ts`, `_fields.ts` and
+`_type-helpers.ts`. The logic (`renderSchema`, `generate`) is in `scripts/models-from-reference.ts`,
+the CLI in `scripts/generate-models.ts`.
+
+The reference types every field with a JTD schema. The id prop becomes `f.id`, a belongsTo fk
+`f.belongsTo`, a top-level timestamp `f.date`, a day `f.day`, and plain ints, booleans and strings
+`f.int` / `f.bool` / `f.string`. Everything else (enums, refs, arrays, json objects, maps) becomes
+`f.typed(opts).type<T>()` with `T` rendered from the schema:
+
+- enums are open unions, `"a" | "b" | (string & {})`, since the API may add values
+- ids are nominal wherever the schema names a model, also inside arrays and maps
+  (`UserId[]`, `{[userId: UserId]: number}`)
+- timestamps and days nested in a json value stay strings: `parseField` only parses top-level
+  `date` / `day` fields. A day that is part of a key (`milestoneProgress.date`) stays a string too.
+
+A relation's kind, fk and nullability (`optional`) come from the reference; the fk is always a listed
+field. The reference's named types go to `definitions.ts`, the `*Id` types are re-exported from
+`ids.ts`, and `src/index.ts` exports both. `_types.json` holds the rendered type string of every
+field and definition for `scripts/generate-schema-docs.ts` (which also writes `schema/types.md`);
+nothing in `src/` imports it.
+
 All descriptors are re-exported through `modelMap` in `src/models/index.ts`, which is the single registry the rest of the system relies on.
 
-A special `_root` model has no fields or keys and only exposes top-level relations like `account`, `loggedInUser`, `releases`, etc. It serves as the entry point for `fetchFromRoot`.
+A special `_root` model has no fields or keys and only exposes the top-level relations `account` and `loggedInUser`. It serves as the entry point for `fetchFromRoot`.
 
 #### Nominal IDs
 

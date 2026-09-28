@@ -61,7 +61,7 @@ before then.
 
 ### `fetchFromRoot` — query top-level relations
 
-Use this to query entry points like `account`, `loggedInUser`, or `releases`.
+Use this to query the entry points `account` and `loggedInUser`.
 
 ```ts
 const result = await fetchFromRoot({
@@ -105,9 +105,8 @@ const account = result.account;
 // account has { ~model: "account", ~key: "1" }
 
 const details = await fetchFromInstance(account, {
-  fields: ["seats", "activeProjectCount"],
   relations: {
-    roles: {fields: ["role"]},
+    projects: {fields: ["name"]},
   },
 });
 ```
@@ -121,22 +120,19 @@ const result = await fetchFromRoot({
   account: {
     fields: ["name"],
     relations: {
-      // belongsTo — returns a single object (or null if optional)
-      disabledBy: {fields: ["name"]},
-
       // hasMany — returns an array
-      roles: {
-        fields: ["role"],
+      cards: {
+        fields: ["title"],
         relations: {
-          user: {fields: ["name", "fullName"]},
+          // belongsTo — returns a single object (or null if optional)
+          assignee: {fields: ["name", "fullName"]},
         },
       },
     },
   },
 });
 
-// result.account.disabledBy?.name
-// result.account.roles[0].user.name
+// result.account.cards[0].assignee?.name
 ```
 
 ## hasMany variants
@@ -147,32 +143,32 @@ hasMany relations support several query modes. Non-default variants require an `
 
 ```ts
 relations: {
-  roles: {
-    fields: ["role"],
-    orderBy: "-accountId",
+  cards: {
+    fields: ["title"],
+    orderBy: "-createdAt",
     limit: 10,
     offset: 0,
   },
 }
-// result.roles: Array<{role: string, ...}>
+// result.cards: Array<{title: string, ...}>
 ```
 
 ### Count
 
 ```ts
 relations: {
-  roles: {type: "count", as: "roleCount"},
+  cards: {type: "count", as: "cardCount"},
 }
-// result.roleCount: number
+// result.cardCount: number
 ```
 
 ### Exists
 
 ```ts
 relations: {
-  releases: {type: "exists", as: "hasReleases"},
+  cards: {type: "exists", as: "hasCards"},
 }
-// result.hasReleases: boolean
+// result.hasCards: boolean
 ```
 
 ### First
@@ -181,14 +177,14 @@ Returns a single result or `null`. Requires `orderBy`.
 
 ```ts
 relations: {
-  roles: {
+  cards: {
     type: "first",
-    as: "firstRole",
-    orderBy: "-accountId",
-    fields: ["role"],
+    as: "newestCard",
+    orderBy: "-createdAt",
+    fields: ["title"],
   },
 }
-// result.firstRole: {role: string, ...} | null
+// result.newestCard: {title: string, ...} | null
 ```
 
 ### Multiple queries on the same relation
@@ -197,13 +193,13 @@ Pass an array of aliased queries to query the same relation in different ways:
 
 ```ts
 relations: {
-  roles: [
-    {as: "adminRoles", fields: ["role"], filter: {role: "admin"}},
-    {as: "roleCount", type: "count"},
+  cards: [
+    {as: "startedCards", fields: ["title"], filter: {status: "started"}},
+    {as: "cardCount", type: "count"},
   ],
 }
-// result.adminRoles: Array<...>
-// result.roleCount: number
+// result.startedCards: Array<...>
+// result.cardCount: number
 ```
 
 ## Filtering
@@ -231,7 +227,7 @@ filter: {
 
 ```ts
 filter: {
-  createdAt: {op: "gt", value: "2025-01-01"},
+  createdAt: {op: "gt", value: new Date("2025-01-01")},
   effort: {op: "lte", value: 5},
 }
 ```
@@ -328,14 +324,37 @@ const card = await fetchInstance("card", "card-123", {
 
 All response types are fully inferred from your query — TypeScript knows exactly which fields and relations are present.
 
+## Stability
+
+The models and fields in this package are the ones the [API Reference](https://manual.codecks.io/api-reference/) documents. The API answers more than that, but anything undocumented is internal and can change without notice, so this package leaves it out.
+
+- **stable** — changes only after a deprecation and 6 months' notice, see [Stability](https://manual.codecks.io/api/#stability).
+- **preview** — may change in any release, listed in the [API changelog](https://manual.codecks.io/api-changelog/). The types mark these `@experimental`.
+- **deprecated** — the types mark these `@deprecated`, with the removal date and what to use instead, so editors strike them through.
+
+## Field types
+
+Field types come from the API Reference's schemas.
+
+- **Enums are open unions**: `card.status` is `"not_started" | "started" | "snoozing" | "done" | (string & {})`. The values autocomplete, but the API may add new ones, so a `switch` over one isn't exhaustive. Keep a `default` branch.
+- **Ids are nominal**: `CardId`, `UserId`, … can't be mixed up, also inside arrays and maps (`card.mentionedUsers: UserId[]`, `milestone.userCapacities: {[userId: UserId]: number}`).
+- **Dates**: a top-level timestamp is a `Date`, a day is `{year, month, day}`, except a day that is part of a key (`milestoneProgress.date`), which stays a string. Inside a json value (e.g. an entry of an array field) they stay ISO strings.
+
+The reference's named types and every id type are exported, so you can use them in your own code:
+
+```ts
+import type {CardId, Checkbox, Priority, UserId} from "@codecks/fetch";
+```
+
 ## Schema reference for LLMs
 
-This package ships with generated markdown files describing every API model, its fields, and relations. These are designed for LLM-based tools (Claude Code, Cursor, Copilot, etc.) that need to discover the API schema without relying on TypeScript autocomplete.
+This package ships with generated markdown files describing every documented API model, its fields, and relations, with the same stability markers. These are designed for LLM-based tools (Claude Code, Cursor, Copilot, etc.) that need to discover the API schema without relying on TypeScript autocomplete.
 
 ```
 node_modules/@codecks/fetch/schema/
   overview.md          # Root entry points + index of all models
   query-syntax.md      # Query DSL reference with examples
+  types.md             # Named types (Priority, Checkbox, ...) the model files link to
   models/
     card.md            # Fields + relations for the card model
     account.md         # Fields + relations for the account model

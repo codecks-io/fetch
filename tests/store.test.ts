@@ -136,13 +136,12 @@ test("Store caching - returns resolved immediately when all data is cached", asy
 test.only("Store - fetch relation with query params (limit, orderBy)", async () => {
   const {store, loader} = getStore();
 
-  // Load releases from root with limit and orderBy
-  const result = await store.loadData("_root", [""], {
+  const result = await store.loadData("account", ["1"], {
     relations: {
-      releases: {
+      projects: {
         limit: 5,
         orderBy: "-createdAt" as any,
-        fields: ["title"],
+        fields: ["name"],
       },
     },
   });
@@ -151,12 +150,13 @@ test.only("Store - fetch relation with query params (limit, orderBy)", async () 
   if (result.state === "pending") {
     const finalResult = await result.promise;
     expect(finalResult).toEqual({
-      "": {
-        "~releases": ["1", "2", "3"],
-        releases: [
-          {"~model": "release", "~key": "1", title: "Release v1.0"},
-          {"~model": "release", "~key": "2", title: "Release v0.9"},
-          {"~model": "release", "~key": "3", title: "Release v0.8"},
+      "1": {
+        "~model": "account",
+        "~key": "1",
+        "~projects": ["11", "12"],
+        projects: [
+          {"~model": "project", "~key": "11", name: "Game"},
+          {"~model": "project", "~key": "12", name: "Website"},
         ],
       },
     });
@@ -167,13 +167,13 @@ test.only("Store - fetch relation with query params (limit, orderBy)", async () 
     [
       {
         type: "relation",
-        model: "_root",
-        id: "",
-        relKey: 'releases({"$limit":5,"$order":"-createdAt"})',
-        contents: {asField: false, fields: ["title"], relations: undefined},
+        model: "account",
+        id: "1",
+        relKey: 'projects({"$limit":5,"$order":"-createdAt"})',
+        contents: {asField: false, fields: ["name"], relations: undefined},
       },
     ],
   ]);
 
-  store.invalidate([`_root::releases({"$limit":5,"$order":"-createdAt"})`]);
+  store.invalidate([`account:1:projects({"$limit":5,"$order":"-createdAt"})`]);
 });

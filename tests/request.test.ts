@@ -46,22 +46,22 @@ test("base model test", async () => {
 
 test("belongsTo", async () => {
   const {fetchFromInstance} = getFetchers();
-  const response = await fetchFromInstance(myAccountInstance, {
-    fields: ["name"],
-    relations: {disabledBy: {fields: ["name"]}},
-  });
+  const response = await fetchFromInstance(
+    {"~model": "deck", "~key": "1"},
+    {fields: ["title"], relations: {milestone: {fields: ["name"]}}}
+  );
   expect(response).toEqual({
-    "~model": "account",
+    "~model": "deck",
     "~key": "1",
     id: 1,
-    name: "myOrg",
-    disabledById: 2,
-    "~disabledBy": "2",
-    disabledBy: {
-      "~model": "user",
+    title: "Backlog",
+    milestoneId: 2,
+    "~milestone": "2",
+    milestone: {
+      "~model": "milestone",
       "~key": "2",
       id: 2,
-      name: "daniel",
+      name: "Alpha",
     },
   });
 });
@@ -69,50 +69,40 @@ test("belongsTo", async () => {
 test("belongsToIsNull", async () => {
   const {fetchFromInstance} = getFetchers();
   const response = await fetchFromInstance(
-    {"~model": "account", "~key": "2"},
-    {fields: ["name"], relations: {disabledBy: {fields: ["name"]}}}
+    {"~model": "deck", "~key": "2"},
+    {fields: ["title"], relations: {milestone: {fields: ["name"]}}}
   );
   expect(response).toEqual({
-    "~model": "account",
+    "~model": "deck",
     "~key": "2",
     id: 2,
-    name: "myOrg2",
-    disabledById: null,
-    "~disabledBy": null,
-    disabledBy: null,
+    title: "Ideas",
+    milestoneId: null,
+    "~milestone": null,
+    milestone: null,
   });
 });
+
+const gameAndWebsite = [
+  {"~model": "project", "~key": "11", id: 11, name: "Game"},
+  {"~model": "project", "~key": "12", id: 12, name: "Website"},
+];
 
 test("hasMany", async () => {
   const {fetchFromInstance} = getFetchers();
   const response = await fetchFromInstance(myAccountInstance, {
     fields: ["name"],
-    relations: {roles: {fields: ["role"]}},
+    relations: {projects: {fields: ["name"]}},
   });
-  response.roles[0];
+  response.projects[0];
 
   expect(response).toEqual({
     "~model": "account",
     "~key": "1",
     id: 1,
     name: "myOrg",
-    "~roles": ["[1,1]", "[1,2]"],
-    roles: [
-      {
-        "~model": "accountRole",
-        "~key": "[1,1]",
-        accountId: 1,
-        userId: 1,
-        role: "admin",
-      },
-      {
-        "~model": "accountRole",
-        "~key": "[1,2]",
-        accountId: 1,
-        userId: 2,
-        role: "member",
-      },
-    ],
+    "~projects": ["11", "12"],
+    projects: gameAndWebsite,
   });
 });
 
@@ -123,35 +113,35 @@ test("hasManyNull", async () => {
   const {fetchFromInstance} = getFetchers();
   const response = await fetchFromInstance(
     {"~model": "account", "~key": "3"},
-    {fields: ["name"], relations: {roles: {fields: ["role"]}}}
+    {fields: ["name"], relations: {projects: {fields: ["name"]}}}
   );
   expect(response).toEqual({
     "~model": "account",
     "~key": "3",
     id: 3,
     name: "myOrg3",
-    "~roles": [],
-    roles: [],
+    "~projects": [],
+    projects: [],
   });
 });
 
 test("belongsTo pointing at a record the API withholds", async () => {
-  // The API names the id and sends `null` for the record — a user the token may not
+  // The API names the id and sends `null` for the record — a milestone the token may not
   // read. Reconcile yields null for the relation instead of throwing on the null record.
   const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
   const {fetchFromInstance} = getFetchers();
   const response = await fetchFromInstance(
-    {"~model": "account", "~key": "4"},
-    {fields: ["name"], relations: {disabledBy: {fields: ["name"]}}}
+    {"~model": "deck", "~key": "4"},
+    {fields: ["title"], relations: {milestone: {fields: ["name"]}}}
   );
   expect(response).toEqual({
-    "~model": "account",
+    "~model": "deck",
     "~key": "4",
     id: 4,
-    name: "myOrg4",
-    disabledById: 9,
-    "~disabledBy": "9",
-    disabledBy: null,
+    title: "Secret",
+    milestoneId: 9,
+    "~milestone": "9",
+    milestone: null,
   });
   // A withheld record is nothing the caller can act on, unlike an id the response never
   // mentioned — that one still warns.
@@ -166,23 +156,15 @@ test("hasMany naming a record the API withholds", async () => {
   const {fetchFromInstance} = getFetchers();
   const response = await fetchFromInstance(
     {"~model": "account", "~key": "5"},
-    {fields: ["name"], relations: {roles: {fields: ["role"]}}}
+    {fields: ["name"], relations: {projects: {fields: ["name"]}}}
   );
   expect(response).toEqual({
     "~model": "account",
     "~key": "5",
     id: 5,
     name: "myOrg5",
-    "~roles": ["[5,1]"],
-    roles: [
-      {
-        "~model": "accountRole",
-        "~key": "[5,1]",
-        accountId: 5,
-        userId: 1,
-        role: "admin",
-      },
-    ],
+    "~projects": ["51"],
+    projects: [{"~model": "project", "~key": "51", id: 51, name: "Game"}],
   });
   expect(warn).not.toHaveBeenCalled();
   warn.mockRestore();
@@ -192,32 +174,17 @@ test("hasManyNamed", async () => {
   const {fetchFromInstance} = getFetchers();
   const response = await fetchFromInstance(myAccountInstance, {
     fields: ["name"],
-    relations: {roles: {as: "myRoles", fields: ["role"]}},
+    relations: {projects: {as: "myProjects", fields: ["name"]}},
   });
-  response.myRoles[0];
+  response.myProjects[0];
 
   expect(response).toEqual({
     "~model": "account",
     "~key": "1",
     id: 1,
     name: "myOrg",
-    "~myRoles": ["[1,1]", "[1,2]"],
-    myRoles: [
-      {
-        "~model": "accountRole",
-        "~key": "[1,1]",
-        accountId: 1,
-        userId: 1,
-        role: "admin",
-      },
-      {
-        "~model": "accountRole",
-        "~key": "[1,2]",
-        accountId: 1,
-        userId: 2,
-        role: "member",
-      },
-    ],
+    "~myProjects": ["11", "12"],
+    myProjects: gameAndWebsite,
   });
 });
 
@@ -225,42 +192,28 @@ test("hasManyNamedInArray", async () => {
   const {fetchFromInstance} = getFetchers();
   const response = await fetchFromInstance(myAccountInstance, {
     fields: ["name"],
-    relations: {roles: [{as: "myRoles", fields: ["role"]}]},
+    relations: {projects: [{as: "myProjects", fields: ["name"]}]},
   });
-  response.myRoles[0];
+  response.myProjects[0];
 
   expect(response).toEqual({
     "~model": "account",
     "~key": "1",
     id: 1,
     name: "myOrg",
-    "~myRoles": ["[1,1]", "[1,2]"],
-    myRoles: [
-      {
-        "~model": "accountRole",
-        "~key": "[1,1]",
-        accountId: 1,
-        userId: 1,
-        role: "admin",
-      },
-      {
-        "~model": "accountRole",
-        "~key": "[1,2]",
-        accountId: 1,
-        userId: 2,
-        role: "member",
-      },
-    ],
+    "~myProjects": ["11", "12"],
+    myProjects: gameAndWebsite,
   });
 });
 
 test("transform fields", async () => {
   const {fetchFromInstance} = getFetchers();
-  const response = await fetchFromInstance(myAccountInstance, {
-    fields: ["createdAt"],
-  });
+  const response = await fetchFromInstance(
+    {"~model": "project", "~key": "1"},
+    {fields: ["createdAt"]}
+  );
   expect(response).toEqual({
-    "~model": "account",
+    "~model": "project",
     "~key": "1",
     id: 1,
     createdAt: new Date("2015-01-01T00:00:00.000Z"),
@@ -269,14 +222,15 @@ test("transform fields", async () => {
 
 test("null date fields remain null", async () => {
   const {fetchFromInstance} = getFetchers();
-  const response = await fetchFromInstance(myAccountInstance, {
-    fields: ["disabledAt"],
-  });
+  const response = await fetchFromInstance(
+    {"~model": "sprint", "~key": "1"},
+    {fields: ["completedAt"]}
+  );
   expect(response).toEqual({
-    "~model": "account",
+    "~model": "sprint",
     "~key": "1",
     id: 1,
-    disabledAt: null,
+    completedAt: null,
   });
 });
 
@@ -284,28 +238,28 @@ test("hasMany - count", async () => {
   const {fetchFromInstance} = getFetchers();
   const response = await fetchFromInstance(myAccountInstance, {
     fields: ["name"],
-    relations: {roles: {type: "count", as: "roleCount"}},
+    relations: {projects: {type: "count", as: "projectCount"}},
   });
-  response.roleCount;
+  response.projectCount;
   expect(response).toEqual({
     "~model": "account",
     "~key": "1",
     id: 1,
     name: "myOrg",
-    roleCount: 1,
+    projectCount: 2,
   });
 });
 
-test("hasMany on root", async () => {
-  const {fetchFromRoot} = getFetchers();
-  const response = await fetchFromRoot({
-    releases: {
-      type: "exists",
-      as: "hasReleases",
-    },
+test("hasMany - exists", async () => {
+  const {fetchFromInstance} = getFetchers();
+  const response = await fetchFromInstance(myAccountInstance, {
+    relations: {cards: {type: "exists", as: "hasCards"}},
   });
   expect(response).toEqual({
-    hasReleases: true,
+    "~model": "account",
+    "~key": "1",
+    id: 1,
+    hasCards: true,
   });
 });
 
@@ -314,11 +268,11 @@ test("hasMany - first", async () => {
   const response = await fetchFromInstance(myAccountInstance, {
     fields: ["name"],
     relations: {
-      roles: {
+      projects: {
         type: "first",
-        as: "firstRole",
-        orderBy: "-accountId",
-        fields: ["role"],
+        as: "newestProject",
+        orderBy: "-createdAt",
+        fields: ["name"],
       },
     },
   });
@@ -328,14 +282,8 @@ test("hasMany - first", async () => {
     "~key": "1",
     id: 1,
     name: "myOrg",
-    "~firstRole": "[1,1]",
-    firstRole: {
-      "~model": "accountRole",
-      "~key": "[1,1]",
-      accountId: 1,
-      userId: 1,
-      role: "admin",
-    },
+    "~newestProject": "11",
+    newestProject: {"~model": "project", "~key": "11", id: 11, name: "Game"},
   });
 });
 
