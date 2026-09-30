@@ -2,7 +2,8 @@
 // `preview` models and fields; `internal` ones never reach this package.
 type Stability = "stable" | "preview";
 type Deprecation = {since: string; removeAfter: string; use?: string};
-type Tier = {stability: Stability; deprecated?: Deprecation};
+/** `description` is plain text, with `code` in backticks. */
+type Tier = {stability: Stability; deprecated?: Deprecation; description?: string};
 /** A JSON Type Definition (RFC 8927), with the codecks repo's `metadata` keys. */
 export type Schema = {
   type?: string;
@@ -154,8 +155,25 @@ export const renderSchema = (schema: Schema, ctx: RenderContext, item: string): 
   return schema.nullable ? `${ts} | null` : ts;
 };
 
+/** Prettier's `printWidth`; it leaves comments alone, so the generator wraps them itself. */
+const MAX_WIDTH = 100;
+
+/** Splits `text` into lines of at most `width` characters, at spaces. A longer word stays whole. */
+const wrap = (text: string, width: number) =>
+  text.split(" ").reduce<string[]>((lines, word) => {
+    const last = lines[lines.length - 1];
+    if (last !== undefined && last.length + 1 + word.length <= width) {
+      lines[lines.length - 1] = `${last} ${word}`;
+    } else {
+      lines.push(word);
+    }
+    return lines;
+  }, []);
+
 const jsDoc = (anchors: Map<string, string>, item: string, tier: Tier, indent: string) => {
   const lines: string[] = [];
+  // a `*/` would end the comment
+  if (tier.description) lines.push(tier.description.replaceAll("*/", "*\\/"));
   if (tier.stability === "preview") {
     lines.push("@experimental `preview` in the Codecks API: may change in any release.");
   }
@@ -168,8 +186,11 @@ const jsDoc = (anchors: Map<string, string>, item: string, tier: Tier, indent: s
     if (anchor) lines.push(`${CHANGELOG_URL}#${anchor}`);
   }
   if (!lines.length) return "";
-  if (lines.length === 1) return `${indent}/** ${lines[0]} */\n`;
-  return `${indent}/**\n${lines.map((l) => `${indent} * ${l}`).join("\n")}\n${indent} */\n`;
+  if (lines.length === 1 && indent.length + lines[0].length + 7 <= MAX_WIDTH) {
+    return `${indent}/** ${lines[0]} */\n`;
+  }
+  const wrapped = lines.flatMap((l) => wrap(l, MAX_WIDTH - indent.length - 3));
+  return `${indent}/**\n${wrapped.map((l) => `${indent} * ${l}`).join("\n")}\n${indent} */\n`;
 };
 
 /** The runtime part of a tier, read by `generate-schema-docs.ts`. `stable` is the default. */
@@ -208,15 +229,23 @@ export const generate = (reference: ApiReference) => {
     idTypeOf,
   });
 
-  /** For `_types.json`: each field's and definition's type as TS, without its top-level `null`. */
+  /**
+   * For `_types.json`: each field's and definition's type as TS, without its top-level `null`, and
+   * the description of each model, field and relation that has one.
+   */
   const types = {
     fields: {} as {[item: string]: string},
     definitions: {} as {[name: string]: string},
+    descriptions: {} as {[item: string]: string},
+  };
+  const addDescription = (item: string, tier: Tier) => {
+    if (tier.description) types.descriptions[item] = tier.description;
   };
 
   function generateModel(model: RefModel) {
     const Name = capitalizeFirst(model.name);
     const ctx = newContext();
+    addDescription(model.name, model);
     const fieldLines: string[] = [];
     const relationLines: string[] = [];
     const fieldsByName = new Map(model.fields.map((f) => [f.name, f]));
@@ -253,6 +282,7 @@ export const generate = (reference: ApiReference) => {
       };
       if (!modelsByName.has(rel.model)) throw new Error(`${item}: '${rel.model}' isn't documented`);
       const opts = [...getOpts(), ...tierOpts(rel)];
+      addDescription(item, rel);
       relationLines.push(
         `${jsDoc(anchors, item, rel, "    ")}    ${rel.name}: relation("${rel.model}", ${optsLiteral(opts)}),`
       );
@@ -270,6 +300,7 @@ export const generate = (reference: ApiReference) => {
       // reference holds that this script can't place throws
       const ts = renderSchema(schema, ctx, item);
       types.fields[item] = ts;
+      addDescription(item, field);
       const getCall = () => {
         if (hasOwnIdType && name === model.idProps[0]) {
           if (metadata.model !== model.name) throw new Error(`${item}: an id of another model`);

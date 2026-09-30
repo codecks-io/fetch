@@ -18,8 +18,8 @@ npm run generate:models -- ../../codecks/shared/api-reference.json && npm run fo
 `src/models/` is generated from the codecks repo's `shared/api-reference.json`, which lists only
 the `stable` and `preview` parts of the API and types every field with a JTD schema. Generated: the
 model files, `index.ts`, `_root.ts`, `definitions.ts` (the reference's named types), `ids.ts`
-(re-exports every `*Id` type) and `_types.json` (rendered type strings for
-`scripts/generate-schema-docs.ts`; not imported by `src/`). Don't edit those by hand. The
+(re-exports every `*Id` type) and `_types.json` (rendered type strings and
+the reference's descriptions for `scripts/generate-schema-docs.ts`; not imported by `src/`). Don't edit those by hand. The
 hand-written helpers are `_desc.ts`, `_fields.ts` and `_type-helpers.ts`. The generator logic
 (`renderSchema`, `generate`) is in `scripts/models-from-reference.ts`, the CLI in
 `scripts/generate-models.ts`.
@@ -68,7 +68,7 @@ docs/architecture.md         Full architecture walkthrough
 
 **Query DSL**: Queries describe fields and relations to fetch. `InferModelQuery` recursively infers the exact return type from the query literal. Key fields (`~model`, `~key`) are always included.
 
-**Models**: Declared with `makeModel()`. Each has fields (built with `f.id()`, `f.string()`, `f.belongsTo()`, etc.), relations (`belongsTo`, `hasMany`, `hasOne`), and keys. IDs use `Nominal<string, Tag>` types for type safety. Enums, json values and arrays use `f.typed(opts).type<T>()` with the type rendered from the schema; enums are open unions (`"a" | "b" | (string & {})`). Nested timestamps/days inside json stay strings; only top-level `date`/`day` fields are parsed.
+**Models**: Declared with `makeModel()`. Each has fields (built with `f.id()`, `f.string()`, `f.belongsTo()`, etc.), relations (`belongsTo`, `hasMany`, `hasOne`), and keys. IDs use `Nominal<string, Tag>` types for type safety. A reference `description` becomes the JSDoc of its model, field or relation, above the `@experimental` / `@deprecated` tags. Enums, json values and arrays use `f.typed(opts).type<T>()` with the type rendered from the schema; enums are open unions (`"a" | "b" | (string & {})`). Nested timestamps/days inside json stay strings; only top-level `date`/`day` fields are parsed.
 
 **hasMany variants**: `type: "query"` (default, returns array), `"count"` (number), `"exists"` (boolean), `"first"` (single or null). Non-default variants require an `as` alias.
 

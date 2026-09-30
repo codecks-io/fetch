@@ -14,7 +14,7 @@ export const attachmentDesc = makeModel({
     cardId: f.belongsTo({}).type<CardId>(),
     content: f.string({}),
     createdAt: f.date({}),
-    creatorId: f.belongsTo({}).type<UserId>(),
+    creatorId: f.belongsTo({optional: true}).type<UserId>(),
     fileId: f.belongsTo({}).type<FileId>(),
     id: f.id<AttachmentId>(),
     title: f.string({}),
@@ -22,7 +22,7 @@ export const attachmentDesc = makeModel({
   relations: {
     account: relation("account", {type: "belongsTo", fk: "accountId"}),
     card: relation("card", {type: "belongsTo", fk: "cardId"}),
-    creator: relation("user", {type: "belongsTo", fk: "creatorId"}),
+    creator: relation("user", {type: "belongsTo", fk: "creatorId", optional: true}),
     file: relation("file", {type: "belongsTo", fk: "fileId"}),
   },
   keys: ["id"],

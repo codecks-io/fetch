@@ -19,7 +19,6 @@ export const sprintDesc = makeModel({
     /** @experimental `preview` in the Codecks API: may change in any release. */
     coverFileId: f.belongsTo({optional: true, stability: "preview"}).type<FileId>(),
     createdAt: f.date({}),
-    creatorId: f.belongsTo({}).type<UserId>(),
     description: f.string({optional: true}),
     endDate: f.day({}),
     /** @experimental `preview` in the Codecks API: may change in any release. */
@@ -54,7 +53,6 @@ export const sprintDesc = makeModel({
       optional: true,
       stability: "preview",
     }),
-    creator: relation("user", {type: "belongsTo", fk: "creatorId"}),
     /** @experimental `preview` in the Codecks API: may change in any release. */
     progress: relation("sprintProgress", {type: "hasMany", stability: "preview"}),
     sprintConfig: relation("sprintConfig", {type: "belongsTo", fk: "sprintConfigId"}),

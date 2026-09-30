@@ -13,12 +13,12 @@ export const fileDesc = makeModel({
     id: f.id<FileId>(),
     name: f.string({}),
     size: f.int({}),
-    uploaderId: f.belongsTo({}).type<UserId>(),
+    uploaderId: f.belongsTo({optional: true}).type<UserId>(),
     url: f.string({}),
   },
   relations: {
     account: relation("account", {type: "belongsTo", fk: "accountId", optional: true}),
-    uploader: relation("user", {type: "belongsTo", fk: "uploaderId"}),
+    uploader: relation("user", {type: "belongsTo", fk: "uploaderId", optional: true}),
   },
   keys: ["id"],
 });

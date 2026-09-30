@@ -28,6 +28,12 @@ export const modelMap = {
   _root: _rootDesc,
   account: accountDesc,
   attachment: attachmentDesc,
+  /**
+   * A task or a document card when `isDoc` is set or a hero card if it contains sub cards.
+The
+   * card's color is derived from `status`, `visibility`, `isDoc` and whether it has sub cards or
+   * open block or review conversations.
+   */
   card: cardDesc,
   /** @experimental `preview` in the Codecks API: may change in any release. */
   cardHistory: cardHistoryDesc,
@@ -53,6 +59,9 @@ export const modelMap = {
   /** @experimental `preview` in the Codecks API: may change in any release. */
   sprintProgress: sprintProgressDesc,
   sprintProject: sprintProjectDesc,
+  /**
+   * A person, or an integration or API token that acts in an organization. `kind` tells them apart.
+   */
   user: userDesc,
   /** @experimental `preview` in the Codecks API: may change in any release. */
   workflowItem: workflowItemDesc,

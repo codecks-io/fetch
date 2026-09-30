@@ -8,11 +8,14 @@ const SCHEMA_DIR = join(ROOT_DIR, "schema");
 
 /**
  * Written by `generate-models.ts` next to the descriptors: the TS type of every field (without the
- * top-level `| null`, that's the descriptor's `optional`) and of every definition.
+ * top-level `| null`, that's the descriptor's `optional`) and of every definition, and the
+ * description of every model, field and relation that has one, by `card` / `card.title`.
  */
-const TYPES: {fields: Record<string, string>; definitions: Record<string, string>} = JSON.parse(
-  readFileSync(join(ROOT_DIR, "src", "models", "_types.json"), "utf8")
-);
+const TYPES: {
+  fields: Record<string, string>;
+  definitions: Record<string, string>;
+  descriptions: Record<string, string>;
+} = JSON.parse(readFileSync(join(ROOT_DIR, "src", "models", "_types.json"), "utf8"));
 
 /** `date` and `day` fields are parsed at runtime, so the docs describe the parsed value. */
 const PARSED_TYPES: Record<string, {type: string; note: string}> = {
@@ -113,10 +116,20 @@ function describeTier(tier: TierOpts): string {
   return parts.length ? ` — ${parts.join(", ")}` : "";
 }
 
+/** The item's description as a continuation of its list entry, or `""`. */
+function describeText(item: string): string {
+  const text = TYPES.descriptions[item];
+  return text ? `\n  ${text}` : "";
+}
+
 function generateModelDoc(modelName: string, desc: ModelDesc): string {
   const lines: string[] = [];
   lines.push(`# ${modelName}`);
   lines.push("");
+  if (TYPES.descriptions[modelName]) {
+    lines.push(TYPES.descriptions[modelName]);
+    lines.push("");
+  }
   if (desc.stability === "preview") {
     lines.push(`**preview**: this model ${PREVIEW_NOTE}`);
     lines.push("");
@@ -144,7 +157,9 @@ function generateModelDoc(modelName: string, desc: ModelDesc): string {
         );
         fkOf = rel ? `, foreign key of \`${rel[0]}\`` : ", foreign key";
       }
-      lines.push(`- \`${name}\`: ${type}${fkOf}${describeTier(field)}`);
+      lines.push(
+        `- \`${name}\`: ${type}${fkOf}${describeTier(field)}${describeText(`${modelName}.${name}`)}`
+      );
     }
     lines.push("");
   }
@@ -167,7 +182,7 @@ function generateModelDoc(modelName: string, desc: ModelDesc): string {
         const via = rel.options.fk ? ` (via \`${rel.options.fk}\`)` : "";
         const opt = rel.options.optional ? ", optional" : "";
         lines.push(
-          `- \`${name}\` → [${rel.relName}](${rel.relName}.md)${via}${opt}${describeTier(rel.options)}`
+          `- \`${name}\` → [${rel.relName}](${rel.relName}.md)${via}${opt}${describeTier(rel.options)}${describeText(`${modelName}.${name}`)}`
         );
       }
       lines.push("");
@@ -178,7 +193,7 @@ function generateModelDoc(modelName: string, desc: ModelDesc): string {
       lines.push("");
       for (const [name, rel] of hasOne) {
         lines.push(
-          `- \`${name}\` → [${rel.relName}](${rel.relName}.md)${describeTier(rel.options)}`
+          `- \`${name}\` → [${rel.relName}](${rel.relName}.md)${describeTier(rel.options)}${describeText(`${modelName}.${name}`)}`
         );
       }
       lines.push("");
@@ -192,7 +207,7 @@ function generateModelDoc(modelName: string, desc: ModelDesc): string {
           ? " — `fkAsArray` (plain selection + `count`/`exists` only; no `filter`/`orderBy`/`limit`/`offset`/`first`)"
           : "";
         lines.push(
-          `- \`${name}\` → [${rel.relName}](${rel.relName}.md)${fkAsArray}${describeTier(rel.options)}`
+          `- \`${name}\` → [${rel.relName}](${rel.relName}.md)${fkAsArray}${describeTier(rel.options)}${describeText(`${modelName}.${name}`)}`
         );
       }
       lines.push("");
@@ -229,7 +244,7 @@ function generateOverview(): string {
   for (const [name, rel] of Object.entries(_rootDesc.relations)) {
     const r = rel as RelationEntry;
     lines.push(
-      `- \`${name}\` (${r.options.type}) → [${r.relName}](models/${r.relName}.md)${describeTier(r.options)}`
+      `- \`${name}\` (${r.options.type}) → [${r.relName}](models/${r.relName}.md)${describeTier(r.options)}${describeText(`_root.${name}`)}`
     );
   }
   lines.push("");
