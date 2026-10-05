@@ -1,7 +1,12 @@
 import type {modelMap} from "../models";
+import type {ActionMap} from "../models/actions";
 import type {InferModelQuery, ModelQuery} from "../query-type";
 
 type ModelMap = typeof modelMap;
+
+export type ActionName = keyof ActionMap;
+export type ActionParams<N extends ActionName> = ActionMap[N]["params"];
+export type ActionResponse<N extends ActionName> = ActionMap[N]["response"];
 
 export type DataLoader = {
   fetchModel: <
@@ -13,6 +18,7 @@ export type DataLoader = {
     id: Id[],
     q: Q
   ) => Promise<Record<Id, InferModelQuery<ModelMap[K], Q, ModelMap>>>;
+  dispatch: <N extends ActionName>(name: N, params: ActionParams<N>) => Promise<ActionResponse<N>>;
 };
 
 type FetchFunction = (url: string, init?: RequestInit) => Promise<Response>;
@@ -83,7 +89,11 @@ export class CodecksApiError extends Error {
     // whichever of the two is a snake_case identifier.
     const isCode = (v: string | null): v is string => v !== null && /^[a-z][a-z0-9_]*$/.test(v);
     const code = [str(obj.error), str(obj.message)].find(isCode) ?? null;
-    super(`[${status}] ${str(obj.message) ?? code ?? (str(body) || "request failed")}`);
+    // A refused action answers `{payload: {error: "requires card:write"}}`.
+    const actionError = str((obj.payload as {error?: unknown} | null | undefined)?.error);
+    super(
+      `[${status}] ${str(obj.message) ?? code ?? actionError ?? (str(body) || "request failed")}`
+    );
     this.name = "CodecksApiError";
     this.status = status;
     this.code = code;

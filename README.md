@@ -13,7 +13,7 @@ npm install @codecks/fetch
 ```ts
 import {buildFetchers} from "@codecks/fetch";
 
-const {fetchFromRoot, fetchInstance, fetchInstances, fetchFromInstance} = buildFetchers({
+const {fetchFromRoot, fetchInstance, fetchInstances, fetchFromInstance, dispatch} = buildFetchers({
   token: "cdxat_…",
 });
 ```
@@ -324,6 +324,29 @@ const card = await fetchInstance("card", "card-123", {
 
 All response types are fully inferred from your query — TypeScript knows exactly which fields and relations are present.
 
+## Writing data
+
+Every change is an action of the API, called with `dispatch(name, params)`. The name is the one
+the [API Reference](https://manual.codecks.io/api-reference/#actions) lists, and the params and the
+response are typed from it.
+
+```ts
+const {id, accountSeq} = await dispatch("cards/create", {content: "Fix login\nDetails…", deckId});
+await dispatch("cards/update", {id, status: "done", assigneeId: null});
+```
+
+- **Optional and nullable params**: left out, a value stays as it is; `null` clears it.
+- **Enums in params are closed**: `status: "snoozing"` is a type error, since the API only accepts
+  the listed values. Enums the API answers stay open, see [Field types](#field-types).
+- **Response**: an action without one resolves to `undefined`.
+- **Errors**: a refused action throws a `CodecksApiError` with the reason as its message, e.g.
+  `[403] requires card:write` for a read-only token.
+
+Each action's JSDoc holds its description and the token scopes it needs. `ActionMap`,
+`ActionName`, `ActionParams<N>` and `ActionResponse<N>` are exported for wrapping `dispatch`.
+
+`dispatch` doesn't change what the `fetch*` functions return: they always ask the API again.
+
 ## Stability
 
 The models and fields in this package are the ones the [API Reference](https://manual.codecks.io/api-reference/) documents. The API answers more than that, but anything undocumented is internal and can change without notice, so this package leaves it out.
@@ -355,6 +378,7 @@ node_modules/@codecks/fetch/schema/
   overview.md          # Root entry points + index of all models
   query-syntax.md      # Query DSL reference with examples
   types.md             # Named types (Priority, Checkbox, ...) the model files link to
+  actions.md           # Every action with its params, response and required scopes
   models/
     card.md            # Fields + relations for the card model
     account.md         # Fields + relations for the account model
@@ -374,6 +398,10 @@ const {fetchFromRoot} = buildFetchersFromLoader({
   fetchModel: async (model, ids, query) => {
     // your custom loading logic
     return recordOfResults;
+  },
+  dispatch: async (name, params) => {
+    // POST params to `dispatch/${name}`, return the answer's `payload`
+    return payload;
   },
 });
 ```

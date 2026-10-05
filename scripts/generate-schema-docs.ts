@@ -6,15 +6,28 @@ import {join} from "path";
 const ROOT_DIR = join(import.meta.dirname, "..");
 const SCHEMA_DIR = join(ROOT_DIR, "schema");
 
+/** An action's param or response key, its type including a top-level `| null`. */
+type ActionEntry = {name: string; type: string; required: boolean; description?: string} & TierOpts;
+
 /**
  * Written by `generate-models.ts` next to the descriptors: the TS type of every field (without the
- * top-level `| null`, that's the descriptor's `optional`) and of every definition, and the
- * description of every model, field and relation that has one, by `card` / `card.title`.
+ * top-level `| null`, that's the descriptor's `optional`) and of every definition, the
+ * description of every model, field and relation that has one, by `card` / `card.title`, and
+ * every action.
  */
 const TYPES: {
   fields: Record<string, string>;
   definitions: Record<string, string>;
   descriptions: Record<string, string>;
+  actions: Record<
+    string,
+    {
+      description?: string;
+      requires: string | null;
+      params: ActionEntry[];
+      response: ActionEntry[] | null;
+    } & TierOpts
+  >;
 } = JSON.parse(readFileSync(join(ROOT_DIR, "src", "models", "_types.json"), "utf8"));
 
 /** `date` and `day` fields are parsed at runtime, so the docs describe the parsed value. */
@@ -265,6 +278,13 @@ function generateOverview(): string {
   );
   lines.push("");
 
+  lines.push("## Actions");
+  lines.push("");
+  lines.push(
+    `Changes go through \`dispatch(name, params)\`. [actions.md](actions.md) lists all ${Object.keys(TYPES.actions).length}, with their params and responses.`
+  );
+  lines.push("");
+
   // Model index
   lines.push("## All Models");
   lines.push("");
@@ -321,6 +341,67 @@ function generateTypes(): string {
       lines.push(`Used by ${usedBy.join(", ")}.`);
       lines.push("");
     }
+  }
+  return lines.join("\n");
+}
+
+function generateActions(): string {
+  const lines: string[] = [];
+  const entryLine = (e: ActionEntry, parentIsPreview: boolean) => {
+    const tier = describeTier(parentIsPreview ? {deprecated: e.deprecated} : e);
+    const optional = e.required ? "" : " (optional)";
+    const text = e.description ? `\n  ${e.description}` : "";
+    return `- \`${e.name}\`: ${linkType(e.type, "root")}${optional}${tier}${text}`;
+  };
+  lines.push("# Actions");
+  lines.push("");
+  lines.push(
+    "Every change goes through an action, sent with `dispatch`. It returns the action's response, or `undefined` for an action without one."
+  );
+  lines.push("");
+  lines.push("```ts");
+  lines.push(
+    'const {id, accountSeq} = await dispatch("cards/create", {content: "Fix login", deckId});'
+  );
+  lines.push('await dispatch("cards/update", {id, status: "done"});');
+  lines.push("```");
+  lines.push("");
+  lines.push(
+    "An enum in the params lists only the values the API accepts, unlike the open enums of the models. A param that is optional and nullable has three meanings: left out, it stays as it is; `null` clears it; a value sets it."
+  );
+  lines.push("");
+  for (const [name, action] of Object.entries(TYPES.actions)) {
+    const isPreview = action.stability === "preview";
+    lines.push(`## ${name}`);
+    lines.push("");
+    if (action.description) {
+      lines.push(action.description);
+      lines.push("");
+    }
+    if (isPreview) {
+      lines.push(`**preview**: this action ${PREVIEW_NOTE}`);
+      lines.push("");
+    }
+    if (action.deprecated) {
+      lines.push(`This action is${describeTier({deprecated: action.deprecated}).slice(2)}.`);
+      lines.push("");
+    }
+    if (action.requires) {
+      lines.push(action.requires);
+      lines.push("");
+    }
+    lines.push("Params:");
+    lines.push("");
+    for (const param of action.params) lines.push(entryLine(param, isPreview));
+    lines.push("");
+    if (action.response) {
+      lines.push("Response:");
+      lines.push("");
+      for (const key of action.response) lines.push(entryLine(key, isPreview));
+    } else {
+      lines.push("Response: none.");
+    }
+    lines.push("");
   }
   return lines.join("\n");
 }
@@ -525,6 +606,8 @@ writeFileSync(join(SCHEMA_DIR, "overview.md"), generateOverview());
 // Write named types
 writeFileSync(join(SCHEMA_DIR, "types.md"), generateTypes());
 
+writeFileSync(join(SCHEMA_DIR, "actions.md"), generateActions());
+
 // Write query syntax
 writeFileSync(join(SCHEMA_DIR, "query-syntax.md"), generateQuerySyntax());
 
@@ -536,5 +619,5 @@ for (const [name, desc] of models) {
 }
 
 console.log(
-  `Generated schema docs: overview.md, types.md, query-syntax.md, ${models.length} model files in schema/models/`
+  `Generated schema docs: overview.md, types.md, actions.md, query-syntax.md, ${models.length} model files in schema/models/`
 );

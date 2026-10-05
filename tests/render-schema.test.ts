@@ -9,6 +9,7 @@ const context = (): RenderContext => ({
     if (model !== "user") throw new Error(`'${model}' isn't a documented model`);
     return "UserId";
   },
+  openEnums: true,
 });
 const render = (schema: Schema) => renderSchema(schema, context(), "test");
 

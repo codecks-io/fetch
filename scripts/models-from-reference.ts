@@ -25,6 +25,17 @@ type RefRelation = Tier & {
   nullable: boolean;
   asField: boolean;
 };
+/** An action's param, or a key of its response. */
+type RefParam = Partial<Tier> & {name: string; schema: Schema; required: boolean};
+type RefAction = Tier & {
+  name: string;
+  /** every one is required, unless `scopesDependOnCall`: then the call's params pick some */
+  scopes: string[];
+  scopesDependOnCall: boolean;
+  params: RefParam[];
+  /** `null` for an action that answers without a body */
+  response: RefParam[] | null;
+};
 type RefModel = Tier & {
   name: string;
   idProps: string[];
@@ -34,6 +45,7 @@ type RefModel = Tier & {
 export type ApiReference = {
   models: RefModel[];
   definitions: {[name: string]: {schema: Schema}};
+  actions: RefAction[];
   deprecations: {item: string; anchor: string}[];
 };
 
@@ -64,6 +76,15 @@ const SCHEMA_KEYS = new Set([
 ]);
 const METADATA_KEYS = new Set(["model", "keyModel", "format"]);
 
+/** An action's param or response key as `_types.json` lists it, its type rendered as TS. */
+type DocEntry = Partial<Tier> & {name: string; type: string; required: boolean};
+type DocAction = Tier & {
+  /** `Requires \`card:write\`.`, or `null` for an action without scopes */
+  requires: string | null;
+  params: DocEntry[];
+  response: DocEntry[] | null;
+};
+
 /** What rendering a schema needs to know, and what it collects for a file's imports. */
 export type RenderContext = {
   definitions: ApiReference["definitions"];
@@ -73,6 +94,11 @@ export type RenderContext = {
   refs: Set<string>;
   /** throws for a model without a single key or not in the reference */
   idTypeOf: (modelName: string) => string;
+  /**
+   * `false` for what a caller sends: an enum then lists only the values the API accepts. What the
+   * API answers may hold values added later, so an enum read from it admits any string.
+   */
+  openEnums: boolean;
 };
 
 const IDENTIFIER = /^[A-Za-z_$][\w$]*$/;
@@ -116,7 +142,8 @@ export const renderSchema = (schema: Schema, ctx: RenderContext, item: string): 
     }
     if (schema.enum) {
       const literals = schema.enum.map((v) => JSON.stringify(v));
-      return {ts: [...literals, "(string & {})"].join(" | "), isUnion: true};
+      if (ctx.openEnums) literals.push("(string & {})");
+      return {ts: literals.join(" | "), isUnion: literals.length > 1};
     }
     if (schema.ref !== undefined) {
       if (!(schema.ref in ctx.definitions)) {
@@ -127,7 +154,8 @@ export const renderSchema = (schema: Schema, ctx: RenderContext, item: string): 
     }
     if (schema.elements) {
       const inner = renderSchema(schema.elements, ctx, `${item}[]`);
-      const needsParens = schema.elements.enum || schema.elements.nullable;
+      const {enum: literals, nullable} = schema.elements;
+      const needsParens = nullable || (literals && (ctx.openEnums || literals.length > 1));
       return {ts: needsParens ? `(${inner})[]` : `${inner}[]`, isUnion: false};
     }
     if (isProps) {
@@ -170,10 +198,17 @@ const wrap = (text: string, width: number) =>
     return lines;
   }, []);
 
-const jsDoc = (anchors: Map<string, string>, item: string, tier: Tier, indent: string) => {
+const jsDoc = (
+  anchors: Map<string, string>,
+  item: string,
+  tier: Partial<Tier>,
+  indent: string,
+  notes: string[] = []
+) => {
   const lines: string[] = [];
   // a `*/` would end the comment
   if (tier.description) lines.push(tier.description.replaceAll("*/", "*\\/"));
+  lines.push(...notes);
   if (tier.stability === "preview") {
     lines.push("@experimental `preview` in the Codecks API: may change in any release.");
   }
@@ -227,6 +262,7 @@ export const generate = (reference: ApiReference) => {
     idModels: new Set(),
     refs: new Set(),
     idTypeOf,
+    openEnums: true,
   });
 
   /**
@@ -237,6 +273,7 @@ export const generate = (reference: ApiReference) => {
     fields: {} as {[item: string]: string},
     definitions: {} as {[name: string]: string},
     descriptions: {} as {[item: string]: string},
+    actions: {} as {[name: string]: DocAction},
   };
   const addDescription = (item: string, tier: Tier) => {
     if (tier.description) types.descriptions[item] = tier.description;
@@ -383,6 +420,72 @@ ${reference.models.map((m) => `${jsDoc(anchors, m.name, m, "  ")}  ${m.name}: ${
     .filter((m) => m.name !== "_root" && m.idProps.length === 1)
     .map((m) => `export type {${idTypeOf(m.name)}} from "./${fileNameOf(m.name)}";`)
     .join("\n")}
+`;
+
+  const actionCtx = newContext();
+  // shares the sets of `actionCtx`, so the imports cover both
+  const paramCtx: RenderContext = {...actionCtx, openEnums: false};
+  const renderEntries = (entries: RefParam[], ctx: RenderContext, item: string) =>
+    entries.map((entry): DocEntry => {
+      const {name, required, stability = "stable", deprecated, description} = entry;
+      return {
+        name,
+        type: renderSchema(entry.schema, ctx, `${item}.${name}`),
+        required,
+        stability,
+        ...(deprecated ? {deprecated} : {}),
+        ...(description ? {description} : {}),
+      };
+    });
+  const entryLines = (entries: DocEntry[], action: RefAction, item: string, indent: string) =>
+    entries.map((e) => {
+      // a param of a preview action is preview too, which the action's own tag already says
+      const tier = action.stability === "preview" ? {...e, stability: "stable" as const} : e;
+      const key = IDENTIFIER.test(e.name) ? e.name : JSON.stringify(e.name);
+      const doc = jsDoc(anchors, `${item}.${e.name}`, tier, indent);
+      return `${doc}${indent}${key}${e.required ? "" : "?"}: ${e.type};`;
+    });
+  const requiresOf = ({scopes, scopesDependOnCall}: RefAction) => {
+    if (!scopes.length) return null;
+    const names = scopes.map((s) => `\`${s}\``).join(scopesDependOnCall ? " or " : " and ");
+    const note = scopesDependOnCall && scopes.length > 1 ? ", depending on the call" : "";
+    return `Requires ${names}${note}.`;
+  };
+  const actionLines = reference.actions.map((action) => {
+    const {name} = action;
+    const params = renderEntries(action.params, paramCtx, name);
+    const response =
+      action.response && renderEntries(action.response, actionCtx, `${name} response`);
+    const requires = requiresOf(action);
+    types.actions[name] = {
+      stability: action.stability,
+      ...(action.deprecated ? {deprecated: action.deprecated} : {}),
+      ...(action.description ? {description: action.description} : {}),
+      requires,
+      params,
+      response,
+    };
+    const scopeNote = requires ? [requires] : [];
+    const paramLines = entryLines(params, action, name, "      ");
+    const responseType = response
+      ? `{\n${entryLines(response, action, `${name} response`, "      ").join("\n")}\n    }`
+      : "void";
+    return `${jsDoc(anchors, name, action, "  ", scopeNote)}  ${JSON.stringify(name)}: {
+    params: {${paramLines.length ? `\n${paramLines.join("\n")}\n    ` : ""}};
+    response: ${responseType};
+  };`;
+  });
+  files["actions.ts"] = `${[
+    ...(actionCtx.refs.size
+      ? [`import type {${[...actionCtx.refs].sort().join(", ")}} from "./definitions";`]
+      : []),
+    ...importIds(actionCtx.idModels, idTypeOf, "./"),
+  ].join("\n")}
+
+/** Every action of the API, by the name it is dispatched as: \`POST /dispatch/<name>\`. */
+export type ActionMap = {
+${actionLines.join("\n")}
+};
 `;
 
   files["_types.json"] = `${JSON.stringify(types, null, 2)}\n`;

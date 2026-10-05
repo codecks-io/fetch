@@ -1,6 +1,6 @@
 import {test, expect, vi} from "vitest";
 import {http, HttpResponse} from "msw";
-import {buildFetchers, buildLegacyFetchers, CodecksApiError} from "../src";
+import {buildFetchers, buildLegacyFetchers, CodecksApiError, type CardId} from "../src";
 import {beforeAll, afterEach, afterAll} from "vitest";
 import {server} from "./mocks/node";
 
@@ -368,4 +368,34 @@ test("a non-JSON error body still becomes a CodecksApiError", async () => {
     .fetchFromRoot({account: {fields: ["name"]}})
     .catch((e) => e);
   expect(err).toMatchObject({status: 502, code: null, body: "Bad Gateway"});
+});
+
+// The API wraps an action's response as `{payload, actionId}`.
+test("dispatch posts the params and returns the payload", async () => {
+  let request: {url: string; body: unknown} | null = null;
+  server.use(
+    http.post("https://api.example.com/dispatch/cards/create", async ({request: r}) => {
+      request = {url: r.url, body: await r.json()};
+      return HttpResponse.json({payload: {id: "c1", accountSeq: 12}, actionId: "a1"});
+    })
+  );
+  const res = await getFetchers().dispatch("cards/create", {content: "Fix login", deckId: null});
+  expect(request).toEqual({
+    url: "https://api.example.com/dispatch/cards/create",
+    body: {content: "Fix login", deckId: null},
+  });
+  expect(res).toEqual({id: "c1", accountSeq: 12});
+});
+
+test("a refused action's reason becomes the message", async () => {
+  server.use(
+    http.post("https://api.example.com/dispatch/cards/update", () =>
+      HttpResponse.json({payload: {error: "requires card:write"}}, {status: 403})
+    )
+  );
+  const err = await getFetchers()
+    .dispatch("cards/update", {id: "c1" as CardId, status: "done"})
+    .catch((e) => e);
+  expect(err).toBeInstanceOf(CodecksApiError);
+  expect(err).toMatchObject({status: 403, code: null, message: "[403] requires card:write"});
 });

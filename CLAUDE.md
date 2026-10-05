@@ -18,7 +18,7 @@ npm run generate:models -- ../../codecks/shared/api-reference.json && npm run fo
 `src/models/` is generated from the codecks repo's `shared/api-reference.json`, which lists only
 the `stable` and `preview` parts of the API and types every field with a JTD schema. Generated: the
 model files, `index.ts`, `_root.ts`, `definitions.ts` (the reference's named types), `ids.ts`
-(re-exports every `*Id` type) and `_types.json` (rendered type strings and
+(re-exports every `*Id` type), `actions.ts` (`ActionMap`, every action's params and response) and `_types.json` (rendered type strings and
 the reference's descriptions for `scripts/generate-schema-docs.ts`; not imported by `src/`). Don't edit those by hand. The
 hand-written helpers are `_desc.ts`, `_fields.ts` and `_type-helpers.ts`. The generator logic
 (`renderSchema`, `generate`) is in `scripts/models-from-reference.ts`, the CLI in
@@ -42,6 +42,7 @@ src/
 │   ├── index.ts             modelMap registry: name → descriptor, generated
 │   ├── definitions.ts       Named types from the reference (Priority, Checkbox, ...), generated
 │   ├── ids.ts               Re-exports every *Id type, generated
+│   ├── actions.ts           ActionMap: every action's params and response, generated
 │   ├── _types.json          Rendered type strings for the schema docs, generated
 │   └── *.ts                 generated model descriptors (Account, Card, User, ...)
 ├── loaders/

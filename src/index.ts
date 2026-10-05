@@ -4,6 +4,9 @@ import type {_rootDesc} from "./models/_root";
 import {
   bearerTransport,
   legacyTransport,
+  type ActionName,
+  type ActionParams,
+  type ActionResponse,
   type DataLoader,
   type FetchOptions,
   type LegacyFetchOptions,
@@ -11,7 +14,15 @@ import {
 import {createSimpleLoader} from "./loaders/simple-loader";
 
 export {CodecksApiError} from "./loaders/loader-utils";
-export type {DataLoader, FetchOptions, LegacyFetchOptions} from "./loaders/loader-utils";
+export type {
+  ActionName,
+  ActionParams,
+  ActionResponse,
+  DataLoader,
+  FetchOptions,
+  LegacyFetchOptions,
+} from "./loaders/loader-utils";
+export type {ActionMap} from "./models/actions";
 export type * from "./models/definitions";
 export type * from "./models/ids";
 
@@ -39,6 +50,8 @@ type Fetchers = {
     id: Id[],
     q: Q
   ) => Promise<Record<Id, InferModelQuery<ModelMap[K], Q, ModelMap>>>;
+  /** Calls an action, e.g. `dispatch("cards/update", {id, status: "done"})`. */
+  dispatch: <N extends ActionName>(name: N, params: ActionParams<N>) => Promise<ActionResponse<N>>;
 };
 
 export const buildFetchers = (opts: FetchOptions): Fetchers =>
@@ -64,5 +77,6 @@ export const buildFetchersFromLoader = (loader: DataLoader): Fetchers => {
       return res[key];
     },
     fetchInstances: loader.fetchModel,
+    dispatch: loader.dispatch,
   };
 };

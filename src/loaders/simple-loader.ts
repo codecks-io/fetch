@@ -30,5 +30,14 @@ export const createSimpleLoader = (opts: TransportOptions): DataLoader => {
         ids.map((id) => [id, reconcileInstanceQuery(q, response, modelDesc, id, pool)])
       ) as any;
     },
+    dispatch: async (name, params) => {
+      const {payload} = await configuredFetch<{payload: unknown}>(opts, `dispatch/${name}`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(params),
+      });
+      // an action without a response answers `{payload: null}`
+      return (payload ?? undefined) as any;
+    },
   };
 };

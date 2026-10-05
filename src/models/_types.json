@@ -436,5 +436,1567 @@
     "workflowItem.targetDeckId": "The deck the created card goes to. Without one, it goes to `deck`.",
     "workflowItem.version": "Goes up with every change to the step.",
     "workflowItem.visibility": "Only `default` steps are used when a journey is started. Changing an archived or deleted step sets it back to `default`."
+  },
+  "actions": {
+    "bookmarks/addCards": {
+      "stability": "stable",
+      "description": "Bookmarks cards for a user, at the end of their bookmarks. Cards that are already bookmarked move to the end.",
+      "requires": "Requires `handCard:writeOwn` or `handCard:writeAny`, depending on the call.",
+      "params": [
+        {
+          "name": "ids",
+          "type": "CardId[]",
+          "required": true,
+          "stability": "stable"
+        },
+        {
+          "name": "userId",
+          "type": "UserId",
+          "required": true,
+          "stability": "stable"
+        }
+      ],
+      "response": null
+    },
+    "bookmarks/removeCards": {
+      "stability": "stable",
+      "description": "Removes cards from a user's bookmarks.",
+      "requires": "Requires `handCard:writeOwn` or `handCard:writeAny`, depending on the call.",
+      "params": [
+        {
+          "name": "ids",
+          "type": "CardId[]",
+          "required": true,
+          "stability": "stable"
+        },
+        {
+          "name": "userId",
+          "type": "UserId",
+          "required": true,
+          "stability": "stable"
+        }
+      ],
+      "response": null
+    },
+    "bookmarks/setOrders": {
+      "stability": "stable",
+      "description": "Moves cards to the top of a user's bookmarks, in the given order. The other bookmarks follow in their current order. Cards that aren't bookmarked yet get bookmarked.",
+      "requires": "Requires `handCard:writeOwn` or `handCard:writeAny`, depending on the call.",
+      "params": [
+        {
+          "name": "cardIds",
+          "type": "CardId[]",
+          "required": true,
+          "stability": "stable"
+        },
+        {
+          "name": "userId",
+          "type": "UserId",
+          "required": true,
+          "stability": "stable"
+        }
+      ],
+      "response": null
+    },
+    "cardOrders/addAfter": {
+      "stability": "preview",
+      "description": "Puts cards into a manual order right after `targetId`, in the order of `cardIds`, and into the zone `label`.",
+      "requires": "Requires `cardOrder:write`.",
+      "params": [
+        {
+          "name": "targetId",
+          "type": "CardId | null",
+          "required": true,
+          "stability": "preview",
+          "description": "`null` puts the cards at the end."
+        },
+        {
+          "name": "cardIds",
+          "type": "CardId[]",
+          "required": true,
+          "stability": "preview"
+        },
+        {
+          "name": "context",
+          "type": "\"milestone\" | \"deck\" | \"sprint\"",
+          "required": true,
+          "stability": "preview",
+          "description": "Which manual order to change: the one of the cards' deck, milestone or run. A card has one position in each."
+        },
+        {
+          "name": "label",
+          "type": "string | null",
+          "required": true,
+          "stability": "preview",
+          "description": "The zone, one of the `manualOrderLabels` of the deck, milestone or run. `null` is the zone without a name."
+        }
+      ],
+      "response": null
+    },
+    "cardOrders/addBefore": {
+      "stability": "preview",
+      "description": "Puts cards into a manual order right before `targetId`, in the order of `cardIds`, and into the zone `label`.",
+      "requires": "Requires `cardOrder:write`.",
+      "params": [
+        {
+          "name": "targetId",
+          "type": "CardId | null",
+          "required": true,
+          "stability": "preview",
+          "description": "`null` puts the cards at the start."
+        },
+        {
+          "name": "cardIds",
+          "type": "CardId[]",
+          "required": true,
+          "stability": "preview"
+        },
+        {
+          "name": "context",
+          "type": "\"milestone\" | \"deck\" | \"sprint\"",
+          "required": true,
+          "stability": "preview",
+          "description": "Which manual order to change: the one of the cards' deck, milestone or run. A card has one position in each."
+        },
+        {
+          "name": "label",
+          "type": "string | null",
+          "required": true,
+          "stability": "preview",
+          "description": "The zone, one of the `manualOrderLabels` of the deck, milestone or run. `null` is the zone without a name."
+        }
+      ],
+      "response": null
+    },
+    "cardOrders/updateLabel": {
+      "stability": "preview",
+      "description": "Moves cards into another zone of a manual order and keeps their position. Cards that have no position in that order yet are skipped.",
+      "requires": "Requires `cardOrder:write`.",
+      "params": [
+        {
+          "name": "cardIds",
+          "type": "CardId[]",
+          "required": true,
+          "stability": "preview"
+        },
+        {
+          "name": "context",
+          "type": "\"milestone\" | \"deck\" | \"sprint\"",
+          "required": true,
+          "stability": "preview",
+          "description": "Which manual order to change: the one of the cards' deck, milestone or run. A card has one position in each."
+        },
+        {
+          "name": "label",
+          "type": "string | null",
+          "required": true,
+          "stability": "preview",
+          "description": "The zone, one of the `manualOrderLabels` of the deck, milestone or run. `null` is the zone without a name."
+        }
+      ],
+      "response": null
+    },
+    "cards/bulkUpdate": {
+      "stability": "stable",
+      "description": "Sets the same values on every card in `ids`. Look at `cards/update` for the property details.",
+      "requires": "Requires `card:write`.",
+      "params": [
+        {
+          "name": "ids",
+          "type": "CardId[]",
+          "required": true,
+          "stability": "stable"
+        },
+        {
+          "name": "priority",
+          "type": "\"a\" | \"b\" | \"c\" | null",
+          "required": false,
+          "stability": "stable"
+        },
+        {
+          "name": "effort",
+          "type": "number | null",
+          "required": false,
+          "stability": "stable"
+        },
+        {
+          "name": "status",
+          "type": "\"not_started\" | \"started\" | \"done\"",
+          "required": false,
+          "stability": "stable"
+        },
+        {
+          "name": "assigneeId",
+          "type": "UserId | null",
+          "required": false,
+          "stability": "stable"
+        },
+        {
+          "name": "deckId",
+          "type": "DeckId",
+          "required": false,
+          "stability": "stable"
+        },
+        {
+          "name": "visibility",
+          "type": "\"default\" | \"archived\" | \"deleted\"",
+          "required": false,
+          "stability": "stable"
+        },
+        {
+          "name": "milestoneId",
+          "type": "MilestoneId | null",
+          "required": false,
+          "stability": "stable"
+        },
+        {
+          "name": "sprintId",
+          "type": "SprintId | null",
+          "required": false,
+          "stability": "stable"
+        },
+        {
+          "name": "dueDate",
+          "type": "string | null",
+          "required": false,
+          "stability": "stable",
+          "description": "`YYYY-MM-DD`, or `null` to remove it. Fails unless the organization's plan includes due dates."
+        },
+        {
+          "name": "isDoc",
+          "type": "boolean",
+          "required": false,
+          "stability": "stable"
+        },
+        {
+          "name": "addMasterTag",
+          "type": "string",
+          "required": false,
+          "stability": "stable",
+          "description": "Adds this tag to every card's `masterTags`."
+        },
+        {
+          "name": "removeMasterTag",
+          "type": "string",
+          "required": false,
+          "stability": "stable",
+          "description": "Removes this tag from every card, ignoring case."
+        },
+        {
+          "name": "parentCardId",
+          "type": "CardId | null",
+          "required": false,
+          "stability": "stable"
+        }
+      ],
+      "response": null
+    },
+    "cards/copy": {
+      "stability": "preview",
+      "description": "Copies each card into a deck, as `not_started` and with the same `content`. A copied sub card is added to its hero card right after the original.",
+      "requires": "Requires `card:write`.",
+      "params": [
+        {
+          "name": "ids",
+          "type": "CardId[]",
+          "required": true,
+          "stability": "preview"
+        },
+        {
+          "name": "props",
+          "type": "(\"effort\" | \"priority\" | \"assigneeId\" | \"masterTags\" | \"attachments\" | \"milestoneId\" | \"sprintId\")[]",
+          "required": true,
+          "stability": "preview",
+          "description": "The fields to copy besides `content`."
+        },
+        {
+          "name": "target",
+          "type": "string",
+          "required": true,
+          "stability": "preview",
+          "description": "The id of the deck to copy into."
+        }
+      ],
+      "response": null
+    },
+    "cards/create": {
+      "stability": "stable",
+      "description": "Creates a card as `not_started`. The first line of `content` becomes its `title`. Everyone mentioned in `content` is subscribed to the card.",
+      "requires": "Requires `card:write`.",
+      "params": [
+        {
+          "name": "content",
+          "type": "string",
+          "required": true,
+          "stability": "stable",
+          "description": "Markdown. Its first line becomes the card's `title`."
+        },
+        {
+          "name": "priority",
+          "type": "\"a\" | \"b\" | \"c\" | null",
+          "required": false,
+          "stability": "stable"
+        },
+        {
+          "name": "effort",
+          "type": "number | null",
+          "required": false,
+          "stability": "stable"
+        },
+        {
+          "name": "assigneeId",
+          "type": "UserId | null",
+          "required": false,
+          "stability": "stable"
+        },
+        {
+          "name": "deckId",
+          "type": "DeckId | null",
+          "required": true,
+          "stability": "stable",
+          "description": "`null` creates a private card, and bookmarks it for you."
+        },
+        {
+          "name": "masterTags",
+          "type": "string[]",
+          "required": false,
+          "stability": "stable",
+          "description": "Project tags, on top of those written as `#tag` in `content`."
+        },
+        {
+          "name": "milestoneId",
+          "type": "MilestoneId | null",
+          "required": false,
+          "stability": "stable"
+        },
+        {
+          "name": "sprintId",
+          "type": "SprintId | null",
+          "required": false,
+          "stability": "stable"
+        },
+        {
+          "name": "parentCardId",
+          "type": "CardId | null",
+          "required": false,
+          "stability": "stable",
+          "description": "Adds the card as the last sub card of this hero card."
+        },
+        {
+          "name": "dueDate",
+          "type": "string | null",
+          "required": false,
+          "stability": "stable",
+          "description": "`YYYY-MM-DD`. Fails unless the organization's plan includes due dates."
+        },
+        {
+          "name": "isDoc",
+          "type": "boolean",
+          "required": false,
+          "stability": "stable"
+        },
+        {
+          "name": "addAsBookmark",
+          "type": "boolean",
+          "required": false,
+          "stability": "stable",
+          "description": "Bookmarks the card for you."
+        },
+        {
+          "name": "putInQueue",
+          "type": "boolean",
+          "required": false,
+          "stability": "stable",
+          "description": "Adds the card to its assignee's Hand, or to yours when it has none. Fails when that Hand has no free slot (`account.maxHandSlotCount`)."
+        },
+        {
+          "name": "subscribeCreator",
+          "type": "boolean",
+          "required": false,
+          "stability": "stable",
+          "description": "Subscribes you to the card, so you're notified about its changes and comments."
+        }
+      ],
+      "response": [
+        {
+          "name": "id",
+          "type": "CardId",
+          "required": true,
+          "stability": "stable"
+        },
+        {
+          "name": "accountSeq",
+          "type": "number",
+          "required": true,
+          "stability": "stable",
+          "description": "The card's number, see `card.accountSeq`."
+        }
+      ]
+    },
+    "cards/createMany": {
+      "stability": "stable",
+      "description": "Creates cards in one deck and returns their ids in the same order. Unlike `cards/create`, it doesn't subscribe you to them.",
+      "requires": "Requires `card:write`.",
+      "params": [
+        {
+          "name": "cards",
+          "type": "{content: string; priority?: \"a\" | \"b\" | \"c\" | null; effort?: number | null; assigneeId?: UserId | null; isDoc?: boolean; visibility?: \"archived\" | \"default\" | \"deleted\"; status?: \"not_started\" | \"started\" | \"done\" | null}[]",
+          "required": true,
+          "stability": "stable",
+          "description": "The first line of each `content` becomes the card's `title`. `status` defaults to `not_started`, `visibility` to `default`."
+        },
+        {
+          "name": "deckId",
+          "type": "DeckId",
+          "required": true,
+          "stability": "stable"
+        },
+        {
+          "name": "parentCardId",
+          "type": "CardId | null",
+          "required": false,
+          "stability": "stable",
+          "description": "Adds the cards as the last sub cards of this hero card."
+        }
+      ],
+      "response": [
+        {
+          "name": "cards",
+          "type": "{id: CardId; accountSeq: number}[]",
+          "required": true,
+          "stability": "stable"
+        }
+      ]
+    },
+    "cards/update": {
+      "stability": "stable",
+      "description": "Changes the given fields of a card. Some writes change other fields too: `content` sets `title` and `tags`, and giving a started card another assignee sets it back to `not_started`.",
+      "requires": "Requires `card:write`.",
+      "params": [
+        {
+          "name": "id",
+          "type": "CardId",
+          "required": true,
+          "stability": "stable"
+        },
+        {
+          "name": "content",
+          "type": "string",
+          "required": false,
+          "stability": "stable",
+          "description": "Markdown. Its first line becomes the card's `title`."
+        },
+        {
+          "name": "priority",
+          "type": "\"a\" | \"b\" | \"c\" | null",
+          "required": false,
+          "stability": "stable"
+        },
+        {
+          "name": "effort",
+          "type": "number | null",
+          "required": false,
+          "stability": "stable"
+        },
+        {
+          "name": "status",
+          "type": "\"not_started\" | \"started\" | \"done\"",
+          "required": false,
+          "stability": "stable",
+          "description": "A Hero Card can't be started."
+        },
+        {
+          "name": "assigneeId",
+          "type": "UserId | null",
+          "required": false,
+          "stability": "stable"
+        },
+        {
+          "name": "deckId",
+          "type": "DeckId",
+          "required": false,
+          "stability": "stable"
+        },
+        {
+          "name": "masterTags",
+          "type": "string[]",
+          "required": false,
+          "stability": "stable",
+          "description": "Replaces the project tags. Those written as `#tag` in `content` stay."
+        },
+        {
+          "name": "visibility",
+          "type": "\"default\" | \"archived\" | \"deleted\"",
+          "required": false,
+          "stability": "stable",
+          "description": "Archiving or deleting a started card sets it back to `not_started`. Deleting also removes its dependencies."
+        },
+        {
+          "name": "milestoneId",
+          "type": "MilestoneId | null",
+          "required": false,
+          "stability": "stable"
+        },
+        {
+          "name": "sprintId",
+          "type": "SprintId | null",
+          "required": false,
+          "stability": "stable"
+        },
+        {
+          "name": "parentCardId",
+          "type": "CardId | null",
+          "required": false,
+          "stability": "stable",
+          "description": "The hero card to make this card a sub card of."
+        },
+        {
+          "name": "childCards",
+          "type": "CardId[] | null",
+          "required": false,
+          "stability": "preview",
+          "description": "A hero card's sub cards, in order."
+        },
+        {
+          "name": "inDeps",
+          "type": "CardId[]",
+          "required": false,
+          "stability": "preview",
+          "description": "The cards that have to be done before this one. Fails when it would make a cycle."
+        },
+        {
+          "name": "outDeps",
+          "type": "CardId[]",
+          "required": false,
+          "stability": "preview",
+          "description": "The cards that are blocked by this one."
+        },
+        {
+          "name": "dueDate",
+          "type": "string | null",
+          "required": false,
+          "stability": "stable",
+          "description": "`YYYY-MM-DD`, or `null` to remove it. Fails unless the organization's plan includes due dates."
+        },
+        {
+          "name": "isDoc",
+          "type": "boolean",
+          "required": false,
+          "stability": "stable"
+        }
+      ],
+      "response": null
+    },
+    "cards/updateMany": {
+      "stability": "stable",
+      "description": "Updates several cards, each with its own values. Cards that don't exist or that you can't see are skipped.",
+      "requires": "Requires `card:write`.",
+      "params": [
+        {
+          "name": "cards",
+          "type": "{id: CardId; content?: string | null; title?: string | null; priority?: \"a\" | \"b\" | \"c\" | null; effort?: number | null; assigneeId?: UserId | null; isDoc?: boolean; visibility?: \"archived\" | \"default\" | \"deleted\"; status?: \"not_started\" | \"started\" | \"done\" | null; masterTags?: string[]}[]",
+          "required": true,
+          "stability": "stable",
+          "description": "Each needs a `content` or a `title`. With both, the content becomes the title, an empty line and `content`. A `title` alone replaces the first line of the current content. Project tags in `masterTags` that the project doesn't have yet are created."
+        }
+      ],
+      "response": null
+    },
+    "decks/addToSpaceAfter": {
+      "stability": "preview",
+      "description": "Moves decks into a project's space, right after `targetId` and in the order of `deckIds`. Decks from another project move with their cards.",
+      "requires": "Requires `deck:write`.",
+      "params": [
+        {
+          "name": "deckIds",
+          "type": "DeckId[]",
+          "required": true,
+          "stability": "preview"
+        },
+        {
+          "name": "targetId",
+          "type": "DeckId | null",
+          "required": true,
+          "stability": "preview",
+          "description": "`null` puts the decks at the end of the space."
+        },
+        {
+          "name": "targetProjectId",
+          "type": "ProjectId",
+          "required": true,
+          "stability": "preview"
+        },
+        {
+          "name": "targetSpaceId",
+          "type": "number",
+          "required": true,
+          "stability": "preview",
+          "description": "One of the ids in `project.spaces`."
+        }
+      ],
+      "response": null
+    },
+    "decks/addToSpaceBefore": {
+      "stability": "preview",
+      "description": "Moves decks into a project's space, right before `targetId` and in the order of `deckIds`. Decks from another project move with their cards.",
+      "requires": "Requires `deck:write`.",
+      "params": [
+        {
+          "name": "deckIds",
+          "type": "DeckId[]",
+          "required": true,
+          "stability": "preview"
+        },
+        {
+          "name": "targetId",
+          "type": "DeckId | null",
+          "required": true,
+          "stability": "preview",
+          "description": "`null` puts the decks at the start of the space."
+        },
+        {
+          "name": "targetProjectId",
+          "type": "ProjectId",
+          "required": true,
+          "stability": "preview"
+        },
+        {
+          "name": "targetSpaceId",
+          "type": "number",
+          "required": true,
+          "stability": "preview",
+          "description": "One of the ids in `project.spaces`."
+        }
+      ],
+      "response": null
+    },
+    "decks/create": {
+      "stability": "stable",
+      "description": "Creates a deck at the end of the project's first space. `deckType` defaults to that space's `defaultDeckType`.",
+      "requires": "Requires `deck:write`.",
+      "params": [
+        {
+          "name": "title",
+          "type": "string",
+          "required": true,
+          "stability": "stable"
+        },
+        {
+          "name": "projectId",
+          "type": "ProjectId",
+          "required": true,
+          "stability": "stable"
+        },
+        {
+          "name": "coverColor",
+          "type": "string | null",
+          "required": false,
+          "stability": "preview",
+          "description": "A hex color like `#ff8800`."
+        },
+        {
+          "name": "deckType",
+          "type": "\"task\" | \"hero\" | \"doc\" | \"mixed\"",
+          "required": false,
+          "stability": "stable"
+        }
+      ],
+      "response": [
+        {
+          "name": "id",
+          "type": "DeckId",
+          "required": true,
+          "stability": "stable"
+        }
+      ]
+    },
+    "decks/delete": {
+      "stability": "stable",
+      "description": "Sets `isDeleted` on the deck and archives its cards, their sub cards in other decks, and the journey steps that create cards in this deck.",
+      "requires": "Requires `deck:delete`.",
+      "params": [
+        {
+          "name": "id",
+          "type": "DeckId",
+          "required": true,
+          "stability": "stable"
+        }
+      ],
+      "response": null
+    },
+    "decks/renameZone": {
+      "stability": "preview",
+      "description": "Renames a zone of the deck's manual order. The cards in that zone move to the new name with it, including archived ones.",
+      "requires": "Requires `deck:write` and `cardOrder:write`.",
+      "params": [
+        {
+          "name": "id",
+          "type": "DeckId",
+          "required": true,
+          "stability": "preview"
+        },
+        {
+          "name": "label",
+          "type": "string | null",
+          "required": true,
+          "stability": "preview",
+          "description": "The zone to rename, one of `manualOrderLabels`. `null` is the zone without a name."
+        },
+        {
+          "name": "newLabel",
+          "type": "string",
+          "required": true,
+          "stability": "preview",
+          "description": "Trimmed. Fails if the deck already has a zone with that name."
+        }
+      ],
+      "response": null
+    },
+    "decks/update": {
+      "stability": "stable",
+      "requires": "Requires `deck:write` or `project:write`, depending on the call.",
+      "params": [
+        {
+          "name": "id",
+          "type": "DeckId",
+          "required": true,
+          "stability": "stable"
+        },
+        {
+          "name": "milestoneId",
+          "type": "MilestoneId | null",
+          "required": false,
+          "stability": "stable",
+          "description": "Also puts the deck's cards that aren't archived or deleted into this milestone. `null` only takes it from cards that were in the deck's old milestone."
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": false,
+          "stability": "stable"
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "required": false,
+          "stability": "stable"
+        },
+        {
+          "name": "handSyncEnabled",
+          "type": "boolean",
+          "required": false,
+          "stability": "preview",
+          "description": "Turning it on adds the deck's assigned cards that aren't done to their assignee's Hand."
+        },
+        {
+          "name": "defaultProjectTagId",
+          "type": "ProjectTagId | null",
+          "required": false,
+          "stability": "stable",
+          "description": "The deck's auto tag. Changing it removes the old tag from all of the deck's cards and adds the new one."
+        },
+        {
+          "name": "manualOrderLabels",
+          "type": "(string | null)[]",
+          "required": false,
+          "stability": "preview",
+          "description": "The zone names are trimmed, and duplicates are dropped. Renaming a zone here leaves its cards with the old name; use `decks/renameZone` instead."
+        },
+        {
+          "name": "coverColor",
+          "type": "string | null",
+          "required": false,
+          "stability": "preview",
+          "description": "A hex color like `#ff8800`."
+        },
+        {
+          "name": "deckType",
+          "type": "\"task\" | \"hero\" | \"doc\" | \"mixed\"",
+          "required": false,
+          "stability": "stable",
+          "description": "Switching to `hero` sets the deck's started cards back to `not_started`. Switching to `hero` or `doc` fails while journey steps create their cards in this deck."
+        }
+      ],
+      "response": null
+    },
+    "decks/updateGuardians": {
+      "stability": "preview",
+      "description": "Sets the deck's guardians to exactly `userIds` and updates `hasGuardians`. Fails unless the organization's plan includes guardians or `userIds` is empty.",
+      "requires": "Requires `deckGuardian:write`.",
+      "params": [
+        {
+          "name": "id",
+          "type": "DeckId",
+          "required": true,
+          "stability": "preview"
+        },
+        {
+          "name": "userIds",
+          "type": "UserId[]",
+          "required": true,
+          "stability": "preview"
+        }
+      ],
+      "response": null
+    },
+    "handQueue/addCardsToHand": {
+      "stability": "stable",
+      "description": "Adds cards to the end of a user's Hand. Cards that are done, deleted, archived or already in that Hand are skipped. A card without an owner gets the user as owner. Fails when the Hand doesn't have enough free slots (`account.maxHandSlotCount`).",
+      "requires": "Requires `queueEntry:write`.",
+      "params": [
+        {
+          "name": "cardIds",
+          "type": "CardId[]",
+          "required": true,
+          "stability": "stable"
+        },
+        {
+          "name": "userId",
+          "type": "UserId",
+          "required": true,
+          "stability": "stable"
+        }
+      ],
+      "response": [
+        {
+          "name": "queueEntries",
+          "type": "{id: QueueEntryId; cardId: CardId}[]",
+          "required": true,
+          "stability": "stable",
+          "description": "The new entries, one for each added card."
+        }
+      ]
+    },
+    "handQueue/removeCards": {
+      "stability": "stable",
+      "description": "Removes cards from a user's Hand, or from every Hand when `userId` is left out. This includes entries in the done pile.",
+      "requires": "Requires `queueEntry:write`.",
+      "params": [
+        {
+          "name": "cardIds",
+          "type": "CardId[]",
+          "required": true,
+          "stability": "stable"
+        },
+        {
+          "name": "userId",
+          "type": "UserId",
+          "required": false,
+          "stability": "stable"
+        }
+      ],
+      "response": null
+    },
+    "handQueue/setCardOrders": {
+      "stability": "stable",
+      "description": "Sets the order of a user's Hand and can add cards to it. A card added this way that has no owner gets the user as owner. Fails when the Hand doesn't have enough free slots for the added cards (`account.maxHandSlotCount`).",
+      "requires": "Requires `queueEntry:write`.",
+      "params": [
+        {
+          "name": "cardIds",
+          "type": "CardId[]",
+          "required": true,
+          "stability": "stable",
+          "description": "The new order from the first card on. Cards of the Hand that are missing here follow in their current order. Cards that are neither in the Hand nor in `draggedCardIds` are ignored."
+        },
+        {
+          "name": "draggedCardIds",
+          "type": "CardId[]",
+          "required": true,
+          "stability": "stable",
+          "description": "The cards that moved, from within the Hand or from outside. Cards from outside are added. Nothing changes if it is empty or none of them can be in a Hand, e.g. because they are deleted."
+        },
+        {
+          "name": "userId",
+          "type": "UserId",
+          "required": true,
+          "stability": "stable"
+        }
+      ],
+      "response": [
+        {
+          "name": "queueEntries",
+          "type": "{id: QueueEntryId; cardId: CardId}[]",
+          "required": true,
+          "stability": "stable",
+          "description": "The Hand's entries after the change."
+        }
+      ]
+    },
+    "milestones/create": {
+      "stability": "stable",
+      "description": "Creates a milestone for the projects in `projectIds`, or for all projects with `isGlobal`.",
+      "requires": "Requires `milestone:write`.",
+      "params": [
+        {
+          "name": "accountId",
+          "type": "AccountId",
+          "required": true,
+          "stability": "stable"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "stability": "stable"
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "required": false,
+          "stability": "stable"
+        },
+        {
+          "name": "color",
+          "type": "\"gray\" | \"brown\" | \"yellow\" | \"red\" | \"pink\" | \"blue\" | \"green\"",
+          "required": true,
+          "stability": "stable"
+        },
+        {
+          "name": "date",
+          "type": "string",
+          "required": true,
+          "stability": "stable",
+          "description": "`YYYY-MM-DD`."
+        },
+        {
+          "name": "startDate",
+          "type": "string | null",
+          "required": false,
+          "stability": "stable",
+          "description": "`YYYY-MM-DD`."
+        },
+        {
+          "name": "isGlobal",
+          "type": "boolean",
+          "required": true,
+          "stability": "stable"
+        },
+        {
+          "name": "projectIds",
+          "type": "ProjectId[] | null",
+          "required": true,
+          "stability": "stable",
+          "description": "Ignored when `isGlobal` is set."
+        }
+      ],
+      "response": [
+        {
+          "name": "id",
+          "type": "MilestoneId",
+          "required": true,
+          "stability": "stable"
+        },
+        {
+          "name": "accountSeq",
+          "type": "number",
+          "required": true,
+          "stability": "stable",
+          "description": "The milestone's number, see `milestone.accountSeq`."
+        }
+      ]
+    },
+    "milestones/delete": {
+      "stability": "stable",
+      "description": "Marks a milestone as deleted (`isDeleted`). It's removed from all its cards and decks, and nobody has it pinned anymore.",
+      "requires": "Requires `milestone:write`.",
+      "params": [
+        {
+          "name": "id",
+          "type": "MilestoneId",
+          "required": true,
+          "stability": "stable"
+        }
+      ],
+      "response": null
+    },
+    "milestones/pin": {
+      "stability": "preview",
+      "description": "Pins a milestone for a user. The web app shows it in the user's Hand. A user has one pinned milestone per organization, so pinning another one replaces it.",
+      "requires": "Requires `pinnedMilestone:writeOwn` or `pinnedMilestone:writeAny`, depending on the call.",
+      "params": [
+        {
+          "name": "milestoneId",
+          "type": "MilestoneId | null",
+          "required": true,
+          "stability": "preview",
+          "description": "`null` removes the user's pin."
+        },
+        {
+          "name": "userId",
+          "type": "UserId",
+          "required": true,
+          "stability": "preview",
+          "description": "The token's own user. For a personal token, that's you."
+        }
+      ],
+      "response": null
+    },
+    "milestones/renameZone": {
+      "stability": "preview",
+      "description": "Renames a zone of the milestone's manual order. The cards in that zone move to the new name with it, including archived ones.",
+      "requires": "Requires `milestone:write` and `cardOrder:write`.",
+      "params": [
+        {
+          "name": "id",
+          "type": "MilestoneId",
+          "required": true,
+          "stability": "preview"
+        },
+        {
+          "name": "label",
+          "type": "string | null",
+          "required": true,
+          "stability": "preview",
+          "description": "The zone to rename, one of `manualOrderLabels`. `null` is the zone without a name."
+        },
+        {
+          "name": "newLabel",
+          "type": "string",
+          "required": true,
+          "stability": "preview",
+          "description": "Trimmed. Fails if the milestone already has a zone with that name."
+        }
+      ],
+      "response": null
+    },
+    "milestones/update": {
+      "stability": "stable",
+      "requires": "Requires `milestone:write`.",
+      "params": [
+        {
+          "name": "id",
+          "type": "MilestoneId",
+          "required": true,
+          "stability": "stable"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": false,
+          "stability": "stable"
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "required": false,
+          "stability": "stable"
+        },
+        {
+          "name": "color",
+          "type": "\"gray\" | \"brown\" | \"yellow\" | \"red\" | \"pink\" | \"blue\" | \"green\"",
+          "required": false,
+          "stability": "stable"
+        },
+        {
+          "name": "date",
+          "type": "string",
+          "required": false,
+          "stability": "stable",
+          "description": "`YYYY-MM-DD`."
+        },
+        {
+          "name": "startDate",
+          "type": "string | null",
+          "required": false,
+          "stability": "stable",
+          "description": "`YYYY-MM-DD`, or `null` to remove it."
+        },
+        {
+          "name": "handSyncEnabled",
+          "type": "boolean",
+          "required": false,
+          "stability": "preview",
+          "description": "Turning it on also adds the milestone's cards that are not done and have an assignee to the assignee's Hand."
+        },
+        {
+          "name": "isGlobal",
+          "type": "boolean",
+          "required": false,
+          "stability": "stable",
+          "description": "`true` links the milestone to all projects. `false` needs `projectIds` if the milestone is global."
+        },
+        {
+          "name": "projectIds",
+          "type": "ProjectId[] | null",
+          "required": false,
+          "stability": "stable",
+          "description": "Replaces the milestone's projects and makes it non-global. Ignored with `isGlobal: true`. Cards and decks of projects that are removed lose the milestone."
+        },
+        {
+          "name": "manualOrderLabels",
+          "type": "(string | null)[]",
+          "required": false,
+          "stability": "preview",
+          "description": "Labels are trimmed, and duplicates are removed. Renaming a zone here leaves its cards with the old name; use `milestones/renameZone` instead."
+        },
+        {
+          "name": "userCapacities",
+          "type": "{[key: string]: number}",
+          "required": false,
+          "stability": "preview",
+          "description": "Replaces all capacities. Fails with a value above 0 unless the organization's plan includes capacity tracking."
+        }
+      ],
+      "response": null
+    },
+    "resolvables/addReaction": {
+      "stability": "preview",
+      "description": "Adds your reaction to a comment. Fails if you already reacted with the same emoji.",
+      "requires": "Requires `resolvableEntryReaction:writeOwn`.",
+      "params": [
+        {
+          "name": "entryId",
+          "type": "ResolvableEntryId",
+          "required": true,
+          "stability": "preview"
+        },
+        {
+          "name": "value",
+          "type": "{type: \"emoji\"; value: string}",
+          "required": true,
+          "stability": "preview",
+          "description": "`value` is the emoji character itself, like `👍`."
+        }
+      ],
+      "response": [
+        {
+          "name": "id",
+          "type": "ResolvableEntryReactionId",
+          "required": true,
+          "stability": "preview"
+        }
+      ]
+    },
+    "resolvables/close": {
+      "stability": "stable",
+      "description": "Closes a comment thread. Closing a `block` or `review` thread ends the card's blocked or in review state. In a deck with guardians, only a guardian, a producer or an admin may close a `review`, unless the guardians in it approved and you are the card's assignee.",
+      "requires": "Requires `resolvable:write` or `card:write`, depending on the call.",
+      "params": [
+        {
+          "name": "id",
+          "type": "ResolvableId",
+          "required": true,
+          "stability": "stable"
+        },
+        {
+          "name": "markCardDone",
+          "type": "boolean",
+          "required": false,
+          "stability": "stable",
+          "description": "Also sets the card's `status` to `done`."
+        }
+      ],
+      "response": [
+        {
+          "name": "cardId",
+          "type": "CardId",
+          "required": true,
+          "stability": "stable"
+        }
+      ]
+    },
+    "resolvables/comment": {
+      "stability": "stable",
+      "description": "Adds a comment to a thread. You and everyone mentioned in `content` join the thread, even if you opted out before. The other participants who didn't opt out are notified.",
+      "requires": "Requires `resolvableEntry:writeOwn`.",
+      "params": [
+        {
+          "name": "resolvableId",
+          "type": "ResolvableId",
+          "required": true,
+          "stability": "stable"
+        },
+        {
+          "name": "content",
+          "type": "string",
+          "required": true,
+          "stability": "stable",
+          "description": "Markdown. `@name` mentions of the organization's users are stored as `@[userId:<id>]`."
+        }
+      ],
+      "response": [
+        {
+          "name": "id",
+          "type": "ResolvableEntryId",
+          "required": true,
+          "stability": "stable"
+        }
+      ]
+    },
+    "resolvables/create": {
+      "stability": "stable",
+      "description": "Starts a comment thread on a card with its first comment. You, the card's assignee and everyone mentioned in `content` join it, and everyone watching the card is notified.",
+      "requires": "Requires `resolvable:write` or `card:write`, depending on the call.",
+      "params": [
+        {
+          "name": "cardId",
+          "type": "CardId",
+          "required": true,
+          "stability": "stable"
+        },
+        {
+          "name": "context",
+          "type": "\"block\" | \"review\" | \"comment\"",
+          "required": true,
+          "stability": "stable",
+          "description": "`block` or `review` sets the card back to `not_started` and marks it as blocked or in review until the thread is closed. A `review` thread also adds the deck's guardians."
+        },
+        {
+          "name": "content",
+          "type": "string",
+          "required": true,
+          "stability": "stable",
+          "description": "Markdown. `@name` mentions of the organization's users are stored as `@[userId:<id>]`."
+        }
+      ],
+      "response": [
+        {
+          "name": "id",
+          "type": "ResolvableId",
+          "required": true,
+          "stability": "stable"
+        }
+      ]
+    },
+    "resolvables/removeReaction": {
+      "stability": "preview",
+      "requires": "Requires `resolvableEntryReaction:writeOwn` or `resolvableEntryReaction:writeAny`, depending on the call.",
+      "params": [
+        {
+          "name": "reactionId",
+          "type": "ResolvableEntryReactionId",
+          "required": true,
+          "stability": "preview"
+        }
+      ],
+      "response": null
+    },
+    "resolvables/reopen": {
+      "stability": "stable",
+      "description": "Opens a closed comment thread again. Reopening a `block` or `review` thread sets the card back to `not_started`, and fails for doc cards, hero cards and cards that already have an open `block` or `review` thread.",
+      "requires": "Requires `resolvable:write` or `card:write`, depending on the call.",
+      "params": [
+        {
+          "name": "id",
+          "type": "ResolvableId",
+          "required": true,
+          "stability": "stable"
+        }
+      ],
+      "response": null
+    },
+    "resolvables/updateComment": {
+      "stability": "stable",
+      "description": "Changes a comment's `content`. If the thread is open, users newly mentioned in it join the thread.",
+      "requires": "Requires `resolvableEntry:writeOwn` or `resolvableEntry:writeAny`, depending on the call.",
+      "params": [
+        {
+          "name": "entryId",
+          "type": "ResolvableEntryId",
+          "required": true,
+          "stability": "stable"
+        },
+        {
+          "name": "content",
+          "type": "string",
+          "required": true,
+          "stability": "stable",
+          "description": "Markdown. `@name` mentions of the organization's users are stored as `@[userId:<id>]`."
+        }
+      ],
+      "response": null
+    },
+    "resolvables/updateParticipantDone": {
+      "stability": "preview",
+      "description": "Opts a participant out of a comment thread (`done: true`) or back in (`done: false`). Participants who opted out aren't notified about new comments. The card's assignee can't opt out.",
+      "requires": "Requires `resolvableParticipant:writeOwn` or `resolvableParticipant:writeAny`, depending on the call.",
+      "params": [
+        {
+          "name": "resolvableId",
+          "type": "ResolvableId",
+          "required": true,
+          "stability": "preview"
+        },
+        {
+          "name": "userId",
+          "type": "UserId",
+          "required": true,
+          "stability": "preview"
+        },
+        {
+          "name": "done",
+          "type": "boolean",
+          "required": true,
+          "stability": "preview"
+        },
+        {
+          "name": "status",
+          "type": "\"active\" | \"opt_out\" | \"approve\"",
+          "required": false,
+          "stability": "preview",
+          "description": "Defaults to `opt_out` with `done: true` and to `active` otherwise. A guardian uses `approve` with `done: true` to approve a `review` thread."
+        }
+      ],
+      "response": null
+    },
+    "sprints/renameZone": {
+      "stability": "preview",
+      "description": "Renames a zone of the run's manual order. The cards in that zone move to the new name with it, including archived ones.",
+      "requires": "Requires `sprint:write` and `cardOrder:write`.",
+      "params": [
+        {
+          "name": "id",
+          "type": "SprintId",
+          "required": true,
+          "stability": "preview"
+        },
+        {
+          "name": "label",
+          "type": "string | null",
+          "required": true,
+          "stability": "preview",
+          "description": "The zone to rename, one of `manualOrderLabels`. `null` is the zone without a name."
+        },
+        {
+          "name": "newLabel",
+          "type": "string",
+          "required": true,
+          "stability": "preview",
+          "description": "Trimmed. Fails if the run already has a zone with that name."
+        }
+      ],
+      "response": null
+    },
+    "sprints/updateConfig": {
+      "stability": "stable",
+      "description": "Changes the given fields of a Run Config. A new `autoBeastModeDurationHours` starts Beast Mode for the current run right away if that time has already passed.",
+      "requires": "Requires `sprintConfig:write`.",
+      "params": [
+        {
+          "name": "id",
+          "type": "SprintConfigId",
+          "required": true,
+          "stability": "stable"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": false,
+          "stability": "stable"
+        },
+        {
+          "name": "color",
+          "type": "\"gray\" | \"brown\" | \"yellow\" | \"red\" | \"pink\" | \"blue\" | \"green\"",
+          "required": false,
+          "stability": "stable"
+        },
+        {
+          "name": "isGlobal",
+          "type": "boolean",
+          "required": false,
+          "stability": "stable",
+          "description": "`true` links the Run Config to all projects. `false` needs `projectIds` if the Run Config is global."
+        },
+        {
+          "name": "autoBeastModeDurationHours",
+          "type": "number | null",
+          "required": false,
+          "stability": "preview",
+          "description": "Fails with a value above 0 unless the organization's plan includes Beast Mode."
+        },
+        {
+          "name": "beastGracePeriodHours",
+          "type": "number",
+          "required": false,
+          "stability": "preview",
+          "description": "Fails with a value above 0 unless the organization's plan includes Beast Mode."
+        },
+        {
+          "name": "projectIds",
+          "type": "ProjectId[] | null",
+          "required": false,
+          "stability": "stable",
+          "description": "Replaces the Run Config's projects and makes it non-global. Ignored with `isGlobal: true`. Cards of projects that are removed are taken out of their run."
+        },
+        {
+          "name": "moveOnFinish",
+          "type": "(\"undone\" | \"review\" | \"blocked\")[]",
+          "required": false,
+          "stability": "preview"
+        },
+        {
+          "name": "autoAssignStartedCard",
+          "type": "boolean",
+          "required": false,
+          "stability": "preview"
+        },
+        {
+          "name": "autoAssignNewCard",
+          "type": "boolean",
+          "required": false,
+          "stability": "preview"
+        },
+        {
+          "name": "runLabelTemplate",
+          "type": "string | null",
+          "required": false,
+          "stability": "preview",
+          "description": "Has to contain `%RUN_NR%` or `%CALENDAR_WEEK%`."
+        }
+      ],
+      "response": null
+    },
+    "sprints/updateSprint": {
+      "stability": "stable",
+      "description": "Changes the given fields of a run, and can start its Beast Mode or complete it.",
+      "requires": "Requires `sprint:write`.",
+      "params": [
+        {
+          "name": "id",
+          "type": "SprintId",
+          "required": true,
+          "stability": "stable"
+        },
+        {
+          "name": "name",
+          "type": "string | null",
+          "required": false,
+          "stability": "stable",
+          "description": "`null` makes the web app show the label from the Run Config's `runLabelTemplate`."
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "required": false,
+          "stability": "stable"
+        },
+        {
+          "name": "handSyncEnabled",
+          "type": "boolean",
+          "required": false,
+          "stability": "preview"
+        },
+        {
+          "name": "manualOrderLabels",
+          "type": "(string | null)[]",
+          "required": false,
+          "stability": "preview",
+          "description": "Labels are trimmed, and duplicates are removed. Renaming a zone here leaves its cards with the old name; use `sprints/renameZone` instead."
+        },
+        {
+          "name": "userCapacities",
+          "type": "{[key: string]: number}",
+          "required": false,
+          "stability": "preview",
+          "description": "Replaces all capacities. Fails with a value above 0 unless the organization's plan includes capacity tracking."
+        },
+        {
+          "name": "autoMilestoneId",
+          "type": "MilestoneId | null",
+          "required": false,
+          "stability": "preview",
+          "description": "Also gives this milestone to the run's cards that have none."
+        },
+        {
+          "name": "lockIn",
+          "type": "boolean",
+          "required": false,
+          "stability": "preview",
+          "description": "`true` starts Beast Mode for the run now and locks in all its cards. Fails if it's already on, or unless the organization's plan includes Beast Mode."
+        },
+        {
+          "name": "complete",
+          "type": "boolean",
+          "required": false,
+          "stability": "stable",
+          "description": "`true` completes the run now, as if it ended. Cards move to the next run as set in the Run Config's `moveOnFinish`. Fails if the run is already completed."
+        }
+      ],
+      "response": null
+    },
+    "watchings/addCard": {
+      "stability": "preview",
+      "description": "Watches a card for you, so you're notified about its changes and new comment threads. Does nothing if you already watch it.",
+      "requires": "Requires `cardSubscription:writeOwn`.",
+      "params": [
+        {
+          "name": "cardId",
+          "type": "CardId",
+          "required": true,
+          "stability": "preview"
+        }
+      ],
+      "response": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "stability": "preview"
+        }
+      ]
+    },
+    "watchings/addDeck": {
+      "stability": "preview",
+      "description": "Makes a user watch a deck. That's the same as watching every card in it, including cards added later. Does nothing if the user already watches it.",
+      "requires": "Requires `deckSubscription:writeOwn` or `deckSubscription:writeAny`, depending on the call.",
+      "params": [
+        {
+          "name": "deckId",
+          "type": "DeckId",
+          "required": true,
+          "stability": "preview"
+        },
+        {
+          "name": "userId",
+          "type": "UserId",
+          "required": true,
+          "stability": "preview",
+          "description": "The token's own user. For a personal token, that's you."
+        }
+      ],
+      "response": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "stability": "preview"
+        }
+      ]
+    },
+    "watchings/removeCard": {
+      "stability": "preview",
+      "description": "Stops watching a card. You still get its notifications while you watch its deck.",
+      "requires": "Requires `cardSubscription:writeOwn`.",
+      "params": [
+        {
+          "name": "cardId",
+          "type": "CardId",
+          "required": true,
+          "stability": "preview"
+        }
+      ],
+      "response": null
+    },
+    "watchings/removeDeck": {
+      "stability": "preview",
+      "description": "Stops a user from watching a deck. Cards the user watches on their own stay watched.",
+      "requires": "Requires `deckSubscription:writeOwn` or `deckSubscription:writeAny`, depending on the call.",
+      "params": [
+        {
+          "name": "deckId",
+          "type": "DeckId",
+          "required": true,
+          "stability": "preview"
+        },
+        {
+          "name": "userId",
+          "type": "UserId",
+          "required": true,
+          "stability": "preview"
+        }
+      ],
+      "response": null
+    }
   }
 }

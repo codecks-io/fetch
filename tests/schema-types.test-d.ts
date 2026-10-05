@@ -1,7 +1,14 @@
 // Type-level tests for the field types generated from the reference's JTD schemas. No runtime
 // assertions: `npm run typecheck` fails when a type drifts.
 import {expectTypeOf} from "vitest";
-import type {MilestoneId, Priority, ResolvableEntryId, UserId, buildFetchers} from "../src/index";
+import type {
+  CardId,
+  MilestoneId,
+  Priority,
+  ResolvableEntryId,
+  UserId,
+  buildFetchers,
+} from "../src/index";
 
 type Fetchers = ReturnType<typeof buildFetchers>;
 declare const fetchers: Fetchers;
@@ -45,4 +52,15 @@ export async function _check() {
   const progress = await fetchers.fetchInstance("milestoneProgress", "", {fields: ["date"]});
   expectTypeOf(progress.date).toEqualTypeOf<string>();
   expectTypeOf(progress.milestoneId).toEqualTypeOf<MilestoneId>();
+
+  // an action's response is read, so its types are those of the reference; void without one
+  const created = await fetchers.dispatch("cards/create", {content: "", deckId: null});
+  expectTypeOf(created).toEqualTypeOf<{id: CardId; accountSeq: number}>();
+  expectTypeOf(
+    await fetchers.dispatch("cards/update", {id: created.id, status: "done"})
+  ).toEqualTypeOf<void>();
+  // @ts-expect-error a param's enum is closed: the API rejects a value it doesn't list
+  await fetchers.dispatch("cards/update", {id: created.id, status: "snoozing"});
+  // @ts-expect-error `deckId` is required
+  await fetchers.dispatch("cards/create", {content: ""});
 }

@@ -58,6 +58,7 @@ src/
 │   ├── index.ts              modelMap – registry mapping name → descriptor, generated
 │   ├── definitions.ts        Named types from the reference (Priority, Checkbox, ...), generated
 │   ├── ids.ts                Re-exports every *Id type, generated
+│   ├── actions.ts            ActionMap: every action's params and response, generated
 │   ├── _types.json           Rendered type strings for the schema docs, generated
 │   └── *.ts                  concrete model descriptors, generated (Account, Card, User, ...)
 │
@@ -127,6 +128,12 @@ field. The reference's named types go to `definitions.ts`, the `*Id` types are r
 field and definition for `scripts/generate-schema-docs.ts` (which also writes `schema/types.md`);
 nothing in `src/` imports it.
 
+The reference's actions go to `actions.ts` as one type, `ActionMap`, keyed by the action's name
+(`"cards/create"`), with its `params` and `response` (`void` for an action without one). It is types
+only: `dispatch` sends the name as the URL, so no action needs runtime code. An optional param is
+`key?:`, a nullable one adds `| null`. Enums in params are closed, unlike everywhere else: the API
+only accepts the listed values. The JSDoc names the required scopes.
+
 All descriptors are re-exported through `modelMap` in `src/models/index.ts`, which is the single registry the rest of the system relies on.
 
 A special `_root` model has no fields or keys and only exposes the top-level relations `account`, `loggedInUser` and `releases`. It serves as the entry point for `fetchFromRoot`.
@@ -161,11 +168,12 @@ All `hasMany` variants except the default require an `as` alias so the result ke
 
 ### Loader abstraction (`src/loaders/`)
 
-`DataLoader` is a single-method interface:
+`DataLoader` has two methods:
 
 ```ts
 type DataLoader = {
   fetchModel: (model, ids, query) => Promise<Record<Id, Result>>;
+  dispatch: (name, params) => Promise<ActionResponse<N>>;
 };
 ```
 
@@ -176,13 +184,17 @@ The built-in `SimpleLoader` (created via `createSimpleLoader(opts)`) implements 
 3. Feeding the response into a `ModelPool`
 4. Reconciling each requested instance against the pool
 
+and implements `dispatch` as a `POST` of the params to `dispatch/<name>`, returning the answer's
+`payload` (`{payload, actionId}` on the wire; `undefined` for `payload: null`). A refused action
+answers `{payload: {error: "requires card:write"}}`, which `CodecksApiError` uses as its message.
+
 Configuration options: `token`, `baseUrl`, custom `fetch`, `headers`, `timeout`. The token is sent as `Authorization: Bearer`; `buildLegacyFetchers` takes `accessToken` and `subdomain` instead and sends `X-Auth-Token` / `X-Account`. A non-2xx answer throws `CodecksApiError`.
 
 Custom loaders (e.g. with batching or caching) can be plugged in by passing any `DataLoader` to `buildFetchersFromLoader`.
 
 ### Public API (`src/index.ts`)
 
-`buildFetchersFromLoader(loader)` returns four methods:
+`buildFetchersFromLoader(loader)` returns five methods:
 
 | Method                               | Purpose                                                     |
 | ------------------------------------ | ----------------------------------------------------------- |
@@ -190,6 +202,7 @@ Custom loaders (e.g. with batching or caching) can be plugged in by passing any 
 | `fetchInstance(model, id, query)`    | Fetch a single instance by model name + id                  |
 | `fetchFromInstance(instance, query)` | Fetch from an already-known `Instance` reference            |
 | `fetchInstances(model, ids, query)`  | Fetch multiple instances, returns `Record<Id, Result>`      |
+| `dispatch(name, params)`             | Call an action, returns its typed response                  |
 
 `buildFetchers(opts)` and `buildLegacyFetchers(opts)` are shortcuts that create a `SimpleLoader` and pass it to `buildFetchersFromLoader`.
 
