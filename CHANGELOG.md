@@ -1,5 +1,61 @@
 # @codecks/fetch
 
+## 1.1.0
+
+### Minor Changes
+
+- ec386b2: `dispatch(name, params)` calls an action of the API, e.g.
+  `dispatch("cards/update", {id, status: "done"})`. Its params and response are typed from the API
+  reference for all of its actions; each action's JSDoc holds its description and required scopes,
+  and `schema/actions.md` lists them. Enums in params are closed: only the values the API accepts
+  type-check. `ActionMap`, `ActionName`, `ActionParams` and `ActionResponse` are exported.
+
+  A refused action throws a `CodecksApiError` whose message is the API's reason, e.g.
+  `[403] requires card:write`.
+
+  **Breaking** for custom loaders: `DataLoader` needs a `dispatch(name, params)` method that posts
+  the params to `dispatch/<name>` and returns the answer's `payload`.
+
+- cfb4c0b: The models are generated from the Codecks API reference, so they only contain what the API documents, typed the way the API documents them.
+  - Undocumented models, fields and relations are gone from the types and from `schema/*.md`, e.g.
+    `account.seats`, `account.roles` and the `_root` relations other than `account`,
+    `loggedInUser` and `releases`. The API still answers them, but they can change without notice.
+  - Fields and relations the API marks `preview` carry `@experimental`; deprecated ones carry
+    `@deprecated` with their removal date, so editors strike them through on a query's result.
+    `schema/*.md` shows the same markers.
+  - Enums are typed as open unions: `card.status` is
+    `"not_started" | "started" | "snoozing" | "done" | (string & {})`. The values autocomplete, but a
+    `switch` over one isn't exhaustive, since the API may add values.
+  - json and array fields are typed instead of `any`: `card.checkboxInfo` is `Checkbox[]`,
+    `milestone.userCapacities` is `{[userId: UserId]: number}`. Ids inside arrays and maps are
+    nominal: `card.mentionedUsers` is `UserId[]`. Timestamps and days nested in a json value stay
+    strings; top-level ones still parse to a `Date` and `{year, month, day}`.
+  - The reference's named types (`Priority`, `Checkbox`, `DefaultCard`, `Workdays`, …) and every
+    model's id type (`CardId`, `UserId`, …) are exported from the package.
+  - Foreign keys come from the reference instead of being guessed from the relation name.
+    `resolvableEntryReaction.resolvableEntryId` is gone, the fk is `entryId` (now a
+    `ResolvableEntryId`). `resolvable.closedById` is gone; query the `closedBy` relation, which is
+    now nullable.
+  - Other field types follow the API where the old descriptors typed them as `string`: `file.size`
+    and `workflowItem.version` are numbers, `isGlobal`, `handSyncEnabled` and `hasGuardians` are
+    booleans, `manualOrderLabels` and `sprintConfig.moveOnFinish` are arrays.
+  - New documented fields: the account settings needed to read cards and Runs (`priorityLabels`,
+    `effortScale`, `workdays`, `startWeekday`, the `*Enabled` switches), `card.isBlockingDep` and `version`,
+    `deck.isDeleted`, `user.kind`, `isIntegration` and `profileImage`, `project.coverFile`,
+    `file.createdAt` and `uploader`, `deck.deckType`, `resolvable.reopenedAt` and
+    `reopenedBy`, `sprintConfig.runLabelTemplate`, and `date` on the progress models.
+
+- 6629cba: Models, fields and relations carry the API reference's descriptions as JSDoc, so editors show what
+  e.g. `card.title` or `card.masterTags` holds; `schema/*.md` lists them too.
+
+  The models also follow the latest reference: `attachment.creator`, `cardHistory.changer` and
+  `file.uploader` may be `null`, and `sprint.creator` is gone from the types.
+
+### Patch Changes
+
+- f41e44b: The models follow the latest API reference: every model and many more fields and relations carry a
+  description, e.g. the `account` settings and all of `deck`. `queueEntry.sortIndex` may be `null`.
+
 ## 1.0.1
 
 ### Patch Changes
