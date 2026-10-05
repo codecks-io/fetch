@@ -340,7 +340,8 @@ await dispatch("cards/update", {id, status: "done", assigneeId: null});
   the listed values. Enums the API answers stay open, see [Field types](#field-types).
 - **Response**: an action without one resolves to `undefined`.
 - **Errors**: a refused action throws a `CodecksApiError` with the reason as its message, e.g.
-  `[403] requires card:write` for a read-only token.
+  `[403] requires card:write` for a read-only token. A missing scope has the `code`
+  `missing_scope` and the scope in `body.requiredScope`.
 
 Each action's JSDoc holds its description and the token scopes it needs. `ActionMap`,
 `ActionName`, `ActionParams<N>` and `ActionResponse<N>` are exported for wrapping `dispatch`.

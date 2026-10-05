@@ -216,7 +216,7 @@ type ExtractRelQueryArray<M extends AnyDesc, TMap extends ModelMap, Q extends Re
 type InferHasMany<
   M extends AnyDesc,
   TMap extends ModelMap,
-  QM extends HasManyQuery<M, TMap>,
+  QM extends AbstractHasManyQuery,
 > = QM extends {type: "count"}
   ? number
   : QM extends {type: "exists"}

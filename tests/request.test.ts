@@ -387,15 +387,60 @@ test("dispatch posts the params and returns the payload", async () => {
   expect(res).toEqual({id: "c1", accountSeq: 12});
 });
 
-test("a refused action's reason becomes the message", async () => {
+test("an action refused for a missing scope has the code missing_scope", async () => {
   server.use(
     http.post("https://api.example.com/dispatch/cards/update", () =>
-      HttpResponse.json({payload: {error: "requires card:write"}}, {status: 403})
+      HttpResponse.json(
+        {
+          error: "missing_scope",
+          message: "requires card:write",
+          requiredScope: "card:write",
+          statusCode: 403,
+        },
+        {status: 403}
+      )
     )
   );
   const err = await getFetchers()
     .dispatch("cards/update", {id: "c1" as CardId, status: "done"})
     .catch((e) => e);
   expect(err).toBeInstanceOf(CodecksApiError);
-  expect(err).toMatchObject({status: 403, code: null, message: "[403] requires card:write"});
+  expect(err).toMatchObject({
+    status: 403,
+    code: "missing_scope",
+    message: "[403] requires card:write",
+    body: {requiredScope: "card:write"},
+  });
+});
+
+test("an action's own refusal becomes the message", async () => {
+  server.use(
+    http.post("https://api.example.com/dispatch/cards/update", () =>
+      HttpResponse.json({payload: {error: "Can't start a hero card directly"}}, {status: 400})
+    )
+  );
+  const err = await getFetchers()
+    .dispatch("cards/update", {id: "c1" as CardId, status: "started"})
+    .catch((e) => e);
+  expect(err).toMatchObject({
+    status: 400,
+    code: null,
+    message: "[400] Can't start a hero card directly",
+  });
+});
+
+// "https://api.example.com" + "dispatch/…" used to become "https://api.example.comdispatch/…".
+test("a baseUrl without a trailing slash still reaches the API", async () => {
+  const urls: string[] = [];
+  server.use(
+    http.post("https://api.example.com/dispatch/cards/update", ({request}) => {
+      urls.push(request.url);
+      return HttpResponse.json({payload: null});
+    })
+  );
+  await buildFetchers({baseUrl: "https://api.example.com", token: "cdxat_id_secret"}).dispatch(
+    "cards/update",
+    {id: "c1" as CardId, status: "done"}
+  );
+  expect(urls).toEqual(["https://api.example.com/dispatch/cards/update"]);
 });

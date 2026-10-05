@@ -8,9 +8,13 @@ type OrderString<T extends string> = `${T}` | `-${T}`;
 
 type OrderExpr<T> = {field: T; dir: "asc" | "desc"};
 
+// `& string` rather than a conditional: for `AnyDesc` (`EnsureModelQuery`'s check) it yields
+// `string`, where `keyof any extends string` is false and would reject every order string.
+type FieldName<T extends AnyDesc> = keyof T["fields"] & string;
+
 export type Order<T extends AnyDesc> =
-  | OneOrArray<OrderString<keyof T["fields"] extends string ? keyof T["fields"] : never>>
-  | OneOrArray<OrderExpr<T["fields"]>>;
+  | OneOrArray<OrderString<FieldName<T>>>
+  | OneOrArray<OrderExpr<FieldName<T>>>;
 
 type Operators<T> =
   // TODO: Extend!

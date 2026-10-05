@@ -89,7 +89,7 @@ export class CodecksApiError extends Error {
     // whichever of the two is a snake_case identifier.
     const isCode = (v: string | null): v is string => v !== null && /^[a-z][a-z0-9_]*$/.test(v);
     const code = [str(obj.error), str(obj.message)].find(isCode) ?? null;
-    // A refused action answers `{payload: {error: "requires card:write"}}`.
+    // An action that refuses inside its own logic answers `{payload: {error: "Can't start a hero card directly"}}`.
     const actionError = str((obj.payload as {error?: unknown} | null | undefined)?.error);
     super(
       `[${status}] ${str(obj.message) ?? code ?? actionError ?? (str(body) || "request failed")}`
@@ -122,7 +122,8 @@ export const configuredFetch = async <T>(
   if (opts.headers) {
     for (const [key, value] of Object.entries(opts.headers)) headers.set(key, value);
   }
-  const fullUrl = opts.baseUrl ? `${opts.baseUrl}${url}` : url;
+  const base = opts.baseUrl?.replace(/\/?$/, "/");
+  const fullUrl = base ? `${base}${url}` : url;
   const signal = opts.timeout ? AbortSignal.timeout(opts.timeout) : init.signal;
 
   const r = await fetchImpl(fullUrl, {...init, headers, signal});
