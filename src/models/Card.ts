@@ -22,7 +22,7 @@ export const cardDesc = makeModel({
   fields: {
     accountId: f.belongsTo({}).type<AccountId>(),
     /**
-     * The card's number within the organization. It's stored as a plan number starting at 1. The
+     * The card's number within the organization. It's stored as a plain number starting at 1. The
      * web app shows it encoded as a short code after a `$`, like `$12a`. Check [this
      * gist](https://gist.github.com/danielberndt/19857421171dbb07a3681f0ea6634049) for how to
      * translate the number into the shown string and vice versa.
@@ -106,9 +106,9 @@ export const cardDesc = makeModel({
     /** The run the card is planned into. */
     sprintId: f.belongsTo({optional: true}).type<SprintId>(),
     /**
-     * `snoozing` will only be set on `started` card that nobody changed for the organization's
-     * snooze time (`account.statusChangeDurations`); it can't be written. `derivedStatus` is the
-     * state the web app shows.
+     * `snoozing` is only set on a `started` card that nobody changed for the organization's snooze
+     * time (`account.statusChangeDurations`). It can't be written. `derivedStatus` is the state the
+     * web app shows.
      */
     status: f.typed({}).type<"not_started" | "started" | "snoozing" | "done" | (string & {})>(),
     /** Every tag on the card: the `#tags` in `content` and the `masterTags`, each once. */

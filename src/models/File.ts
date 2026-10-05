@@ -5,6 +5,7 @@ import type {AccountId} from "./Account";
 import type {UserId} from "./User";
 
 export type FileId = Nominal<string, "file">;
+/** An uploaded file, like a card attachment or a cover image. */
 export const fileDesc = makeModel({
   name: "file",
   fields: {
@@ -12,8 +13,10 @@ export const fileDesc = makeModel({
     createdAt: f.date({}),
     id: f.id<FileId>(),
     name: f.string({}),
+    /** In bytes. `0` once the file is deleted. */
     size: f.int({}),
     uploaderId: f.belongsTo({optional: true}).type<UserId>(),
+    /** Where to download the file. `""` once the file is deleted. */
     url: f.string({}),
   },
   relations: {

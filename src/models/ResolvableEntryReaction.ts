@@ -7,7 +7,10 @@ import type {ResolvableEntryId} from "./ResolvableEntry";
 import type {UserId} from "./User";
 
 export type ResolvableEntryReactionId = Nominal<string, "resolvableEntryReaction">;
-/** @experimental `preview` in the Codecks API: may change in any release. */
+/**
+ * An emoji reaction to a comment. A user can add each emoji only once per comment.
+ * @experimental `preview` in the Codecks API: may change in any release.
+ */
 export const resolvableEntryReactionDesc = makeModel({
   name: "resolvableEntryReaction",
   stability: "preview",
@@ -24,7 +27,10 @@ export const resolvableEntryReactionDesc = makeModel({
     resolvableId: f.belongsTo({stability: "preview"}).type<ResolvableId>(),
     /** @experimental `preview` in the Codecks API: may change in any release. */
     userId: f.belongsTo({stability: "preview"}).type<UserId>(),
-    /** @experimental `preview` in the Codecks API: may change in any release. */
+    /**
+     * `{"type": "emoji", "value": "👍"}`. `value` is the emoji character itself.
+     * @experimental `preview` in the Codecks API: may change in any release.
+     */
     value: f.typed({stability: "preview"}).type<{type: "emoji" | (string & {}); value: string}>(),
   },
   relations: {

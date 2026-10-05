@@ -4,7 +4,10 @@ import type {AccountId} from "./Account";
 import type {CardId} from "./Card";
 import type {UserId} from "./User";
 
-/** @experimental `preview` in the Codecks API: may change in any release. */
+/**
+ * One version of a card and what changed in it. The web app shows these in the card's history.
+ * @experimental `preview` in the Codecks API: may change in any release.
+ */
 export const cardHistoryDesc = makeModel({
   name: "cardHistory",
   stability: "preview",
@@ -15,9 +18,16 @@ export const cardHistoryDesc = makeModel({
     cardId: f.belongsTo({stability: "preview"}).type<CardId>(),
     /** @experimental `preview` in the Codecks API: may change in any release. */
     changerId: f.belongsTo({optional: true, stability: "preview"}).type<UserId>(),
-    /** @experimental `preview` in the Codecks API: may change in any release. */
+    /**
+     * The changed fields: `[old, new]` for single values, `{"+": added, "-": removed}` for lists,
+     * and an encoded text diff for `content` and `title`.
+     * @experimental `preview` in the Codecks API: may change in any release.
+     */
     diff: f.typed({stability: "preview"}).type<{[key: string]: unknown}>(),
-    /** @experimental `preview` in the Codecks API: may change in any release. */
+    /**
+     * The card's `version` after this change.
+     * @experimental `preview` in the Codecks API: may change in any release.
+     */
     version: f.int({stability: "preview"}),
     /** @experimental `preview` in the Codecks API: may change in any release. */
     versionCreatedAt: f.date({stability: "preview"}),

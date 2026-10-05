@@ -4,6 +4,10 @@ import type {AccountId} from "./Account";
 import type {ProjectId} from "./Project";
 import type {SprintConfigId} from "./SprintConfig";
 
+/**
+ * Links a run config to a project whose cards can be planned into its runs. A run config with
+ * `isGlobal` is linked to every project.
+ */
 export const sprintProjectDesc = makeModel({
   name: "sprintProject",
   fields: {

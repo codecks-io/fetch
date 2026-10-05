@@ -6,17 +6,23 @@ import type {ResolvableId} from "./Resolvable";
 import type {UserId} from "./User";
 
 export type ResolvableEntryId = Nominal<string, "resolvableEntry">;
+/** A comment in a comment thread. */
 export const resolvableEntryDesc = makeModel({
   name: "resolvableEntry",
   fields: {
     authorId: f.belongsTo({}).type<UserId>(),
     cardId: f.belongsTo({}).type<CardId>(),
+    /** Markdown. Mentions are stored as `@[userId:<id>]`. */
     content: f.string({}),
     createdAt: f.date({}),
     entryId: f.id<ResolvableEntryId>(),
+    /** When the comment was last edited. Same as `createdAt` if it never was. */
     lastChangedAt: f.date({}),
     resolvableId: f.belongsTo({}).type<ResolvableId>(),
-    /** @experimental `preview` in the Codecks API: may change in any release. */
+    /**
+     * Starts at 1 and goes up with every edit.
+     * @experimental `preview` in the Codecks API: may change in any release.
+     */
     version: f.int({stability: "preview"}),
   },
   relations: {

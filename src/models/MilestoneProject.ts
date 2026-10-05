@@ -4,6 +4,10 @@ import type {AccountId} from "./Account";
 import type {MilestoneId} from "./Milestone";
 import type {ProjectId} from "./Project";
 
+/**
+ * Links a milestone to a project whose cards and decks can use it. A milestone with `isGlobal` is
+ * linked to every project.
+ */
 export const milestoneProjectDesc = makeModel({
   name: "milestoneProject",
   fields: {
