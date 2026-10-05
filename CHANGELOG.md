@@ -1,20 +1,8 @@
 # @codecks/fetch
 
-## 1.1.0
+## 2.0.0
 
-### Minor Changes
-
-- ec386b2: `dispatch(name, params)` calls an action of the API, e.g.
-  `dispatch("cards/update", {id, status: "done"})`. Its params and response are typed from the API
-  reference for all of its actions; each action's JSDoc holds its description and required scopes,
-  and `schema/actions.md` lists them. Enums in params are closed: only the values the API accepts
-  type-check. `ActionMap`, `ActionName`, `ActionParams` and `ActionResponse` are exported.
-
-  A refused action throws a `CodecksApiError` whose message is the API's reason, e.g.
-  `[403] requires card:write`.
-
-  **Breaking** for custom loaders: `DataLoader` needs a `dispatch(name, params)` method that posts
-  the params to `dispatch/<name>` and returns the answer's `payload`.
+### Major Changes
 
 - cfb4c0b: The models are generated from the Codecks API reference, so they only contain what the API documents, typed the way the API documents them.
   - Undocumented models, fields and relations are gone from the types and from `schema/*.md`, e.g.
@@ -44,6 +32,20 @@
     `deck.isDeleted`, `user.kind`, `isIntegration` and `profileImage`, `project.coverFile`,
     `file.createdAt` and `uploader`, `deck.deckType`, `resolvable.reopenedAt` and
     `reopenedBy`, `sprintConfig.runLabelTemplate`, and `date` on the progress models.
+
+### Minor Changes
+
+- ec386b2: `dispatch(name, params)` calls an action of the API, e.g.
+  `dispatch("cards/update", {id, status: "done"})`. Its params and response are typed from the API
+  reference for all of its actions; each action's JSDoc holds its description and required scopes,
+  and `schema/actions.md` lists them. Enums in params are closed: only the values the API accepts
+  type-check. `ActionMap`, `ActionName`, `ActionParams` and `ActionResponse` are exported.
+
+  A refused action throws a `CodecksApiError` whose message is the API's reason, e.g.
+  `[403] requires card:write`.
+
+  **Breaking** for custom loaders: `DataLoader` needs a `dispatch(name, params)` method that posts
+  the params to `dispatch/<name>` and returns the answer's `payload`.
 
 - 6629cba: Models, fields and relations carry the API reference's descriptions as JSDoc, so editors show what
   e.g. `card.title` or `card.masterTags` holds; `schema/*.md` lists them too.
