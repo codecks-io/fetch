@@ -1,5 +1,15 @@
 # @codecks/fetch
 
+## 2.1.0
+
+### Minor Changes
+
+- 4b12090: - Export `createSimpleLoader` and its `TransportOptions`, the loader `buildFetchers` uses. With
+  `buildFetchersFromLoader` it takes any auth headers, or a `fetch` that adds them per request, e.g.
+  a session and an `X-Account` that change at runtime.
+  - `buildLegacyFetchers` without a `baseUrl` reaches `https://api.codecks.io/`; it sent a relative
+    url.
+
 ## 2.0.1
 
 ### Patch Changes
