@@ -1,6 +1,13 @@
 import {test, expect, vi} from "vitest";
 import {http, HttpResponse} from "msw";
-import {buildFetchers, buildLegacyFetchers, CodecksApiError, type CardId} from "../src";
+import {
+  buildFetchers,
+  buildFetchersFromLoader,
+  buildLegacyFetchers,
+  CodecksApiError,
+  createSimpleLoader,
+  type CardId,
+} from "../src";
 import {beforeAll, afterEach, afterAll} from "vitest";
 import {server} from "./mocks/node";
 
@@ -443,4 +450,27 @@ test("a baseUrl without a trailing slash still reaches the API", async () => {
     {id: "c1" as CardId, status: "done"}
   );
   expect(urls).toEqual(["https://api.example.com/dispatch/cards/update"]);
+});
+
+// Only `buildFetchers` filled in the default, so the other loaders sent a relative url.
+test("a loader without a baseUrl reaches api.codecks.io", async () => {
+  const urls: string[] = [];
+  server.use(
+    http.post("https://api.codecks.io/dispatch/cards/update", ({request}) => {
+      urls.push(request.url);
+      return HttpResponse.json({payload: null});
+    })
+  );
+  await buildLegacyFetchers({accessToken: "3f2a9c"}).dispatch("cards/update", {
+    id: "c1" as CardId,
+    status: "done",
+  });
+  await buildFetchersFromLoader(createSimpleLoader({authHeaders: {}})).dispatch("cards/update", {
+    id: "c1" as CardId,
+    status: "done",
+  });
+  expect(urls).toEqual([
+    "https://api.codecks.io/dispatch/cards/update",
+    "https://api.codecks.io/dispatch/cards/update",
+  ]);
 });

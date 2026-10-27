@@ -57,11 +57,7 @@ export const bearerTransport = (opts: FetchOptions): TransportOptions => {
       "Expected an API token starting with `cdxat_` or `cdxut_`. Legacy tokens need `buildLegacyFetchers`."
     );
   }
-  return {
-    baseUrl: DEFAULT_BASE_URL,
-    ...rest,
-    authHeaders: {Authorization: `Bearer ${token}`},
-  };
+  return {...rest, authHeaders: {Authorization: `Bearer ${token}`}};
 };
 
 export const legacyTransport = (opts: LegacyFetchOptions): TransportOptions => {
@@ -122,8 +118,7 @@ export const configuredFetch = async <T>(
   if (opts.headers) {
     for (const [key, value] of Object.entries(opts.headers)) headers.set(key, value);
   }
-  const base = opts.baseUrl?.replace(/\/?$/, "/");
-  const fullUrl = base ? `${base}${url}` : url;
+  const fullUrl = `${(opts.baseUrl ?? DEFAULT_BASE_URL).replace(/\/?$/, "/")}${url}`;
   const signal = opts.timeout ? AbortSignal.timeout(opts.timeout) : init.signal;
 
   const r = await fetchImpl(fullUrl, {...init, headers, signal});

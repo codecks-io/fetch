@@ -388,9 +388,31 @@ node_modules/@codecks/fetch/schema/
 
 Point your LLM's project instructions (e.g. `CLAUDE.md`) at `schema/overview.md` as a starting point, then let it drill into individual model files as needed.
 
+## Custom transport
+
+`createSimpleLoader` is the loader `buildFetchers` uses, without the token check. Give it the auth
+headers yourself, or a `fetch` that adds them per request, e.g. when the session or organization
+can change at runtime:
+
+```ts
+import {buildFetchersFromLoader, createSimpleLoader} from "@codecks/fetch";
+
+const {dispatch} = buildFetchersFromLoader(
+  createSimpleLoader({
+    authHeaders: {},
+    fetch: (url, init) => {
+      const headers = new Headers(init?.headers);
+      headers.set("Authorization", `Bearer ${currentSession()}`);
+      headers.set("X-Account", currentSubdomain());
+      return fetch(url, {...init, headers});
+    },
+  })
+);
+```
+
 ## Custom loader
 
-For advanced use cases (batching, caching, custom transports), you can provide your own `DataLoader`:
+For advanced use cases (batching, caching), you can provide your own `DataLoader`:
 
 ```ts
 import {buildFetchersFromLoader} from "@codecks/fetch";

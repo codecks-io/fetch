@@ -21,7 +21,9 @@ export type {
   DataLoader,
   FetchOptions,
   LegacyFetchOptions,
+  TransportOptions,
 } from "./loaders/loader-utils";
+export {createSimpleLoader};
 export type {ActionMap} from "./models/actions";
 export type * from "./models/definitions";
 export type * from "./models/ids";
